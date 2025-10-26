@@ -1,5 +1,5 @@
 <?php
-namespace Mapping\Entity;
+namespace CustomMapping\Entity;
 
 use Omeka\Entity\AbstractEntity;
 use Omeka\Entity\Item;

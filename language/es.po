@@ -221,7 +221,7 @@ msgstr ""
 msgid "Basemap provider"
 msgstr "Proveedor de cartografía base"
 
-#: view/mapping/site/index/browse.phtml:34
+#: view/custom-mapping/site/index/browse.phtml:34
 msgid "Search Map"
 msgstr "Buscar mapa"
 

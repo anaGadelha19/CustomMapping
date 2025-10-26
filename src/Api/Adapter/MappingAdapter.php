@@ -1,5 +1,5 @@
 <?php
-namespace Mapping\Api\Adapter;
+namespace CustomMapping\Api\Adapter;
 
 use Doctrine\ORM\QueryBuilder;
 use Omeka\Api\Adapter\AbstractEntityAdapter;
@@ -16,12 +16,12 @@ class MappingAdapter extends AbstractEntityAdapter
 
     public function getRepresentationClass()
     {
-        return 'Mapping\Api\Representation\MappingRepresentation';
+        return 'CustomMapping\Api\Representation\MappingRepresentation';
     }
 
     public function getEntityClass()
     {
-        return 'Mapping\Entity\Mapping';
+        return 'CustomMapping\Entity\Mapping';
     }
 
     public function hydrate(Request $request, EntityInterface $entity,

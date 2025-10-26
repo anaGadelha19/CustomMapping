@@ -71,13 +71,13 @@ class ItemMapping extends AbstractResourceMapper
         $entityManager = $job->getEntityManager();
 
         // Delete all Mapping entities that belong to this local item.
-        $dql = 'DELETE Mapping\Entity\Mapping m WHERE m.item = :itemId';
+        $dql = 'DELETE CustomMapping\Entity\Mapping m WHERE m.item = :itemId';
         $query = $entityManager->createQuery($dql);
         $query->setParameter('itemId', $localResource['o:id']);
         $query->execute();
 
         // Delete all MappingFeature entities that belong to this local item.
-        $dql = 'DELETE Mapping\Entity\MappingFeature m WHERE m.item = :itemId';
+        $dql = 'DELETE CustomMapping\Entity\MappingFeature m WHERE m.item = :itemId';
         $query = $entityManager->createQuery($dql);
         $query->setParameter('itemId', $localResource['o:id']);
         $query->execute();

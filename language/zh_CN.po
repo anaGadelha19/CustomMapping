@@ -216,7 +216,7 @@ msgstr ""
 msgid "Basemap provider"
 msgstr "基准图提供者"
 
-#: view/mapping/site/index/browse.phtml:34
+#: view/custom-mapping/site/index/browse.phtml:34
 msgid "Search Map"
 msgstr "搜索地图"
 

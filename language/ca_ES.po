@@ -222,7 +222,7 @@ msgstr "%s és"
 msgid "Basemap provider"
 msgstr "Proveïdor del mapa"
 
-#: view/mapping/site/index/browse.phtml:34
+#: view/custom-mapping/site/index/browse.phtml:34
 msgid "Search Map"
 msgstr "Cerca al mapa"
 

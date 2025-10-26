@@ -21,7 +21,7 @@ msgstr ""
 "Language: mn\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: Module.php:206 view/mapping/index/form.phtml:26
+#: Module.php:206 view/custom-mapping/index/form.phtml:26
 msgid "Mapping"
 msgstr ""
 
@@ -108,66 +108,66 @@ msgid "Clear Inputs"
 msgstr ""
 
 #: view/common/block-layout/mapping-block.phtml:29
-#: view/mapping/site/index/browse.phtml:32
+#: view/custom-mapping/site/index/browse.phtml:32
 msgid "View media"
 msgstr ""
 
 #: view/common/block-layout/mapping-block.phtml:33
-#: view/mapping/site/index/browse.phtml:36
+#: view/custom-mapping/site/index/browse.phtml:36
 msgid "View item"
 msgstr ""
 
-#: view/mapping/index/advanced-search.phtml:5
+#: view/custom-mapping/index/advanced-search.phtml:5
 msgid "Kilometers"
 msgstr "Километр"
 
-#: view/mapping/index/advanced-search.phtml:5
+#: view/custom-mapping/index/advanced-search.phtml:5
 msgid "Miles"
 msgstr "Мийл (Miles)"
 
-#: view/mapping/index/advanced-search.phtml:9
+#: view/custom-mapping/index/advanced-search.phtml:9
 msgid "Geographic Address"
 msgstr "Газарзүйн хаяг"
 
-#: view/mapping/index/advanced-search.phtml:17
+#: view/custom-mapping/index/advanced-search.phtml:17
 msgid "Geographic Radius"
 msgstr ""
 
-#: view/mapping/index/advanced-search.phtml:25
+#: view/custom-mapping/index/advanced-search.phtml:25
 msgid "Geographic Radius Unit"
 msgstr ""
 
-#: view/mapping/index/form.phtml:32
+#: view/custom-mapping/index/form.phtml:32
 msgid "Close Me"
 msgstr ""
 
-#: view/mapping/index/form.phtml:33
+#: view/custom-mapping/index/form.phtml:33
 msgid "Marker Image"
 msgstr ""
 
-#: view/mapping/index/form.phtml:34
+#: view/custom-mapping/index/form.phtml:34
 msgid " No Image"
 msgstr "Зураггүй"
 
-#: view/mapping/index/form.phtml:55
+#: view/custom-mapping/index/form.phtml:55
 msgid "Marker Label"
 msgstr ""
 
-#: view/mapping/index/form.phtml:58
+#: view/custom-mapping/index/form.phtml:58
 msgid "Select Marker Image"
 msgstr ""
 
-#: view/mapping/index/show.phtml:37
+#: view/custom-mapping/index/show.phtml:37
 #, php-format
 msgid "Media: %s"
 msgstr ""
 
-#: view/mapping/index/show.phtml:41
+#: view/custom-mapping/index/show.phtml:41
 #, php-format
 msgid "Item: %s"
 msgstr ""
 
-#: view/mapping/site/index/browse.phtml:17
+#: view/custom-mapping/site/index/browse.phtml:17
 msgid "Search Map"
 msgstr "Газрын зураг хайх"
 

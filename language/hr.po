@@ -233,7 +233,7 @@ msgstr ""
 " \n"
 " "
 
-#: view/mapping/site/index/browse.phtml:34
+#: view/custom-mapping/site/index/browse.phtml:34
 msgid "Search Map"
 msgstr ""
 "Pretraži kartu\n"

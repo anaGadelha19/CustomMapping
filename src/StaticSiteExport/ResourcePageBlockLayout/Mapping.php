@@ -2,7 +2,7 @@
 namespace Mapping\StaticSiteExport\ResourcePageBlockLayout;
 
 use ArrayObject;
-use Mapping\Module;
+use CustomMapping\Module;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 use Omeka\Api\Representation\ItemRepresentation;
 use Omeka\Job\JobInterface;

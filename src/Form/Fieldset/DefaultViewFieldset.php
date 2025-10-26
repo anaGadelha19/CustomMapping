@@ -1,8 +1,8 @@
 <?php
-namespace Mapping\Form\Fieldset;
+namespace CustomMapping\Form\Fieldset;
 
 use Laminas\Form\Fieldset;
-use Mapping\Module;
+use CustomMapping\Module;
 
 class DefaultViewFieldset extends Fieldset
 {

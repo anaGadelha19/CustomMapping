@@ -1,8 +1,8 @@
 <?php
-namespace Mapping\Site\BlockLayout;
+namespace CustomMapping\Site\BlockLayout;
 
 use Laminas\View\Renderer\PhpRenderer;
-use Mapping\Form\BlockLayoutMapForm;
+use CustomMapping\Form\BlockLayoutMapForm;
 use Omeka\Api\Representation\SiteRepresentation;
 use Omeka\Api\Representation\SitePageRepresentation;
 use Omeka\Api\Representation\SitePageBlockRepresentation;
@@ -66,6 +66,7 @@ class Map extends AbstractMap
             ]);
         }
         $formHtml[] = $view->blockAttachmentsForm($block, true, ['has_features' => true]);
+ 
         return implode('', $formHtml);
     }
 

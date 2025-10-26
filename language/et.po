@@ -216,7 +216,7 @@ msgstr ""
 msgid "Basemap provider"
 msgstr "Põhikaardi teenusepakkuja"
 
-#: view/mapping/site/index/browse.phtml:34
+#: view/custom-mapping/site/index/browse.phtml:34
 msgid "Search Map"
 msgstr "Otsi kaardilt"
 

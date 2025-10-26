@@ -1,10 +1,10 @@
 <?php
-namespace Mapping\Site\BlockLayout;
+namespace CustomMapping\Site\BlockLayout;
 
 use Composer\Semver\Comparator;
 use Doctrine\DBAL\Connection;
 use Laminas\View\Renderer\PhpRenderer;
-use Mapping\Module;
+use CustomMapping\Module;
 use NumericDataTypes\DataType\Timestamp;
 use Omeka\Api\Exception\NotFoundException;
 use Omeka\Module\Manager as ModuleManager;
@@ -22,41 +22,41 @@ abstract class AbstractMap extends AbstractBlockLayout
 
     public function prepareForm(PhpRenderer $view)
     {
-        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet/dist/leaflet.css', 'Mapping'));
-        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.css', 'Mapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet/dist/leaflet.css', 'CustomMapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.css', 'CustomMapping'));
 
-        $view->headLink()->appendStylesheet($view->assetUrl('css/mapping-block-form.css', 'Mapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('css/mapping-block-form.css', 'CustomMapping'));
 
-        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet/dist/leaflet.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet-providers/leaflet-providers.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.js', 'Mapping'));
+        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet/dist/leaflet.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet-providers/leaflet-providers.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.js', 'CustomMapping'));
 
-        $view->headScript()->appendFile($view->assetUrl('js/mapping-block-form.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('js/control.default-view.js', 'Mapping'));
+        $view->headScript()->appendFile($view->assetUrl('js/mapping-block-form.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('js/control.default-view.js', 'CustomMapping'));
     }
 
     public function prepareRender(PhpRenderer $view)
     {
-        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet/dist/leaflet.css', 'Mapping'));
-        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet.markercluster/dist/MarkerCluster.css', 'Mapping'));
-        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css', 'Mapping'));
-        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet-groupedlayercontrol/dist/leaflet.groupedlayercontrol.min.css', 'Mapping'));
-        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.css', 'Mapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet/dist/leaflet.css', 'CustomMapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet.markercluster/dist/MarkerCluster.css', 'CustomMapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css', 'CustomMapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet-groupedlayercontrol/dist/leaflet.groupedlayercontrol.min.css', 'CustomMapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.css', 'CustomMapping'));
 
-        $view->headLink()->appendStylesheet($view->assetUrl('css/mapping.css', 'Mapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('css/mapping.css', 'CustomMapping'));
 
-        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet/dist/leaflet.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet-providers/leaflet-providers.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet-groupedlayercontrol/dist/leaflet.groupedlayercontrol.min.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('node_modules/Leaflet.Deflate/dist/L.Deflate.js', 'Mapping'));
+        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet/dist/leaflet.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet-providers/leaflet-providers.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet-groupedlayercontrol/dist/leaflet.groupedlayercontrol.min.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('node_modules/Leaflet.Deflate/dist/L.Deflate.js', 'CustomMapping'));
         $view->headScript()->appendFile('https://cdn.jsdelivr.net/npm/@allmaps/leaflet/dist/bundled/allmaps-leaflet-1.9.umd.js');
 
-        $view->headScript()->appendFile($view->assetUrl('js/MappingModule.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('js/control.opacity.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('js/control.fit-bounds.js', 'Mapping'));
-        $view->headScript()->appendFile($view->assetUrl('js/mapping-block.js', 'Mapping'));
+        $view->headScript()->appendFile($view->assetUrl('js/MappingModule.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('js/control.opacity.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('js/mapping-block.js', 'CustomMapping'));
     }
 
     /**

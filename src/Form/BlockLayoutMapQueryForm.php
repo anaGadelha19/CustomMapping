@@ -1,5 +1,5 @@
 <?php
-namespace Mapping\Form;
+namespace CustomMapping\Form;
 
 use Laminas\Form\Form;
 

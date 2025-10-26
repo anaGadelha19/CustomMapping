@@ -1,5 +1,5 @@
 <?php
-namespace Mapping\Form\Fieldset;
+namespace CustomMapping\Form\Fieldset;
 
 use Laminas\Form\Fieldset;
 use NumericDataTypes\Form\Element\NumericPropertySelect;

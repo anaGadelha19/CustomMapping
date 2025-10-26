@@ -218,7 +218,7 @@ msgstr ""
 msgid "Basemap provider"
 msgstr "Πάροχος χάρτη υπόβαθρου"
 
-#: view/mapping/site/index/browse.phtml:34
+#: view/custom-mapping/site/index/browse.phtml:34
 msgid "Search Map"
 msgstr "Αναζήτηση στον χάρτη"
 

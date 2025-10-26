@@ -1,4 +1,7 @@
+
 const MappingModule = {
+
+
     /**
      *
      * @param {DOM object} mapDiv The map div DOM object
@@ -10,9 +13,11 @@ const MappingModule = {
      *      - excludeFitBoundsControl: (bool) Exclude the fit bounds control?
      * @returns array
      */
-    initializeMap: function(mapDiv, mapOptions, options) {
+    initializeMap: function (mapDiv, mapOptions, options) {
         mapOptions.fullscreenControl = true;
         mapOptions.worldCopyJump = true;
+
+
 
         // Initialize the map and features.
         const map = new L.map(mapDiv, mapOptions);
@@ -80,7 +85,7 @@ const MappingModule = {
      * @param {object}   featuresByResource        An optional object
      * @param {int}      featuresPage              The
      */
-    loadFeaturesAsync: function(
+    loadFeaturesAsync: function (
         map,
         featuresPoint,
         featuresPoly,
@@ -95,7 +100,7 @@ const MappingModule = {
         // Observe a map interaction (done programmatically or by the user).
         if ('undefined' === typeof map.mapping_map_interaction) {
             map.mapping_map_interaction = false;
-            map.on('zoomend moveend', function(e) {
+            map.on('zoomend moveend', function (e) {
                 map.mapping_map_interaction = true;
             });
         }
@@ -106,7 +111,7 @@ const MappingModule = {
         };
         // Get features from the server, one page at a time.
         $.get(getFeaturesUrl, getFeaturesQuery)
-            .done(function(featuresData) {
+            .done(function (featuresData) {
                 if (!featuresData.length) {
                     // This page returned no features. Stop recursion.
                     onFeaturesLoad();
@@ -118,12 +123,12 @@ const MappingModule = {
                     const resourceId = featureData[1];
                     const featureGeography = featureData[2];
                     L.geoJSON(featureGeography, {
-                        onEachFeature: function(feature, layer) {
+                        onEachFeature: function (feature, layer) {
                             const popup = L.popup();
                             layer.bindPopup(popup);
                             if (getFeaturePopupContentUrl) {
-                                layer.on('popupopen', function() {
-                                    $.get(getFeaturePopupContentUrl, {feature_id: featureId}, function(popupContent) {
+                                layer.on('popupopen', function () {
+                                    $.get(getFeaturePopupContentUrl, { feature_id: featureId }, function (popupContent) {
                                         popup.setContent(popupContent);
                                     });
                                 });
@@ -160,7 +165,7 @@ const MappingModule = {
      * @param {L.layer} layer
      * @param {string} type
      */
-    addFeature: function(map, featuresPoint, featuresPoly, layer, type) {
+    addFeature: function (map, featuresPoint, featuresPoly, layer, type) {
         switch (type) {
             case 'Point':
                 featuresPoint.addLayer(layer);
@@ -168,12 +173,12 @@ const MappingModule = {
             case 'LineString':
             case 'Polygon':
             case 'MultiPolygon':
-                layer.on('popupopen', function() {
-                    layer.setStyle({color: '#9fc6fc'});
+                layer.on('popupopen', function () {
+                    layer.setStyle({ color: '#9fc6fc' });
                     map.fitBounds(layer.getBounds());
                 });
-                layer.on('popupclose', function() {
-                    layer.setStyle({color: '#3388ff'});
+                layer.on('popupclose', function () {
+                    layer.setStyle({ color: '#3388ff' });
                 });
                 featuresPoly.addLayer(layer);
                 break;

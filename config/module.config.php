@@ -1,13 +1,13 @@
 <?php
-namespace Mapping;
+namespace CustomMapping;
 
 use Osii\Service\ResourceMapper\ResourceMapperFactory;
 
 return [
     'api_adapters' => [
         'invokables' => [
-            'mappings' => Api\Adapter\MappingAdapter::class,
-            'mapping_features' => Api\Adapter\MappingFeatureAdapter::class,
+            'custom_mappings' => Api\Adapter\MappingAdapter::class,
+            'custom_mapping_features' => Api\Adapter\MappingFeatureAdapter::class,
         ],
     ],
     'entity_manager' => [
@@ -22,7 +22,7 @@ return [
         ],
         'functions' => [
             'numeric' => [
-                'ST_Buffer' => 'Mapping\Spatial\ORM\Query\AST\Functions\StBuffer',
+                'ST_Buffer' => 'CustomMapping\Spatial\ORM\Query\AST\Functions\StBuffer',
                 'ST_Intersects' => 'LongitudeOne\Spatial\ORM\Query\AST\Functions\Standard\StIntersects',
                 'ST_GeomFromText' => 'LongitudeOne\Spatial\ORM\Query\AST\Functions\Standard\StGeomFromText',
                 'ST_GeometryType' => 'LongitudeOne\Spatial\ORM\Query\AST\Functions\Standard\StGeometryType',
@@ -51,9 +51,9 @@ return [
     ],
     'form_elements' => [
         'factories' => [
-            'Mapping\Form\Fieldset\TimelineFieldset' => Service\Form\Fieldset\TimelineFieldsetFactory::class,
-            'Mapping\Form\Element\CopyCoordinates' => Service\Form\Element\CopyCoordinatesFactory::class,
-            'Mapping\Form\Element\UpdateFeatures' => Service\Form\Element\UpdateFeaturesFactory::class,
+            'CustomMapping\Form\Fieldset\TimelineFieldset' => Service\Form\Fieldset\TimelineFieldsetFactory::class,
+            'CustomMapping\Form\Element\CopyCoordinates' => Service\Form\Element\CopyCoordinatesFactory::class,
+            'CustomMapping\Form\Element\UpdateFeatures' => Service\Form\Element\UpdateFeaturesFactory::class,
         ],
     ],
     'csv_import' => [
@@ -78,13 +78,13 @@ return [
     ],
     'navigation_links' => [
         'invokables' => [
-            'mapping' => Site\Navigation\Link\MapBrowse::class,
+            'custom_mapping' => Site\Navigation\Link\MapBrowse::class,
         ],
     ],
     'controllers' => [
         'invokables' => [
-            'Mapping\Controller\Admin\Index' => Controller\Admin\IndexController::class,
-            'Mapping\Controller\Site\Index' => Controller\Site\IndexController::class,
+            'CustomMapping\Controller\Admin\Index' => Controller\Admin\IndexController::class,
+            'CustomMapping\Controller\Site\Index' => Controller\Site\IndexController::class,
         ],
     ],
     'collecting_media_types' => [
@@ -96,12 +96,12 @@ return [
         'routes' => [
             'admin' => [
                 'child_routes' => [
-                    'mapping' => [
+                    'custom-mapping' => [
                         'type' => 'Segment',
                         'options' => [
-                            'route' => '/mapping/:controller[/:action]',
+                            'route' => '/custom-mapping/:controller[/:action]',
                             'defaults' => [
-                                '__NAMESPACE__' => 'Mapping\Controller\Admin',
+                                '__NAMESPACE__' => 'CustomMapping\Controller\Admin',
                                 'controller' => 'index',
                                 'action' => 'index',
                             ],
@@ -115,12 +115,12 @@ return [
             ],
             'site' => [
                 'child_routes' => [
-                    'mapping' => [
+                    'custom-mapping' => [
                         'type' => 'Segment',
                         'options' => [
-                            'route' => '/mapping/:controller[/:action]',
+                            'route' => '/custom-mapping/:controller[/:action]',
                             'defaults' => [
-                                '__NAMESPACE__' => 'Mapping\Controller\Site',
+                                '__NAMESPACE__' => 'CustomMapping\Controller\Site',
                                 'controller' => 'index',
                                 'action' => 'index',
                             ],
@@ -156,12 +156,12 @@ return [
     ],
     'static_site_export' => [
         'vendor_packages' => [
-            'omeka-mapping' => sprintf('%s/modules/Mapping/src/StaticSiteExport/omeka-mapping', OMEKA_PATH),
-            'leaflet' => sprintf('%s/modules/Mapping/src/StaticSiteExport/leaflet', OMEKA_PATH),
-            'leaflet.markercluster' => sprintf('%s/modules/Mapping/src/StaticSiteExport/leaflet.markercluster', OMEKA_PATH),
+            'omeka-mapping' => sprintf('%s/modules/CustomMapping/src/StaticSiteExport/omeka-mapping', OMEKA_PATH),
+            'leaflet' => sprintf('%s/modules/CustomMapping/src/StaticSiteExport/leaflet', OMEKA_PATH),
+            'leaflet.markercluster' => sprintf('%s/modules/CustomMapping/src/StaticSiteExport/leaflet.markercluster', OMEKA_PATH),
         ],
         'shortcodes' => [
-            'omeka-mapping-features' => sprintf('%s/modules/Mapping/src/StaticSiteExport/omeka-mapping-features.html', OMEKA_PATH),
+            'omeka-mapping-features' => sprintf('%s/modules/CustomMapping/src/StaticSiteExport/omeka-mapping-features.html', OMEKA_PATH),
         ],
         'block_layouts' => [
             'invokables' => [

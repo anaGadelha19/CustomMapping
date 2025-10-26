@@ -1,15 +1,15 @@
 <?php
-namespace Mapping;
+namespace CustomMapping;
 
 use Composer\Semver\Comparator;
 use Doctrine\ORM\Events;
-use Mapping\Db\Event\Listener\DetachOrphanMappings;
+use CustomMapping\Db\Event\Listener\DetachOrphanMappings;
 use Omeka\Api\Exception as ApiException;
 use Omeka\Api\Request;
-use Mapping\Api\Representation\MappingRepresentation;
-use Mapping\Entity\MappingFeature;
-use Mapping\Form\Element\CopyCoordinates;
-use Mapping\Form\Element\UpdateFeatures;
+use CustomMapping\Api\Representation\MappingRepresentation;
+use CustomMapping\Entity\MappingFeature;
+use CustomMapping\Form\Element\CopyCoordinates;
+use CustomMapping\Form\Element\UpdateFeatures;
 use Omeka\Module\AbstractModule;
 use Omeka\Permissions\Acl;
 use Laminas\EventManager\Event;
@@ -79,13 +79,13 @@ class Module extends AbstractModule
         // Set the corresponding visibility rules on Mapping resources.
         $em = $this->getServiceLocator()->get('Omeka\EntityManager');
         $filter = $em->getFilters()->getFilter('resource_visibility');
-        $filter->addRelatedEntity('Mapping\Entity\Mapping', 'item_id');
-        $filter->addRelatedEntity('Mapping\Entity\MappingFeature', 'item_id');
+        $filter->addRelatedEntity('CustomMapping\Entity\Mapping', 'item_id');
+        $filter->addRelatedEntity('CustomMapping\Entity\MappingFeature', 'item_id');
 
         $acl = $this->getServiceLocator()->get('Omeka\Acl');
         $acl->allow(
             null,
-            'Mapping\Controller\Site\Index'
+            'CustomMapping\Controller\Site\Index'
         );
         $acl->allow(
             [Acl::ROLE_AUTHOR,
@@ -94,19 +94,19 @@ class Module extends AbstractModule
                 Acl::ROLE_REVIEWER,
                 Acl::ROLE_SITE_ADMIN,
             ],
-            ['Mapping\Api\Adapter\MappingFeatureAdapter',
-                'Mapping\Api\Adapter\MappingAdapter',
-                'Mapping\Entity\MappingFeature',
-                'Mapping\Entity\Mapping',
+            ['CustomMapping\Api\Adapter\MappingFeatureAdapter',
+                'CustomMapping\Api\Adapter\MappingAdapter',
+                'CustomMapping\Entity\MappingFeature',
+                'CustomMapping\Entity\Mapping',
             ]
         );
 
         $acl->allow(
             null,
-            ['Mapping\Api\Adapter\MappingFeatureAdapter',
-                'Mapping\Api\Adapter\MappingAdapter',
-                'Mapping\Entity\MappingFeature',
-                'Mapping\Entity\Mapping',
+            ['CustomMapping\Api\Adapter\MappingFeatureAdapter',
+                'CustomMapping\Api\Adapter\MappingAdapter',
+                'CustomMapping\Entity\MappingFeature',
+                'CustomMapping\Entity\Mapping',
             ],
             ['show', 'browse', 'read', 'search']
         );
@@ -121,18 +121,18 @@ class Module extends AbstractModule
     public function install(ServiceLocatorInterface $serviceLocator)
     {
         $conn = $serviceLocator->get('Omeka\Connection');
-        $conn->exec("CREATE TABLE mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
-        $conn->exec("CREATE TABLE mapping (id INT AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, bounds VARCHAR(255) DEFAULT NULL, UNIQUE INDEX UNIQ_49E62C8A126F525E (item_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
-        $conn->exec("ALTER TABLE mapping_feature ADD CONSTRAINT FK_34879C46126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
-        $conn->exec("ALTER TABLE mapping_feature ADD CONSTRAINT FK_34879C46EA9FDD75 FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
-        $conn->exec("ALTER TABLE mapping ADD CONSTRAINT FK_49E62C8A126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
+        $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
+        $conn->exec("CREATE TABLE custom_mapping (id INT AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, bounds VARCHAR(255) DEFAULT NULL, UNIQUE INDEX UNIQ_49E62C8A126F525E (item_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
+        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
+        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46EA9FDD75 FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
+        $conn->exec("ALTER TABLE custom_mapping ADD CONSTRAINT FK_49E62C8A126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
     }
 
     public function uninstall(ServiceLocatorInterface $serviceLocator)
     {
         $conn = $serviceLocator->get('Omeka\Connection');
-        $conn->exec('DROP TABLE IF EXISTS mapping;');
-        $conn->exec('DROP TABLE IF EXISTS mapping_feature');
+        $conn->exec('DROP TABLE IF EXISTS custom_mapping;');
+        $conn->exec('DROP TABLE IF EXISTS custom_mapping_feature;');
     }
 
     public function upgrade($oldVersion, $newVersion, ServiceLocatorInterface $services)
@@ -142,7 +142,7 @@ class Module extends AbstractModule
         }
         if (Comparator::lessThan($oldVersion, '2.0.0-alpha1')) {
             $conn = $services->get('Omeka\Connection');
-            $conn->exec("UPDATE site_setting SET id = 'mapping_advanced_search_add_feature_presence' WHERE id = 'mapping_advanced_search_add_marker_presence'");
+            $conn->exec("UPDATE site_setting SET id = 'custom_mapping_advanced_search_add_feature_presence' WHERE id = 'custom_mapping_advanced_search_add_marker_presence'");
         }
         if (Comparator::lessThan($oldVersion, '2.1.0')) {
             $this->upgradeToV2_1($services);
@@ -164,17 +164,17 @@ class Module extends AbstractModule
         };
 
         // Create the mapping_feature table.
-        $conn->exec("CREATE TABLE mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
-        $conn->exec("ALTER TABLE mapping_feature ADD CONSTRAINT FK_34879C46126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
-        $conn->exec("ALTER TABLE mapping_feature ADD CONSTRAINT FK_34879C46EA9FDD75 FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
+        $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
+        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
+        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46EA9FDD75 FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
 
         // Prepare the insert statement.
-        $insertSql = 'INSERT INTO mapping_feature (id, item_id, media_id, `label`, geography) VALUES (:id, :item_id, :media_id, :label, ST_PointFromText(:point))';
+        $insertSql = 'INSERT INTO custom_mapping_feature (id, item_id, media_id, `label`, geography) VALUES (:id, :item_id, :media_id, :label, ST_PointFromText(:point))';
         $insertStmt = $conn->prepare($insertSql);
 
         // Iterate all rows in mapping_marker, converting longitudes and
         // latitudes to point geometries.
-        $markers = $conn->iterateAssociative('SELECT * FROM mapping_marker');
+        $markers = $conn->iterateAssociative('SELECT * FROM custom_mapping_marker');
         foreach ($markers as $marker) {
             if (!(is_numeric($marker['lng']) && is_numeric($marker['lat']))) {
                 // Invalid coordinates. Longitude and latitude must be numeric.
@@ -195,7 +195,7 @@ class Module extends AbstractModule
         }
 
         // Drop the mapping_marker table now that we're done with it.
-        $conn->executeStatement('DROP TABLE mapping_marker;');
+        $conn->executeStatement('DROP TABLE custom_mapping_marker;');
     }
 
     /**
@@ -280,7 +280,7 @@ class Module extends AbstractModule
         );
         // Add the mapping fields to advanced search pages.
         $sharedEventManager->attach(
-            'Mapping\Controller\Site\Index',
+            'CustomMapping\Controller\Site\Index',
             'view.advanced_search',
             [$this, 'filterMapBrowseAdvancedSearch']
         );
@@ -747,12 +747,12 @@ class Module extends AbstractModule
             $mappingFeatureAlias = $itemAdapter->createAlias();
             if ($query['has_features']) {
                 $qb->innerJoin(
-                    'Mapping\Entity\MappingFeature', $mappingFeatureAlias,
+                    'CustomMapping\Entity\MappingFeature', $mappingFeatureAlias,
                     'WITH', "$mappingFeatureAlias.item = omeka_root.id"
                 );
             } else {
                 $qb->leftJoin(
-                    'Mapping\Entity\MappingFeature', $mappingFeatureAlias,
+                    'CustomMapping\Entity\MappingFeature', $mappingFeatureAlias,
                     'WITH', "$mappingFeatureAlias.item = omeka_root.id"
                 );
                 $qb->andWhere($qb->expr()->isNull($mappingFeatureAlias));
@@ -862,7 +862,7 @@ class Module extends AbstractModule
             // Create mapping
             $subRequest = new \Omeka\Api\Request('create', 'mappings');
             $subRequest->setContent($mappingData);
-            $mapping = new \Mapping\Entity\Mapping;
+            $mapping = new \CustomMapping\Entity\Mapping;
             $mapping->setItem($event->getParam('entity'));
             $mappingsAdapter->hydrateEntity($subRequest, $mapping, new \Omeka\Stdlib\ErrorStore);
             $mappingsAdapter->getEntityManager()->persist($mapping);
@@ -890,7 +890,7 @@ class Module extends AbstractModule
 
         $existingFeatures = [];
         if ($item->getId()) {
-            $dql = 'SELECT mf FROM Mapping\Entity\MappingFeature mf INDEX BY mf.id WHERE mf.item = ?1';
+            $dql = 'SELECT mf FROM CustomMapping\Entity\MappingFeature mf INDEX BY mf.id WHERE mf.item = ?1';
             $query = $entityManager->createQuery($dql)->setParameter(1, $item->getId());
             $existingFeatures = $query->getResult();
         }
@@ -911,7 +911,7 @@ class Module extends AbstractModule
             } else {
                 $subRequest = new \Omeka\Api\Request('create', 'mapping_features');
                 $subRequest->setContent($featureData);
-                $feature = new \Mapping\Entity\MappingFeature;
+                $feature = new \CustomMapping\Entity\MappingFeature;
                 $feature->setItem($item);
                 $featuresAdapter->hydrateEntity($subRequest, $feature, new \Omeka\Stdlib\ErrorStore);
                 $entityManager->persist($feature);
@@ -1000,7 +1000,7 @@ class Module extends AbstractModule
         $services = $this->getServiceLocator();
         $entityManager = $services->get('Omeka\EntityManager');
 
-        $dql = 'DELETE FROM Mapping\Entity\MappingFeature m WHERE m.item = :item_id';
+        $dql = 'DELETE FROM CustomMapping\Entity\MappingFeature m WHERE m.item = :item_id';
         $entityManager->createQuery($dql)
             ->setParameter('item_id', $item->getId())
             ->execute();
@@ -1042,7 +1042,7 @@ class Module extends AbstractModule
             FROM Omeka\Entity\Media m
             WHERE m.item = :item_id';
         $dqlFeature = "SELECT f
-            FROM Mapping\Entity\MappingFeature f
+            FROM CustomMapping\Entity\MappingFeature f
             WHERE f.item = :item_id
             AND ST_GeometryType(f.geography) = 'POINT'
             AND ST_Intersects(ST_Buffer(ST_GeomFromText(:buffer_center_point), 0.00001), f.geography) = 1";
@@ -1199,7 +1199,7 @@ class Module extends AbstractModule
         $entityManager = $services->get('Omeka\EntityManager');
 
         $dql = 'SELECT m
-            FROM Mapping\Entity\MappingFeature m
+            FROM CustomMapping\Entity\MappingFeature m
             WHERE m.item = :item_id';
         $features = $entityManager->createQuery($dql)
             ->setParameter('item_id', $item->getId())

@@ -220,7 +220,7 @@ msgstr ""
 msgid "Basemap provider"
 msgstr "Fornecedor de mapa base"
 
-#: view/mapping/site/index/browse.phtml:34
+#: view/custom-mapping/site/index/browse.phtml:34
 msgid "Search Map"
 msgstr "Pesquisar o mapa"
 

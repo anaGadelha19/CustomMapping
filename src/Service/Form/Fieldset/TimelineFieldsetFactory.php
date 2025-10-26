@@ -1,8 +1,8 @@
 <?php
-namespace Mapping\Service\Form\Fieldset;
+namespace CustomMapping\Service\Form\Fieldset;
 
 use Interop\Container\ContainerInterface;
-use Mapping\Form\Fieldset\TimelineFieldset;
+use CustomMapping\Form\Fieldset\TimelineFieldset;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class TimelineFieldsetFactory implements FactoryInterface

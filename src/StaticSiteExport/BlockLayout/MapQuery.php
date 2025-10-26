@@ -2,7 +2,7 @@
 namespace Mapping\StaticSiteExport\BlockLayout;
 
 use ArrayObject;
-use Mapping\Module;
+use CustomMapping\Module;
 use Omeka\Api\Representation\SitePageBlockRepresentation;
 use Omeka\Job\JobInterface;
 use StaticSiteExport\BlockLayout\BlockLayoutInterface;

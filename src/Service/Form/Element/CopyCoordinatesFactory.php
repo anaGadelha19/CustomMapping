@@ -1,8 +1,8 @@
 <?php
-namespace Mapping\Service\Form\Element;
+namespace CustomMapping\Service\Form\Element;
 
 use Interop\Container\ContainerInterface;
-use Mapping\Form\Element\CopyCoordinates;
+use CustomMapping\Form\Element\CopyCoordinates;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class CopyCoordinatesFactory implements FactoryInterface

@@ -216,7 +216,7 @@ msgstr ""
 msgid "Basemap provider"
 msgstr ""
 
-#: view/mapping/site/index/browse.phtml:34
+#: view/custom-mapping/site/index/browse.phtml:34
 msgid "Search Map"
 msgstr "Hae"
 

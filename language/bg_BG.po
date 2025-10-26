@@ -218,7 +218,7 @@ msgstr ""
 msgid "Basemap provider"
 msgstr "Доставчик на базови карти"
 
-#: view/mapping/site/index/browse.phtml:34
+#: view/custom-mapping/site/index/browse.phtml:34
 msgid "Search Map"
 msgstr "Търсене на карта"
 

@@ -1,5 +1,5 @@
 <?php
-namespace Mapping\Controller\Admin;
+namespace CustomMapping\Controller\Admin;
 
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;

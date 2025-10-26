@@ -1,5 +1,5 @@
 <?php
-namespace Mapping\View\Helper;
+namespace CustomMapping\View\Helper;
 
 use Laminas\Form\View\Helper\AbstractHelper;
 use Laminas\Form\ElementInterface;
