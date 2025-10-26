@@ -1,26 +1,26 @@
 <?php
-$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet/dist/leaflet.css', 'Mapping'));
-$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet-draw/dist/leaflet.draw.css', 'Mapping'));
-$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet-geosearch/dist/geosearch.css', 'Mapping'));
-$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.css', 'Mapping'));
+$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet/dist/leaflet.css', 'CustomMapping'));
+$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet-draw/dist/leaflet.draw.css', 'CustomMapping'));
+$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet-geosearch/dist/geosearch.css', 'CustomMapping'));
+$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.css', 'CustomMapping'));
 
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet/dist/leaflet.js', 'Mapping'));
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-draw/dist/leaflet.draw.js', 'Mapping'));
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-providers/leaflet-providers.js', 'Mapping'));
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-geosearch/dist/bundle.min.js', 'Mapping'));
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.js', 'Mapping'));
+$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet/dist/leaflet.js', 'CustomMapping'));
+$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-draw/dist/leaflet.draw.js', 'CustomMapping'));
+$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-providers/leaflet-providers.js', 'CustomMapping'));
+$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-geosearch/dist/bundle.min.js', 'CustomMapping'));
+$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.js', 'CustomMapping'));
 
-$this->headScript()->appendFile($this->assetUrl('js/mapping-form.js', 'Mapping'));
-$this->headScript()->appendFile($this->assetUrl('js/control.opacity.js', 'Mapping'));
-$this->headScript()->appendFile($this->assetUrl('js/control.fit-bounds.js', 'Mapping'));
-$this->headScript()->appendFile($this->assetUrl('js/control.default-view.js', 'Mapping'));
+$this->headScript()->appendFile($this->assetUrl('js/mapping-form.js', 'CustomMapping'));
+$this->headScript()->appendFile($this->assetUrl('js/control.opacity.js', 'CustomMapping'));
+$this->headScript()->appendFile($this->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
+$this->headScript()->appendFile($this->assetUrl('js/control.default-view.js', 'CustomMapping'));
 
 $mapping = null;
 $features = [];
 $itemMedia = [];
 if (isset($item)) {
     $mapping = $this->api()->searchOne('mappings', ['item_id' => $item->id()])->getContent();
-    $features = $this->api()->search('mapping_features', ['item_id' => $item->id()])->getContent();
+    $features = $this->api()->search('custom_mapping_features', ['item_id' => $item->id()])->getContent();
     $itemMedia = $item->media();
 }
 ?>

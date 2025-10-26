@@ -19,7 +19,7 @@ $elementRadiusUnit = (new Form\Element\Select('mapping_radius_unit'))
     ->setValue($query['mapping_radius_unit'] ?? '')
     ->setAttribute('id', 'mapping_radius_unit');
 
-$this->headLink()->appendStylesheet($this->assetUrl('css/mapping-advanced-search.css', 'Mapping'));
+$this->headLink()->appendStylesheet($this->assetUrl('css/mapping-advanced-search.css', 'CustomMapping'));
 ?>
 
 <div id="mapping-geographic-location" class="field" role="group" aria-labelledby="mapping-geographic-location-label">

@@ -11,7 +11,7 @@ class MappingAdapter extends AbstractEntityAdapter
 {
     public function getResourceName()
     {
-        return 'mappings';
+        return 'custom_mappings';
     }
 
     public function getRepresentationClass()

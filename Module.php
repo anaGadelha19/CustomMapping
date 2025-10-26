@@ -163,7 +163,7 @@ class Module extends AbstractModule
             return ($num === $max) ? $num : fmod(fmod($num - $min, $d) + $d, $d) + $min;
         };
 
-        // Create the mapping_feature table.
+        // Create the custom_mapping_feature table.
         $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46EA9FDD75 FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
@@ -454,20 +454,20 @@ class Module extends AbstractModule
                 $itemCopy = $event->getParam('resource_copy');
                 $copyResources = $event->getParam('copy_resources');
 
-                $mappings = $api->search('mappings', ['item_id' => $item->id()])->getContent();
-                $features = $api->search('mapping_features', ['item_id' => $item->id()])->getContent();
+                $mappings = $api->search('custom_mappings', ['item_id' => $item->id()])->getContent();
+                $features = $api->search('custom_mapping_features', ['item_id' => $item->id()])->getContent();
 
                 foreach ($mappings as $mapping) {
                     $callback = function (&$jsonLd) use ($itemCopy) {
                         $jsonLd['o:item']['o:id'] = $itemCopy->id();
                     };
-                    $copyResources->createResourceCopy('mappings', $mapping, $callback);
+                    $copyResources->createResourceCopy('custom_mappings', $mapping, $callback);
                 }
                 foreach ($features as $feature) {
                     $callback = function (&$jsonLd) use ($itemCopy) {
                         $jsonLd['o:item']['o:id'] = $itemCopy->id();
                     };
-                    $copyResources->createResourceCopy('mapping_features', $feature, $callback);
+                    $copyResources->createResourceCopy('custom_mapping_features', $feature, $callback);
                 }
             }
         );
@@ -489,7 +489,7 @@ class Module extends AbstractModule
                 $featuresQuery = [
                     'item_id' => $itemIds ? $itemIds : 0,
                 ];
-                $features = $api->search('mapping_features', $featuresQuery)->getContent();
+                $features = $api->search('custom_mapping_features', $featuresQuery)->getContent();
 
                 // Set the front matter.
                 $frontMatter = [
@@ -508,21 +508,21 @@ class Module extends AbstractModule
                 ];
 
                 // Make the mapping directory.
-                $job->makeDirectory('content/mapping');
+                $job->makeDirectory('content/custom-mapping');
                 $job->makeFile(
-                    'content/mapping/index.md',
+                    'content/custom-mapping/index.md',
                     sprintf(
                         "%s\n%s",
                         json_encode($frontMatter, JSON_PRETTY_PRINT),
-                        '{{< omeka-mapping-features page="mapping" configResource="mapping-config.json" featuresResource="mapping-features.json">}}'
+                        '{{< omeka-mapping-features page="mapping" configResource="custom-mapping-config.json" featuresResource="custom-mapping-features.json">}}'
                     )
                 );
                 $job->makeFile(
-                    'content/mapping/mapping-features.json',
+                    'content/custom-mapping/custom-mapping-features.json',
                     json_encode(self::prepareMappingFeaturesForStaticSite($features))
                 );
                 $job->makeFile(
-                    'content/mapping/mapping-config.json',
+                    'content/custom-mapping/custom-mapping-config.json',
                     json_encode(self::prepareMappingConfigForStaticSite([]))
                 );
             }
@@ -659,11 +659,11 @@ class Module extends AbstractModule
             $hasFeatures = false;
             switch (get_class($resource)) {
                 case 'Omeka\Api\Representation\ItemRepresentation':
-                    $hasMapping = $view->api()->searchOne('mappings', ['item_id' => $resource->id()])->getTotalResults();
-                    $hasFeatures = $view->api()->search('mapping_features', ['item_id' => $resource->id(), 'limit' => 0])->getTotalResults();
+                    $hasMapping = $view->api()->searchOne('custom_mappings', ['item_id' => $resource->id()])->getTotalResults();
+                    $hasFeatures = $view->api()->search('custom_mapping_features', ['item_id' => $resource->id(), 'limit' => 0])->getTotalResults();
                     break;
                 case 'Omeka\Api\Representation\ItemSetRepresentation':
-                    $hasFeatures = $view->api()->search('mapping_features', ['item_set_id' => $resource->id(), 'limit' => 0])->getTotalResults();
+                    $hasFeatures = $view->api()->search('custom_mapping_features', ['item_set_id' => $resource->id(), 'limit' => 0])->getTotalResults();
                     break;
                 default:
                     return;
@@ -762,7 +762,7 @@ class Module extends AbstractModule
         $radius = $query['mapping_radius'] ?? null;
         $radiusUnit = $query['mapping_radius_unit'] ?? null;
         if (isset($address) && '' !== trim($address) && isset($radius) && is_numeric($radius)) {
-            $mappingFeatureAdapter = $itemAdapter->getAdapter('mapping_features');
+            $mappingFeatureAdapter = $itemAdapter->getAdapter('custom_mapping_features');
             $mappingFeatureAdapter->buildGeographicLocationQuery($qb, $address, $radius, $radiusUnit, $itemAdapter);
         }
     }
@@ -789,13 +789,13 @@ class Module extends AbstractModule
         $jsonLd = $event->getParam('jsonLd');
         $api = $this->getServiceLocator()->get('Omeka\ApiManager');
         // Add mapping data.
-        $response = $api->search('mappings', ['item_id' => $itemId]);
+        $response = $api->search('custom_mappings', ['item_id' => $itemId]);
         foreach ($response->getContent() as $mapping) {
             // There's zero or one mapping per item.
             $jsonLd['o-module-mapping:mapping'] = $mapping;
         }
         // Add feature data.
-        $response = $api->search('mapping_features', ['item_id' => $itemId]);
+        $response = $api->search('custom_mapping_features', ['item_id' => $itemId]);
         foreach ($response->getContent() as $feature) {
             // There's zero or more features per item.
             $jsonLd['o-module-mapping:feature'][] = $feature;
@@ -819,7 +819,7 @@ class Module extends AbstractModule
             return;
         }
 
-        $mappingsAdapter = $itemAdapter->getAdapter('mappings');
+        $mappingsAdapter = $itemAdapter->getAdapter('custom_mappings');
         $mappingData = $request->getValue('o-module-mapping:mapping', []);
 
         $bounds = null;
@@ -885,7 +885,7 @@ class Module extends AbstractModule
 
         $item = $event->getParam('entity');
         $entityManager = $itemAdapter->getEntityManager();
-        $featuresAdapter = $itemAdapter->getAdapter('mapping_features');
+        $featuresAdapter = $itemAdapter->getAdapter('custom_mapping_features');
         $retainFeatureIds = [];
 
         $existingFeatures = [];
@@ -902,14 +902,14 @@ class Module extends AbstractModule
                     // This feature belongs to another item. Ignore it.
                     continue;
                 }
-                $subRequest = new \Omeka\Api\Request('update', 'mapping_features');
+                $subRequest = new \Omeka\Api\Request('update', 'custom_mapping_features');
                 $subRequest->setId($featureData['o:id']);
                 $subRequest->setContent($featureData);
                 $feature = $featuresAdapter->findEntity($featureData['o:id'], $subRequest);
                 $featuresAdapter->hydrateEntity($subRequest, $feature, new \Omeka\Stdlib\ErrorStore);
                 $retainFeatureIds[] = $feature->getId();
             } else {
-                $subRequest = new \Omeka\Api\Request('create', 'mapping_features');
+                $subRequest = new \Omeka\Api\Request('create', 'custom_mapping_features');
                 $subRequest->setContent($featureData);
                 $feature = new \CustomMapping\Entity\MappingFeature;
                 $feature->setItem($item);

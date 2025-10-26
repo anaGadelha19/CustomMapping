@@ -18,7 +18,7 @@ class IndexController extends AbstractActionController
         $featuresQuery['per_page'] = 10000;
         // An empty string would get all features, so set 0 if there are no items.
         $featuresQuery['item_id'] = $itemIds ? $itemIds : 0;
-        $featureResponse = $this->api()->search('mapping_features', $featuresQuery);
+        $featureResponse = $this->api()->search('custom_mapping_features', $featuresQuery);
 
         $features = [];
         foreach ($featureResponse->getContent() as $feature) {
@@ -35,7 +35,7 @@ class IndexController extends AbstractActionController
     public function getFeaturePopupContentAction()
     {
         $featureId = $this->params()->fromQuery('feature_id');
-        $feature = $this->api()->read('mapping_features', $featureId)->getContent();
+        $feature = $this->api()->read('custom_mapping_features', $featureId)->getContent();
 
         $view = new ViewModel;
         $view->setTerminal(true);

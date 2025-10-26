@@ -41,7 +41,7 @@ class MapQuery implements BlockLayoutInterface
         $featuresQuery = [
             'item_id' => $itemIds ? $itemIds : 0,
         ];
-        $features = $api->search('mapping_features', $featuresQuery)->getContent();
+        $features = $api->search('custom_mapping_features', $featuresQuery)->getContent();
         $job->makeFile(
             sprintf('content/pages/%s/mapping-features-%s.json', $block->page()->slug(), $block->id()),
             json_encode(Module::prepareMappingFeaturesForStaticSite($features))
