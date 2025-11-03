@@ -1,4 +1,4 @@
-<?php
+custom_mappings<?php
 $this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet/dist/leaflet.css', 'CustomMapping'));
 $this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet-draw/dist/leaflet.draw.css', 'CustomMapping'));
 $this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet-geosearch/dist/geosearch.css', 'CustomMapping'));
@@ -19,7 +19,7 @@ $mapping = null;
 $features = [];
 $itemMedia = [];
 if (isset($item)) {
-    $mapping = $this->api()->searchOne('mappings', ['item_id' => $item->id()])->getContent();
+    $mapping = $this->api()->searchOne('custom_mappings', ['item_id' => $item->id()])->getContent();
     $features = $this->api()->search('custom_mapping_features', ['item_id' => $item->id()])->getContent();
     $itemMedia = $item->media();
 }

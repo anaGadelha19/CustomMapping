@@ -8,7 +8,7 @@ $hasFeatures = false;
 switch (get_class($resource)) {
     case 'Omeka\Api\Representation\ItemRepresentation':
         $itemsQuery = ['id' => $resource->id()];
-        $mappingResponse = $this->api()->searchOne('mappings', ['item_id' => $resource->id()]);
+        $mappingResponse = $this->api()->searchOne('custom_mappings', ['item_id' => $resource->id()]);
         $mapping = $mappingResponse->getContent();
         $hasMapping = $mappingResponse->getTotalResults();
         $hasFeatures = $this->api()->search('custom_mapping_features', ['item_id' => $resource->id(), 'limit' => 0])->getTotalResults();
@@ -26,13 +26,13 @@ if (!$hasMapping && !$hasFeatures) {
 }
 
 if ($this->status()->isSiteRequest()) {
-    $featuresUrl = $this->url('site/mapping', ['controller' => 'index', 'action' => 'get-features'], true);
-    $featurePopupContentUrl = $this->url('site/mapping', ['controller' => 'index', 'action' => 'get-feature-popup-content'], true);
+    $featuresUrl = $this->url('site/custom-mapping', ['controller' => 'index', 'action' => 'get-features'], true);
+    $featurePopupContentUrl = $this->url('site/custom-mapping', ['controller' => 'index', 'action' => 'get-feature-popup-content'], true);
     $disableClustering = $this->siteSetting('mapping_disable_clustering');
     $basemapProvider = $this->siteSetting('mapping_basemap_provider');
 } else {
-    $featuresUrl = $this->url('admin/mapping', ['controller' => 'index', 'action' => 'get-features']);
-    $featurePopupContentUrl = $this->url('admin/mapping', ['controller' => 'index', 'action' => 'get-feature-popup-content']);
+    $featuresUrl = $this->url('admin/custom-mapping', ['controller' => 'index', 'action' => 'get-features']);
+    $featurePopupContentUrl = $this->url('admin/custom-mapping', ['controller' => 'index', 'action' => 'get-feature-popup-content']);
 }
 
 $this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet/dist/leaflet.css', 'CustomMapping'));

@@ -8,6 +8,7 @@ use Omeka\Entity\Item;
  * Defines the default state of an item's map.
  *
  * @Entity
+ * @Table(name="custom_mapping")
  */
 class Mapping extends AbstractEntity
 {

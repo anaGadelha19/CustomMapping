@@ -8,6 +8,7 @@ use Omeka\Entity\Media;
 
 /**
  * @Entity
+ * @Table(name="custom_mapping_feature")
  */
 class MappingFeature extends AbstractEntity
 {
