@@ -10,38 +10,62 @@ $(document).ready( function() {
  */
 const addFeature = function(feature, featureId, featureLabel, featureMediaId) {
 
-    // Build the feature popup content.
-    const popupContent = $('.mapping-feature-popup-content.template').clone()
-        .removeClass('template')
-        .data('feature', feature)
-        .data('selectedMediaId', featureMediaId)
-        .show();
-    popupContent.find('.mapping-feature-popup-label').val(featureLabel);
+
+    feature.on('click', function(e) {
+    // Get sidebar element
+    const sidebar = $('#mapping-feature-editor');
+
+    // Attach the feature data to the sidebar for use
+    sidebar.data('feature', feature);
+    sidebar.data('selectedMediaId', featureMediaId);
+
+    // Populate sidebar inputs with current feature data
+    sidebar.find('.mapping-feature-popup-label').val(featureLabel);
+
     if (featureMediaId) {
         const mediaThumbnail = $('<img>', {
             src: $(`.mapping-feature-image-select[value="${featureMediaId}"]`).data('mediaThumbnailUrl')
         });
-        popupContent.find('.mapping-feature-popup-image').html(mediaThumbnail);
+        sidebar.find('.mapping-feature-popup-image').html(mediaThumbnail);
     }
-    feature.bindPopup(popupContent[0]);
 
-    // Prepare image selector when feature is clicked.
-    feature.on('click', function(e) {
-        const selectedMediaId = popupContent.data('selectedMediaId');
-        if (selectedMediaId) {
-            $(`.mapping-feature-image-select[value="${selectedMediaId}"]`).prop('checked', true);
-        } else {
-            $('.mapping-feature-image-select:first').prop('checked', true);
-        }
-    });
+    // Open the sidebar
+    Omeka.openSidebar(sidebar);
+});
 
-    // Close image selector when feature closes.
-    feature.on('popupclose', function(e) {
-        const sidebar = $('#mapping-feature-image-selector');
-        if (sidebar.hasClass('active')) {
-            Omeka.closeSidebar(sidebar);
-        }
-    });
+
+    // Build the feature popup content.
+    // const popupContent = $('.mapping-feature-popup-content.template').clone()
+    //     .removeClass('template')
+    //     .data('feature', feature)
+    //     .data('selectedMediaId', featureMediaId)
+    //     .show();
+    // popupContent.find('.mapping-feature-popup-label').val(featureLabel);
+    // if (featureMediaId) {
+    //     const mediaThumbnail = $('<img>', {
+    //         src: $(`.mapping-feature-image-select[value="${featureMediaId}"]`).data('mediaThumbnailUrl')
+    //     });
+    //     popupContent.find('.mapping-feature-popup-image').html(mediaThumbnail);
+    // }
+    // feature.bindPopup(popupContent[0]);
+
+    // // Prepare image selector when feature is clicked.
+    // feature.on('click', function(e) {
+    //     const selectedMediaId = popupContent.data('selectedMediaId');
+    //     if (selectedMediaId) {
+    //         $(`.mapping-feature-image-select[value="${selectedMediaId}"]`).prop('checked', true);
+    //     } else {
+    //         $('.mapping-feature-image-select:first').prop('checked', true);
+    //     }
+    // });
+
+    // // Close image selector when feature closes.
+    // feature.on('popupclose', function(e) {
+    //     const sidebar = $('#mapping-feature-image-selector');
+    //     if (sidebar.hasClass('active')) {
+    //         Omeka.closeSidebar(sidebar);
+    //     }
+    // });
 
     // Wrap marker coordinates that are outside their valid ranges into their
     // valid geographical equivalents. Note that this only applies to markers
@@ -278,12 +302,25 @@ $('#mapping-section').on('o:section-opened', function(e) {
 });
 
 // Handle updating corresponding form input when updating a feature label.
-mappingMap.on('keyup', '.mapping-feature-popup-label', function(e) {
-    const thisInput = $(this);
-    const feature = thisInput.closest('.mapping-feature-popup-content').data('feature');
-    const labelInput = $(`input[name="${getFeatureNamePrefix(feature)}[o:label]"]`);
-    labelInput.val(thisInput.val());
+// mappingMap.on('keyup', '.mapping-feature-popup-label', function(e) {
+//     const thisInput = $(this);
+//     const feature = thisInput.closest('.mapping-feature-popup-content').data('feature');
+//     const labelInput = $(`input[name="${getFeatureNamePrefix(feature)}[o:label]"]`);
+//     labelInput.val(thisInput.val());
+// });
+
+$('#mapping-section').on('keyup', '#mapping-feature-editor .mapping-feature-popup-label', function(e) {
+    const sidebar = $('#mapping-feature-editor');
+    const feature = sidebar.data('feature');
+    if (!feature) return;
+
+    const featureNamePrefix = getFeatureNamePrefix(feature);
+    const labelValue = $(this).val();
+
+    // Update the hidden input
+    $(`input[name="${featureNamePrefix}[o:label]"]`).val(labelValue);
 });
+
 
 // Handle select popup image button.
 $('#mapping-section').on('click', '.mapping-feature-popup-image-select', function(e) {
@@ -291,36 +328,61 @@ $('#mapping-section').on('click', '.mapping-feature-popup-image-select', functio
     Omeka.openSidebar($('#mapping-feature-image-selector'));
 });
 
-// Handle media image selection.
-$('input.mapping-feature-image-select').on('change', function(e) {
-    const thisInput = $(this);
-    const popupContent = $('.mapping-feature-popup-content:visible');
-    const popupLabel = popupContent.find('.mapping-feature-popup-label');
-    const feature = popupContent.data('feature');
+// TODO: Check if this is working
+$('#mapping-section').on('change', 'input.mapping-feature-image-select', function(e) {
+    const sidebar = $('#mapping-feature-editor');
+    const feature = sidebar.data('feature');
+    if (!feature) return;
+
     const featureNamePrefix = getFeatureNamePrefix(feature);
-    const mediaThumbnailUrl = thisInput.data('mediaThumbnailUrl');
-    const mediaTitle = thisInput.data('mediaTitle');
-    let mediaThumbnail = null;
+    const mediaId = $(this).val();
 
-    // Render thumbnail in popup content.
+    // Update hidden input
+    $(`input[name="${featureNamePrefix}[o:media][o:id]"]`).val(mediaId);
+
+    // Update sidebar thumbnail if needed
+    const mediaThumbnailUrl = $(this).data('mediaThumbnailUrl');
     if (mediaThumbnailUrl) {
-        mediaThumbnail = $('<img>', {src: mediaThumbnailUrl});
-        popupContent.find('.mapping-feature-popup-image-select').html('Change feature image');
+        const thumbnail = $('<img>', { src: mediaThumbnailUrl });
+        sidebar.find('.mapping-feature-popup-image').html(thumbnail);
     } else {
-        popupContent.find('.mapping-feature-popup-image-select').html('Select feature image');
+        sidebar.find('.mapping-feature-popup-image').html('');
     }
-    popupContent.find('.mapping-feature-popup-image').html(mediaThumbnail);
-    popupContent.data('selectedMediaId', thisInput.val());
 
-    // Update corresponding form input when updating an image.
-    $(`input[name="${featureNamePrefix}[o:media][o:id]"]`).val(thisInput.val());
-
-    // Set the media title as the popup label if not already set.
-    if (!popupLabel.val()) {
-        const labelInput = $(`input[name="${featureNamePrefix}[o:label]"]`);
-        labelInput.val(mediaTitle);
-        popupLabel.val(mediaTitle);
-    }
+    sidebar.data('selectedMediaId', mediaId);
 });
+
+
+// // Handle media image selection.
+// $('input.mapping-feature-image-select').on('change', function(e) {
+//     const thisInput = $(this);
+//     const popupContent = $('.mapping-feature-popup-content:visible');
+//     const popupLabel = popupContent.find('.mapping-feature-popup-label');
+//     const feature = popupContent.data('feature');
+//     const featureNamePrefix = getFeatureNamePrefix(feature);
+//     const mediaThumbnailUrl = thisInput.data('mediaThumbnailUrl');
+//     const mediaTitle = thisInput.data('mediaTitle');
+//     let mediaThumbnail = null;
+
+//     // Render thumbnail in popup content.
+//     if (mediaThumbnailUrl) {
+//         mediaThumbnail = $('<img>', {src: mediaThumbnailUrl});
+//         popupContent.find('.mapping-feature-popup-image-select').html('Change feature image');
+//     } else {
+//         popupContent.find('.mapping-feature-popup-image-select').html('Select feature image');
+//     }
+//     popupContent.find('.mapping-feature-popup-image').html(mediaThumbnail);
+//     popupContent.data('selectedMediaId', thisInput.val());
+
+//     // Update corresponding form input when updating an image.
+//     $(`input[name="${featureNamePrefix}[o:media][o:id]"]`).val(thisInput.val());
+
+//     // Set the media title as the popup label if not already set.
+//     if (!popupLabel.val()) {
+//         const labelInput = $(`input[name="${featureNamePrefix}[o:label]"]`);
+//         labelInput.val(mediaTitle);
+//         popupLabel.val(mediaTitle);
+//     }
+// });
 
 });

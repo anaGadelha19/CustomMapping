@@ -1,5 +1,5 @@
 $(document).ready(function () {
-
+//  -------------------- Overlays and Map Setup for Mapping Blocks --------------------
     /**
      * Set the map with the default view to a block.
      *

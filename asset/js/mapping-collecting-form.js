@@ -28,6 +28,7 @@ $(document).ready(function() {
             if (marker) {
                 map.removeLayer(marker);
             }
+            console.log("I'm here");
             marker = new L.marker(e.latlng).addTo(map);
             // Account for markers placed outside the CRS's bounds.
             var latLng = marker.getLatLng().wrap();

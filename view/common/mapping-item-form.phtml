@@ -10,7 +10,8 @@ $this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-providers/
 $this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-geosearch/dist/bundle.min.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.js', 'CustomMapping'));
 
-$this->headScript()->appendFile($this->assetUrl('js/mapping-form.js', 'CustomMapping'));
+// JS files loaded here
+$this->headScript()->appendFile($this->assetUrl('js/mapping-form.js', 'CustomMapping')); // Where markers and popup are created
 $this->headScript()->appendFile($this->assetUrl('js/control.opacity.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('js/control.default-view.js', 'CustomMapping'));
@@ -30,8 +31,27 @@ if (isset($item)) {
         data-mapping="<?php echo $this->escapeHtml(json_encode($mapping)); ?>"
         data-features="<?php echo $this->escapeHtml(json_encode($features)); ?>"
     ></div>
-    <div id="mapping-feature-image-selector" class="sidebar">
+    
+    
+    <div id="mapping-feature-editor" class="sidebar">
         <a href="#" class="sidebar-close o-icon-close"><span class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
+        <h3><?php echo $this->translate('Bla image'); ?></h3>
+
+         <div><?php echo $this->translate('Feature label'); ?></div>
+        <input type="text" class="mapping-feature-popup-label" size="30">
+
+        <div class="mapping-feature-popup-image"></div>
+    <button class="mapping-feature-popup-image-select"><?php echo $this->translate('Select feature image'); ?></button>
+    </div>
+    <div id="mapping-form">
+        <input type="hidden" name="o-module-mapping:mapping[o:id]">
+        <input type="hidden" name="o-module-mapping:mapping[o-module-mapping:bounds]" value="">
+    </div>
+
+
+
+    <div id="mapping-feature-image-selector" class="sidebar">
+    <a href="#" class="sidebar-close o-icon-close"><span class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
         <h3><?php echo $this->translate('Feature image'); ?></h3>
         <label><input type="radio" class="mapping-feature-image-select" name="feature-image" value="" checked><?php echo $this->translate(' No Image'); ?></label>
         <?php foreach ($itemMedia as $media): ?>
@@ -46,16 +66,15 @@ if (isset($item)) {
         </label>
         <?php endif; ?>
         <?php endforeach; ?>
-    </div>
-    <div id="mapping-form">
-        <input type="hidden" name="o-module-mapping:mapping[o:id]">
-        <input type="hidden" name="o-module-mapping:mapping[o-module-mapping:bounds]" value="">
-    </div>
+    </div>>
+
+    
 </fieldset>
 
-<div class="mapping-feature-popup-content template">
+<!-- TODO: Place where the marker fields are -> reverse it too see what is needed to add another -->
+<!-- <div class="mapping-feature-popup-content template">
     <div><?php echo $this->translate('Feature label'); ?></div>
     <input type="text" class="mapping-feature-popup-label" size="30">
     <div class="mapping-feature-popup-image"></div>
     <button class="mapping-feature-popup-image-select"><?php echo $this->translate('Select feature image'); ?></button>
-</div>
+</div> -->
