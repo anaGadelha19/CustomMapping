@@ -16,6 +16,12 @@ $this->headScript()->appendFile($this->assetUrl('js/control.opacity.js', 'Custom
 $this->headScript()->appendFile($this->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('js/control.default-view.js', 'CustomMapping'));
 
+
+// css files loaded here
+$this->headLink()->appendStylesheet(
+    $this->assetUrl('css/mapping.css', 'CustomMapping')
+);
+
 $mapping = null;
 $features = [];
 $itemMedia = [];
@@ -25,6 +31,7 @@ if (isset($item)) {
     $itemMedia = $item->media();
 }
 ?>
+
 <fieldset id="mapping-section" class="section">
     <legend id="mapping-legend"><?php echo $this->translate('Mapping'); ?></legend>
     <div id="mapping-map" style="height:700px;"
@@ -35,10 +42,32 @@ if (isset($item)) {
     
     <div id="mapping-feature-editor" class="sidebar">
         <a href="#" class="sidebar-close o-icon-close"><span class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
-        <h3><?php echo $this->translate('Bla image'); ?></h3>
+        <h3><?php echo $this->translate('Marker Details'); ?></h3>
 
-         <div><?php echo $this->translate('Feature label'); ?></div>
-        <input type="text" class="mapping-feature-popup-label" size="30">
+         <div><?php echo $this->translate('Title'); ?></div>
+        <input type="text" class="mapping-feature-label" size="30">
+             <div><?php echo $this->translate('Description'); ?></div>
+        <textarea class="mapping-feature-description" rows="4" cols="30"></textarea>
+
+    <select class="mapping-feature-type">
+        <option value=""> Select type </option>
+        <option value="event">Event</option>
+        <option value="place">Place</option>
+        <option value="person">Person</option>
+    </select>   
+
+
+        <div><?php echo $this->translate('Marker color'); ?></div>
+        <div class="mapping-feature-color-picker">
+            <button type="button" data-color="#db1d08" class="color-swatch red"></button>
+            <button type="button" data-color="#3498db" class="color-swatch blue"></button>
+            <button type="button" data-color="#2ecc71" class="color-swatch green"></button>
+            <button type="button" data-color="#f39c12" class="color-swatch orange"></button>
+            <button type="button" data-color="#9b59b6" class="color-swatch purple"></button>
+        </div>
+
+
+
 
         <div class="mapping-feature-popup-image"></div>
     <button class="mapping-feature-popup-image-select"><?php echo $this->translate('Select feature image'); ?></button>
@@ -47,7 +76,6 @@ if (isset($item)) {
         <input type="hidden" name="o-module-mapping:mapping[o:id]">
         <input type="hidden" name="o-module-mapping:mapping[o-module-mapping:bounds]" value="">
     </div>
-
 
 
     <div id="mapping-feature-image-selector" class="sidebar">

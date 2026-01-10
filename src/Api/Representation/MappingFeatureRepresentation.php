@@ -17,6 +17,9 @@ class MappingFeatureRepresentation extends AbstractEntityRepresentation
             'o:item' => $this->item()->getReference(),
             'o:media' => $media ? $media->getReference() : null,
             'o:label' => $this->label(),
+            'o:description' => $this->description(),
+            'o:marker_color' => $this->markerColor(),
+
             'o-module-mapping:geography-type' => $this->geographyType(),
             'o-module-mapping:geography-coordinates' => $this->geographyCoordinates(),
         ];
@@ -45,6 +48,18 @@ class MappingFeatureRepresentation extends AbstractEntityRepresentation
     {
         return $this->resource->getLabel();
     }
+
+    public function description()
+    {
+        return $this->resource->getDescription();
+    }
+
+    public function markerColor(): ?string
+{
+    return $this->resource->getMarkerColor();
+}
+
+
 
     public function geography()
     {

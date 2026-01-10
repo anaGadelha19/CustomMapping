@@ -93,3 +93,25 @@
   overflow-y: auto;
   max-height: 200px;
 }
+
+/* Color Picker */
+
+.color-swatch {
+
+  border-radius: 50%;
+  min-width: none;
+  min-height: auto;
+  padding: 10px;
+  display: inline-block;
+  margin: 4px 2px;
+}
+
+.color-swatch.selected {
+    border-color: #d4d4d4;
+}
+
+ .color-swatch.red { background-color: #db1d08; }
+ .color-swatch.blue { background-color: #3498db; }
+ .color-swatch.green { background-color: #2ecc71; }
+ .color-swatch.orange { background-color: #f39c12; }
+ .color-swatch.purple { background-color: #9b59b6; }

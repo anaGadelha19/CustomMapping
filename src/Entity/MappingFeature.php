@@ -53,6 +53,18 @@ class MappingFeature extends AbstractEntity
      */
     protected $label;
 
+/**
+     * @Column(
+     *     nullable=true
+     * )
+     */
+    protected $description;
+
+/**
+ * @Column(type="string", nullable=true)
+ */
+protected $markerColor;
+
     /**
      * @Column(
      *     type="geography"
@@ -95,6 +107,25 @@ class MappingFeature extends AbstractEntity
         return $this->label;
     }
 
+     public function getDescription()
+    {
+        return $this->description;
+    }
+
+     public function setDescription(?string $description)
+    {
+        $this->description = is_string($description) && '' === trim($description) ? null : $description;
+    }
+
+    public function getMarkerColor(): ?string
+    {
+        return $this->markerColor;
+    }
+
+    public function setMarkerColor(?string $markerColor): void
+    {
+         $this->markerColor = $markerColor;
+    }
     /**
      * Get geography.
      *

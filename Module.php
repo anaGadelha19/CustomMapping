@@ -121,7 +121,7 @@ class Module extends AbstractModule
     public function install(ServiceLocatorInterface $serviceLocator)
     {
         $conn = $serviceLocator->get('Omeka\Connection');
-        $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
+        $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL,  `description` LONGTEXT DEFAULT NULL, marker_color VARCHAR(50) DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
         $conn->exec("CREATE TABLE custom_mapping (id INT AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, bounds VARCHAR(255) DEFAULT NULL, UNIQUE INDEX UNIQ_49E62C8A126F525E (item_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46EA9FDD75 FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
@@ -147,6 +147,18 @@ class Module extends AbstractModule
         if (Comparator::lessThan($oldVersion, '2.1.0')) {
             $this->upgradeToV2_1($services);
         }
+          if (Comparator::lessThan($oldVersion, '2.2.0')) {
+            $conn->exec("
+            ALTER TABLE custom_mapping_feature
+            ADD description LONGTEXT DEFAULT NULL
+        ");
+
+        if (Comparator::lessThan($oldVersion, '2.2.0')) {
+    $conn = $services->get('Omeka\Connection');
+    $conn->exec("ALTER TABLE custom_mapping_feature ADD marker_color VARCHAR(50) DEFAULT NULL");
+}
+
+    }
     }
 
     /**
@@ -164,12 +176,12 @@ class Module extends AbstractModule
         };
 
         // Create the custom_mapping_feature table.
-        $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
+        $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL, `description` LONGTEXT DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46EA9FDD75 FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
 
         // Prepare the insert statement.
-        $insertSql = 'INSERT INTO custom_mapping_feature (id, item_id, media_id, `label`, geography) VALUES (:id, :item_id, :media_id, :label, ST_PointFromText(:point))';
+        $insertSql = 'INSERT INTO custom_mapping_feature (id, item_id, media_id, `label`, `description`, marker_color, geography) VALUES (:id, :item_id, :media_id, :label, :description, :marker_color, ST_PointFromText(:point))';
         $insertStmt = $conn->prepare($insertSql);
 
         // Iterate all rows in mapping_marker, converting longitudes and
@@ -190,6 +202,8 @@ class Module extends AbstractModule
             $insertStmt->bindValue('item_id', $marker['item_id']);
             $insertStmt->bindValue('media_id', $marker['media_id']);
             $insertStmt->bindValue('label', $marker['label']);
+            $insertStmt->bindValue('description', $marker['description']);
+            $insertStmt->bindValue('marker_color', $marker['marker_color']);
             $insertStmt->bindValue('point', sprintf('POINT(%s %s)', $longitude, $latitude));
             $insertStmt->executeQuery();
         }
