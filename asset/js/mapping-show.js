@@ -1,5 +1,9 @@
 $(document).ready( function() {
 
+    
+let mappingSidebarOpen = false;
+let lastClickedLayer = null;
+
 const mappingMap = $('#mapping-map');
 const mappingData = mappingMap.data('mapping');
 
@@ -56,6 +60,26 @@ MappingModule.loadFeaturesAsync(
 $('#mapping-section').one('o:section-opened', function(e) {
     map.invalidateSize();
     setView();
+});
+
+
+$('#mapping-view-sidebar .sidebar-close').on('click', function(e) {
+    e.preventDefault();
+
+    if (window.mappingIsAdmin) {
+        Omeka.closeSidebar($('#mapping-view-sidebar')); // Admin
+    } else {
+        $('#mapping-view-sidebar').hide(); // Site
+    }
+});
+
+
+map.on('click', function() {
+    if (window.mappingIsAdmin) {
+        Omeka.closeSidebar($('#mapping-view-sidebar'));
+    } else {
+        $('#mapping-view-sidebar').hide();
+    }
 });
 
 });

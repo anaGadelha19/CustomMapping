@@ -40,69 +40,68 @@ if (isset($item)) {
     ></div>
     
     
-    <div id="mapping-feature-editor" class="sidebar">
+    <div id="mapping-feature-editor" class="sidebar" >
         <a href="#" class="sidebar-close o-icon-close"><span class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
         <h3><?php echo $this->translate('Marker Details'); ?></h3>
+        
+        <div class='gap'>   
+                <div><?php echo $this->translate('Title'); ?></div>
+                <input type="text" class="mapping-feature-label" size="30">
+        </div>
 
-         <div><?php echo $this->translate('Title'); ?></div>
-        <input type="text" class="mapping-feature-label" size="30">
-             <div><?php echo $this->translate('Description'); ?></div>
-        <textarea class="mapping-feature-description" rows="4" cols="30"></textarea>
+        <div class='gap'>
+                    <div><?php echo $this->translate('Description'); ?></div>
+                <textarea class="mapping-feature-description" rows="4" cols="30"></textarea>
+        </div>
 
-    <select class="mapping-feature-type">
-        <option value=""> Select type </option>
-        <option value="event">Event</option>
-        <option value="place">Place</option>
-        <option value="person">Person</option>
-    </select>   
+        <div class='gap'>
+                <select class="mapping-feature-type">
+                    <option value=""> Select type </option>
+                    <option value="event">Event</option>
+                    <option value="place">Place</option>
+                    <option value="person">Person</option>
+                </select>   
+        </div>
 
-
-        <div><?php echo $this->translate('Marker color'); ?></div>
-        <div class="mapping-feature-color-picker">
-            <button type="button" data-color="#db1d08" class="color-swatch red"></button>
-            <button type="button" data-color="#3498db" class="color-swatch blue"></button>
-            <button type="button" data-color="#2ecc71" class="color-swatch green"></button>
-            <button type="button" data-color="#f39c12" class="color-swatch orange"></button>
-            <button type="button" data-color="#9b59b6" class="color-swatch purple"></button>
+        <div class='gap'>
+                <div><?php echo $this->translate('Marker color'); ?></div>
+                <div class="mapping-feature-color-picker">
+                    <button type="button" data-color="#db1d08" class="color-swatch red"></button>
+                    <button type="button" data-color="#3498db" class="color-swatch blue"></button>
+                    <button type="button" data-color="#2ecc71" class="color-swatch green"></button>
+                    <button type="button" data-color="#f39c12" class="color-swatch orange"></button>
+                    <button type="button" data-color="#9b59b6" class="color-swatch purple"></button>
+                </div>
         </div>
 
 
 
-
         <div class="mapping-feature-popup-image"></div>
-    <button class="mapping-feature-popup-image-select"><?php echo $this->translate('Select feature image'); ?></button>
-    </div>
-    <div id="mapping-form">
-        <input type="hidden" name="o-module-mapping:mapping[o:id]">
-        <input type="hidden" name="o-module-mapping:mapping[o-module-mapping:bounds]" value="">
-    </div>
+            <button class="mapping-feature-popup-image-select"><?php echo $this->translate('Select feature image'); ?></button>
+        </div>
+        <div id="mapping-form">
+            <input type="hidden" name="o-module-mapping:mapping[o:id]">
+            <input type="hidden" name="o-module-mapping:mapping[o-module-mapping:bounds]" value="">
+        </div>
 
 
-    <div id="mapping-feature-image-selector" class="sidebar">
-    <a href="#" class="sidebar-close o-icon-close"><span class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
-        <h3><?php echo $this->translate('Feature image'); ?></h3>
-        <label><input type="radio" class="mapping-feature-image-select" name="feature-image" value="" checked><?php echo $this->translate(' No Image'); ?></label>
-        <?php foreach ($itemMedia as $media): ?>
-        <?php if ($media->hasThumbnails()): ?>
-        <label style="cursor:pointer;">
-            <input type="radio" class="mapping-feature-image-select" name="feature-image" style="display:none;"
-                value="<?php echo $this->escapeHtml($media->id()); ?>"
-                data-media-thumbnail-url="<?php echo $this->escapeHtml($media->thumbnailUrl('medium')); ?>"
-                data-media-title="<?php echo $this->escapeHtml($media->displayTitle()); ?>">
-            <img src="<?php echo $this->escapeHtml($media->thumbnailUrl('medium')); ?>"
-                title="<?php echo $this->escapeHtml($media->displayTitle()); ?>">
-        </label>
-        <?php endif; ?>
-        <?php endforeach; ?>
-    </div>>
+        <div id="mapping-feature-image-selector" class="sidebar">
+            <a href="#" class="sidebar-close o-icon-close"><span class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
+            <h3><?php echo $this->translate('Feature image'); ?></h3>
+            <label><input type="radio" class="mapping-feature-image-select" name="feature-image" value="" checked><?php echo $this->translate(' No Image'); ?></label>
+            <?php foreach ($itemMedia as $media): ?>
+            <?php if ($media->hasThumbnails()): ?>
+            <label style="cursor:pointer;">
+                <input type="radio" class="mapping-feature-image-select" name="feature-image" style="display:none;"
+                    value="<?php echo $this->escapeHtml($media->id()); ?>"
+                    data-media-thumbnail-url="<?php echo $this->escapeHtml($media->thumbnailUrl('medium')); ?>"
+                    data-media-title="<?php echo $this->escapeHtml($media->displayTitle()); ?>">
+                <img src="<?php echo $this->escapeHtml($media->thumbnailUrl('medium')); ?>"
+                    title="<?php echo $this->escapeHtml($media->displayTitle()); ?>">
+            </label>
+            <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
 
     
 </fieldset>
-
-<!-- TODO: Place where the marker fields are -> reverse it too see what is needed to add another -->
-<!-- <div class="mapping-feature-popup-content template">
-    <div><?php echo $this->translate('Feature label'); ?></div>
-    <input type="text" class="mapping-feature-popup-label" size="30">
-    <div class="mapping-feature-popup-image"></div>
-    <button class="mapping-feature-popup-image-select"><?php echo $this->translate('Select feature image'); ?></button>
-</div> -->

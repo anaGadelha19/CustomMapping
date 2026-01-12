@@ -1,9 +1,10 @@
-.mapping-block, #mapping-map {
+.mapping-block,
+#mapping-map {
   position: relative;
   z-index: 0;
 }
 
-#mapping-map + .pagination  {
+#mapping-map + .pagination {
   margin: 1rem auto;
   width: 100%;
   justify-content: center;
@@ -28,23 +29,23 @@
 .leaflet-container .resource-link img {
   display: block;
   height: auto;
-  margin: 0 0 .5rem;
+  margin: 0 0 0.5rem;
 }
 
 .group-filters {
-  margin-bottom: .5rem;
+  margin-bottom: 0.5rem;
 }
 
 .group-filter {
   display: inline-flex;
-  margin-bottom: .5rem;
+  margin-bottom: 0.5rem;
   border: 1px solid #e3e3e3;
   border-radius: 2px;
 }
 
 .group-filter > * {
   display: inline-block;
-  padding: .25rem .5rem;
+  padding: 0.25rem 0.5rem;
 }
 
 .group-filter-label {
@@ -75,7 +76,7 @@
 
 .mapping-group-item-features-bar .filter {
   display: inline-flex;
-  margin-right: .5rem;
+  margin-right: 0.5rem;
 }
 
 .mapping-show-group-item-features {
@@ -94,12 +95,23 @@
   max-height: 200px;
 }
 
+/* .sidebar{
+  /* background-color: red; 
+
+}
+.mapping-feature-label{
+  /* background-color: red; 
+
+} */
+.gap {
+  margin-bottom: 12px;
+}
+
 /* Color Picker */
 
 .color-swatch {
-
   border-radius: 50%;
-  min-width: none;
+  min-width: 0px;
   min-height: auto;
   padding: 10px;
   display: inline-block;
@@ -107,11 +119,43 @@
 }
 
 .color-swatch.selected {
-    border-color: #d4d4d4;
+  border-color: #424242;
 }
 
- .color-swatch.red { background-color: #db1d08; }
- .color-swatch.blue { background-color: #3498db; }
- .color-swatch.green { background-color: #2ecc71; }
- .color-swatch.orange { background-color: #f39c12; }
- .color-swatch.purple { background-color: #9b59b6; }
+.color-swatch.red {
+  background-color: #db1d08;
+}
+.color-swatch.blue {
+  background-color: #3498db;
+}
+.color-swatch.green {
+  background-color: #2ecc71;
+}
+.color-swatch.orange {
+  background-color: #f39c12;
+}
+.color-swatch.purple {
+  background-color: #9b59b6;
+}
+
+.client-sidebar {
+  position: absolute; 
+  right: 0;
+  width: 360px;
+  max-width: 40%;
+  height: 700px;
+  display: none;
+  border-left: 1px solid #ddd;
+  overflow-y: auto;
+   background: rgba(255, 255, 255, 0.95); 
+  z-index: 1000; 
+
+
+
+  /* 
+ 
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+ 
+  transition: transform 0.3s ease;
+  transform: translateX(100%); hide sidebar offscreen initially */
+}
