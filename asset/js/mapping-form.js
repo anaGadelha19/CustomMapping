@@ -1,3 +1,4 @@
+
 $(document).ready( function() {
 
 
@@ -15,6 +16,8 @@ $(document).ready( function() {
 const addFeature = function(feature, featureId, featureLabel, featureDescription, featureMarkerColor, featureMediaId) {
 
 
+    const markerColor = featureMarkerColor || 'blue';
+
     feature.on('click', function(e) {
     // Get sidebar element
     const sidebar = $('#mapping-feature-editor');
@@ -22,7 +25,7 @@ const addFeature = function(feature, featureId, featureLabel, featureDescription
     // Attach the feature data to the sidebar for use
     sidebar.data('feature', feature);
     sidebar.data('selectedMediaId', featureMediaId);
-    sidebar.data('featureMarkerColor', featureMarkerColor);
+    // sidebar.data('featureMarkerColor', featureMarkerColor);
 
 
     // Populate sidebar inputs with current feature data
@@ -31,7 +34,7 @@ const addFeature = function(feature, featureId, featureLabel, featureDescription
     sidebar.find('.color-swatch').removeClass('selected');
 
     if (featureMarkerColor) {
-        sidebar.find(`.color-swatch[data-color="${featureMarkerColor}"]`)
+        sidebar.find(`.color-swatch[data-color="${markerColor}"]`)
             .addClass('selected');
     }
 
@@ -58,6 +61,9 @@ const addFeature = function(feature, featureId, featureLabel, featureDescription
     drawnFeatures.addLayer(feature);
     const featureGeoJson = feature.toGeoJSON();
     const featureNamePrefix = getFeatureNamePrefix(feature);
+
+    feature._mappingNamePrefix = featureNamePrefix;
+    feature.markerColor = markerColor;
 
 // Step: 1
 
@@ -88,7 +94,7 @@ const addFeature = function(feature, featureId, featureLabel, featureDescription
     mappingForm.append($('<input>', {
         type: 'hidden',
         name: featureNamePrefix + '[o:marker_color]',
-        value: featureMarkerColor || 'blue' // default
+        value: markerColor 
     }));
 
 
@@ -236,6 +242,18 @@ map.addControl(new L.Control.DefaultView(
     {noInitialDefaultView: !defaultBounds}
 ));
 
+function createPinIcon(color) {
+    return L.divIcon({
+        className: 'custom-pin-marker',
+        html: `
+            <div class="pin" style="background:${color};"></div>
+        `,
+        iconSize: [24, 36],
+        iconAnchor: [12, 36],
+        popupAnchor: [0, -36]
+    });
+}
+
 // Step 3
 // Add saved features to the map.
 $.each(featuresData, function(index, data) {
@@ -245,7 +263,11 @@ $.each(featuresData, function(index, data) {
         coordinates: data['o-module-mapping:geography-coordinates'],
     };
 
-    const markerColor = data['o:marker_color'] || 'blue';
+   const markerColor =
+    data['o:marker_color'] !== undefined
+        ? data['o:marker_color']
+        : 'blue';
+
 
 
     console.log('FEATURE DATA', data);
@@ -254,13 +276,16 @@ $.each(featuresData, function(index, data) {
 
     const feature = L.geoJSON(geoJson, {
     pointToLayer: function (feature, latlng) {
-        return L.circleMarker(latlng, {
-            radius: 8,
-            fillColor: markerColor,
-            color: '#000',
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.9
+        // return L.circleMarker(latlng, {
+        //     radius: 8,
+        //     fillColor: markerColor,
+        //     color: '#000',
+        //     weight: 1,
+        //     opacity: 1,
+        //     fillOpacity: 0.9
+        // });
+        return L.marker(latlng, {
+            icon: createPinIcon(markerColor)
         });
     },
     onEachFeature: function (feature, layer) {
@@ -269,8 +294,8 @@ $.each(featuresData, function(index, data) {
             data['o:id'],
             data['o:label'],
             data['o:description'],
+            markerColor,
             featureMediaId,
-            markerColor
         );
     }
 });
@@ -327,9 +352,11 @@ $('#mapping-section').on('o:section-opened', function(e) {
 
 // Helper function to update feature marker color
 function updateFeatureStyle(feature, color) {
-    feature.setStyle({
-        fillColor: color
-    });
+    feature.markerColor = color;
+    feature.setIcon(createPinIcon(color));
+    // feature.setStyle({
+    //     fillColor: color
+    // });
 }
 
 // Step: 2
@@ -366,7 +393,7 @@ $('#mapping-feature-editor').on('click', '.color-swatch', function () {
     if (!feature) return;
 
     const color = $(this).data('color');
-    const featureNamePrefix = getFeatureNamePrefix(feature);
+    const featureNamePrefix = feature._mappingNamePrefix;
 
     $('.color-swatch').removeClass('selected');
     $(this).addClass('selected');
@@ -384,7 +411,7 @@ $('#mapping-section').on('click', '.mapping-feature-popup-image-select', functio
     Omeka.openSidebar($('#mapping-feature-image-selector'));
 });
 
-// TODO: Check if this is working
+
 $('#mapping-section').on('change', 'input.mapping-feature-image-select', function(e) {
     const sidebar = $('#mapping-feature-editor');
     const feature = sidebar.data('feature');

@@ -141,21 +141,37 @@
 .client-sidebar {
   position: absolute; 
   right: 0;
-  width: 360px;
-  max-width: 40%;
-  height: 700px;
+  width: 40%;
+  max-width: 80%;
+  height: 100%;
   display: none;
   border-left: 1px solid #ddd;
   overflow-y: auto;
-   background: rgba(255, 255, 255, 0.95); 
+  background: rgba(255, 255, 255, 0.95); 
   z-index: 1000; 
-
-
-
-  /* 
- 
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
- 
-  transition: transform 0.3s ease;
-  transform: translateX(100%); hide sidebar offscreen initially */
+
+}
+
+.custom-pin-marker .pin {
+    width: 24px;
+    height: 24px;
+    background: #3498db;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    position: relative;
+    left: 2px;
+    top: 2px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+}
+
+.custom-pin-marker .pin::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 8px;
+    left: 8px;
 }

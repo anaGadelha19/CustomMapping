@@ -1,4 +1,3 @@
-
 <!-- This is what is showing inside of the popup -->
 <?php
 $label = $feature->label();
@@ -7,20 +6,26 @@ $media = $feature->media();
 $item = $feature->item();
 $color = $feature->markerColor();
 ?>
-<span class="group-type"  style="<?php echo $color ? 'color:' . $this->escapeHtmlAttr($color) : ''; ?>">
-    
-<?php echo ($label) ? $this->escapeHtml($label) : $this->translate('Item'); ?>
-<?php echo ($description) ? $this->escapeHtml($description) : $this->translate('Item'); ?>
+<span class="group-type" style="<?php echo $color ? 'color:' . $this->escapeHtmlAttr($color) : ''; ?>">
+
+    <h2 class="sidebar-title">
+        <?php echo ($label) ? $this->escapeHtml($label) : $this->translate('Item'); ?>
+    </h2>
+
 </span>
 
-<span class="group-value"><?php echo $item->link($item->displayTitle(null, $this->lang()), null, ['target' => '_blank']); ?></span>
+<span class="group-value">
 
-<?php if ($media): ?>
-<?php echo $this->thumbnail($media, 'medium'); ?>
-<?php endif; ?>
+    <!-- <?php echo $item->link($item->displayTitle(null, $this->lang()), null, ['target' => '_blank']); ?> -->
 
-<?php if ($description): ?>
-    <div class="mapping-feature-description">
-        <?php echo $this->escapeHtml($description); ?>
-    </div>
-<?php endif; ?>
+    <?php if ($media): ?>
+        <?php echo $this->thumbnail($media, 'medium'); ?>
+    <?php endif; ?>
+
+    <?php if (!empty($description)): ?>
+        <p class="sidebar-description">
+            <?php echo $this->escapeHtml($description); ?>
+        </p>
+    <?php endif; ?>
+
+</span>

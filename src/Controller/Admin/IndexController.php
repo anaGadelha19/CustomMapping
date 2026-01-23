@@ -26,6 +26,7 @@ class IndexController extends AbstractActionController
                 $feature->id(),
                 $feature->item()->id(),
                 $feature->geography(),
+                $feature->markerColor(),
             ];
         }
 

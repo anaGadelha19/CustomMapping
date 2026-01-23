@@ -68,6 +68,23 @@ const MappingModule = {
 
     return [map, features, featuresPoint, featuresPoly, baseMaps];
   },
+
+
+  createPinIcon: function(color) {
+      return L.divIcon({
+          className: 'custom-pin-marker',
+          html: `<div class="pin" style="background:${color};"></div>`,
+          iconSize: [24, 36],
+          iconAnchor: [12, 36],
+          popupAnchor: [0, -36]
+      });
+  },
+
+
+
+
+
+
   /**
    * Load features into a map asynchronously.
    *
@@ -119,8 +136,34 @@ const MappingModule = {
         const featureId = featureData[0];
         const resourceId = featureData[1];
         const featureGeography = featureData[2];
+        const markerColor = featureData[3] || "#3498db";
+
         L.geoJSON(featureGeography, {
+          pointToLayer: function (feature, latlng) {
+            // return L.circleMarker(latlng, {
+            //   radius: 8,
+            //   fillColor: markerColor,
+            //   color: "#000",
+            //   weight: 1,
+            //   opacity: 1,
+            //   fillOpacity: 0.9,
+            // });
+             return L.marker(latlng, {
+        icon: MappingModule.createPinIcon(markerColor)
+    });
+          },
+          // TODO: See if it is worth it to change polygnos colors. 
+          // Polygons / Lines use style with custom color
+          // style: function (feature) {
+          //   return {
+          //     color: markerColor,
+          //     fillColor: markerColor,
+          //     weight: 2,
+          //     fillOpacity: 0.4,
+          //   };
+          // },
           onEachFeature: function (feature, layer) {
+
             layer.on("click", function (e) {
               e.originalEvent.stopPropagation(); // prevent map click
 
@@ -136,12 +179,11 @@ const MappingModule = {
                   sidebar.find(".sidebar-content").html(content);
                   if (window.mappingIsAdmin) {
                     // Admin Side
-                    Omeka.openSidebar(sidebar); 
+                    Omeka.openSidebar(sidebar);
                   } else {
                     // Client Side
-                    sidebar.show(); 
+                    sidebar.show();
                   }
-
                 }
               );
             });
