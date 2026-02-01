@@ -45,6 +45,7 @@ const onFeaturesLoad = function() {
     }
 };
 
+
 MappingModule.loadFeaturesAsync(
     map,
     featuresPoint,
@@ -83,3 +84,37 @@ map.on('click', function() {
 });
 
 });
+
+
+function openFeatureSidebar(feature) {
+  const sidebar = document.getElementById('mapping-view-sidebar');
+  if (!sidebar) return;
+
+  // Marker color
+  sidebar.style.setProperty(
+    '--marker-color',
+    feature['o-module-mapping:marker_color'] || '#3b82f6'
+  );
+
+  // Title
+  sidebar.querySelector('.sidebar-title').textContent =
+    feature['o:title'] || '';
+
+  // Description
+  sidebar.querySelector('.sidebar-description').innerHTML =
+    feature['o:description'] || '';
+
+  // Media
+  const mediaContainer = sidebar.querySelector('.sidebar-media');
+  mediaContainer.innerHTML = '';
+
+  if (feature.media_url) {
+    const img = document.createElement('img');
+    img.src = feature.media_url;
+    img.alt = feature['o:title'] || '';
+    mediaContainer.appendChild(img);
+  }
+
+  $('#mapping-view-sidebar').show();
+}
+

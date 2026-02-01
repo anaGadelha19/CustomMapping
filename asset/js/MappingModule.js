@@ -36,7 +36,7 @@ const MappingModule = {
     let defaultProvider;
     try {
       defaultProvider = L.tileLayer.provider(
-        urlParams.get("mapping_basemap_provider")
+        urlParams.get("mapping_basemap_provider"),
       );
     } catch (error) {
       try {
@@ -69,21 +69,26 @@ const MappingModule = {
     return [map, features, featuresPoint, featuresPoly, baseMaps];
   },
 
-
-  createPinIcon: function(color) {
-      return L.divIcon({
-          className: 'custom-pin-marker',
-          html: `<div class="pin" style="background:${color};"></div>`,
-          iconSize: [24, 36],
-          iconAnchor: [12, 36],
-          popupAnchor: [0, -36]
-      });
+  createPinIcon: function (color) {
+    const svg = MappingModule.getPinSvg(color);
+    return L.icon({
+      iconUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
+      iconSize: [42, 70],
+      iconAnchor: [12, 60],
+    });
   },
 
-
-
-
-
+  getPinSvg: function (color) {
+    return `
+      <svg viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="${color}"
+          width="24"
+          height="24"
+          aria-hidden="true">
+        <path d="M12 1.1a6.847 6.847 0 0 0-6.9 6.932c0 3.882 3.789 9.01 6.9 14.968 3.111-5.957 6.9-11.086 6.9-14.968A6.847 6.847 0 0 0 12 1.1zm0 9.9a3 3 0 1 1 3-3 3 3 0 0 1-3 3z"/>
+      </svg>`;
+  },
 
   /**
    * Load features into a map asynchronously.
@@ -109,7 +114,7 @@ const MappingModule = {
     featuresQuery,
     onFeaturesLoad = () => null,
     featuresByResource = {},
-    featuresPage = 1
+    featuresPage = 1,
   ) {
     // Observe a map interaction (done programmatically or by the user).
     if ("undefined" === typeof map.mapping_map_interaction) {
@@ -140,30 +145,20 @@ const MappingModule = {
 
         L.geoJSON(featureGeography, {
           pointToLayer: function (feature, latlng) {
-            // return L.circleMarker(latlng, {
-            //   radius: 8,
-            //   fillColor: markerColor,
-            //   color: "#000",
-            //   weight: 1,
-            //   opacity: 1,
-            //   fillOpacity: 0.9,
-            // });
-             return L.marker(latlng, {
-        icon: MappingModule.createPinIcon(markerColor)
-    });
+            return L.marker(latlng, {
+              icon: MappingModule.createPinIcon(markerColor),
+            });
           },
-          // TODO: See if it is worth it to change polygnos colors. 
-          // Polygons / Lines use style with custom color
-          // style: function (feature) {
-          //   return {
-          //     color: markerColor,
-          //     fillColor: markerColor,
-          //     weight: 2,
-          //     fillOpacity: 0.4,
-          //   };
-          // },
-          onEachFeature: function (feature, layer) {
 
+          style: function (feature) {
+            return {
+              color: markerColor,
+              fillColor: markerColor,
+              weight: 2,
+              fillOpacity: 0.4,
+            };
+          },
+          onEachFeature: function (feature, layer) {
             layer.on("click", function (e) {
               e.originalEvent.stopPropagation(); // prevent map click
 
@@ -176,7 +171,13 @@ const MappingModule = {
                 { feature_id: featureId },
                 function (content) {
                   const sidebar = $("#mapping-view-sidebar");
-                  sidebar.find(".sidebar-content").html(content);
+                  // sidebar.find(".sidebar-content").html(content);
+
+                  MappingModule.renderSidebarContent(
+                    sidebar,
+                    content,
+                    markerColor,
+                  );
                   if (window.mappingIsAdmin) {
                     // Admin Side
                     Omeka.openSidebar(sidebar);
@@ -184,7 +185,7 @@ const MappingModule = {
                     // Client Side
                     sidebar.show();
                   }
-                }
+                },
               );
             });
 
@@ -193,7 +194,7 @@ const MappingModule = {
               featuresPoint,
               featuresPoly,
               layer,
-              feature.type
+              feature.type,
             );
 
             if (!(resourceId in featuresByResource)) {
@@ -214,10 +215,35 @@ const MappingModule = {
         featuresQuery,
         onFeaturesLoad,
         featuresByResource,
-        ++featuresPage
+        ++featuresPage,
       );
     });
   },
+
+  renderSidebarContent: function (sidebar, content, markerColor) {
+    const $content = $("<div>").html(content);
+
+    const pinContainer = sidebar.find(".sidebar-pin");
+    pinContainer.html(MappingModule.getPinSvg(markerColor));
+
+    // Title
+    sidebar
+      .find(".sidebar-title")
+      .text($content.find("h2, h3, .resource-title").first().text());
+    // Description
+    const description = $content.find("p.sidebar-description").html() || "";
+    sidebar.find(".sidebar-description").html(description);
+
+    // Media
+    const mediaContainer = sidebar.find(".sidebar-media");
+    mediaContainer.empty();
+
+    const img = $content.find("img").first();
+    if (img.length) {
+      mediaContainer.append(img.clone());
+    }
+  },
+
   /**
    * Add a feature layer to its respective layer.
    *

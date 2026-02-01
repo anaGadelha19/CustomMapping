@@ -52,11 +52,9 @@ class MappingFeatureAdapter extends AbstractEntityAdapter
             // Hydrate from legacy (pre-2.0) label key.
             $entity->setLabel($request->getValue('o-module-mapping:label'));
         }
-        // TODO: Check if you need the second part
         if ($this->shouldHydrate($request, 'o:description')) {
             $entity->setDescription($request->getValue('o:description'));}
 
-            // TODO: check if this wokrs or -> $entity->setMarkerColor($data['o:marker_color'] ?? null);
         if ($this->shouldHydrate($request, 'o:marker_color')) {
             $entity->setMarkerColor($request->getValue('o:marker_color'));
         }

@@ -95,17 +95,83 @@
   max-height: 200px;
 }
 
-/* .sidebar{
-  /* background-color: red; 
-
+.sidebar {
+  padding: 16px;
 }
-.mapping-feature-label{
-  /* background-color: red; 
 
+/* Option 1 In the whole page */
+/* .client-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+
+  width: 40%;
+  max-width: 80%;
+  height: 100vh;
+
+  display: none;
+  border-left: 1px solid #ddd;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 2000;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
 } */
-.gap {
-  margin-bottom: 12px;
+
+/* Option 2 In the map  */
+#mapping-container {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
 }
+
+.client-sidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 40%;
+  max-width: 80%;
+  height: 100%;
+
+  display: none;
+  border-left: 1px solid #ddd;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 1000;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-close {
+  display: flex;
+  justify-content: flex-end;
+  text-decoration: none;
+}
+
+.custom-pin-marker .pin {
+  width: 24px;
+  height: 24px;
+  background: #3498db;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  position: relative;
+  left: 2px;
+  top: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.custom-pin-marker .pin::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+
+/* ---------- Marker Colors ---------- */
 
 /* Color Picker */
 
@@ -115,11 +181,6 @@
   min-height: auto;
   padding: 10px;
   display: inline-block;
-  margin: 4px 2px;
-}
-
-.color-swatch.selected {
-  border-color: #424242;
 }
 
 .color-swatch.red {
@@ -138,40 +199,88 @@
   background-color: #9b59b6;
 }
 
-.client-sidebar {
-  position: absolute; 
-  right: 0;
-  width: 40%;
-  max-width: 80%;
-  height: 100%;
-  display: none;
-  border-left: 1px solid #ddd;
-  overflow-y: auto;
-  background: rgba(255, 255, 255, 0.95); 
-  z-index: 1000; 
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
-
+.color-swatch.selected {
+  outline: 1.5px solid #8a8a8a;
+  outline-offset: 0.7px;
 }
 
-.custom-pin-marker .pin {
-    width: 24px;
-    height: 24px;
-    background: #3498db;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    position: relative;
-    left: 2px;
-    top: 2px;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+.color-picker {
+  width: 0;
+  height: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
-.custom-pin-marker .pin::after {
-    content: '';
-    width: 8px;
-    height: 8px;
-    background: #fff;
-    border-radius: 50%;
-    position: absolute;
-    top: 8px;
-    left: 8px;
+/* TODO: CHange this is trigger button */
+#add-custom-color {
+  background: none;
+  cursor: pointer;
+  color: #afafaf;
+}
+
+#add-custom-color:hover {
+  background: #f5f5f5;
+  color: #8a8a8a;
+}
+
+.color-picker-trigger {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  min-width: 0px;
+  min-height: auto;
+  /* padding: 10px; */
+}
+
+.mapping-feature-color-picker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.color-swatches {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Client Side Sidebar */
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.sidebar-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.sidebar-pin svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.sidebar-description {
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  color: #444;
+}
+
+.sidebar-media img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin-top: 0.5rem;
 }
