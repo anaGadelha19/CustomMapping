@@ -25,11 +25,13 @@ $this->headLink()->appendStylesheet(
 $mapping = null;
 $features = [];
 $itemMedia = [];
+$featureTypes = [];
 if (isset($item)) {
     $mapping = $this->api()->searchOne('custom_mappings', ['item_id' => $item->id()])->getContent();
     $features = $this->api()->search('custom_mapping_features', ['item_id' => $item->id()])->getContent();
     $itemMedia = $item->media();
 }
+$featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' => 'label'])->getContent();
 ?>
 
 <!-- ADMIN SIDE -->
@@ -39,7 +41,7 @@ if (isset($item)) {
         data-features="<?php echo $this->escapeHtml(json_encode($features)); ?>"></div>
 
 
-    <div id="mapping-feature-editor" class="sidebar">
+    <div id="mapping-feature-editor" class="sidebar" data-type-add-url="<?php echo $this->url('admin/custom-mapping', ['controller' => 'type', 'action' => 'add']); ?>">
         <a href="#" class="sidebar-close o-icon-close"><span
                 class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
         <h3><?php echo $this->translate('Marker Details'); ?></h3>
@@ -56,11 +58,22 @@ if (isset($item)) {
         <!-- Type Selection -->
         <div class='gap'>
             <select class="mapping-feature-type">
-                <option value=""> Select type </option>
-                <option value="event">Event</option>
-                <option value="place">Place</option>
-                <option value="person">Person</option>
+                <option value=""><?php echo $this->translate('Select type'); ?></option>
+                <?php foreach ($featureTypes as $featureType): ?>
+                    <option value="<?php echo $this->escapeHtml($featureType->id()); ?>"
+                        data-color="<?php echo $this->escapeHtml($featureType->color()); ?>">
+                        <?php echo $this->escapeHtml($featureType->label()); ?>
+                    </option>
+                <?php endforeach; ?>
             </select>
+        </div>
+        <div class='gap mapping-type-inline-add'>
+            <div><?php echo $this->translate('Add new type'); ?></div>
+            <div class="mapping-type-inline-fields">
+                <input type="text" class="mapping-type-label" placeholder="<?php echo $this->translate('Type label'); ?>">
+                <input type="color" class="mapping-type-color" value="#3498db">
+                <button type="button" class="button mapping-type-add-button"><?php echo $this->translate('Add'); ?></button>
+            </div>
         </div>
         <!-- Color Selection -->
         <div class='gap'>

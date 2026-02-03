@@ -8,6 +8,7 @@ return [
         'invokables' => [
             'custom_mappings' => Api\Adapter\MappingAdapter::class,
             'custom_mapping_features' => Api\Adapter\MappingFeatureAdapter::class,
+            'custom_mapping_feature_types' => Api\Adapter\MappingFeatureTypeAdapter::class,
         ],
     ],
     'entity_manager' => [
@@ -84,6 +85,7 @@ return [
     'controllers' => [
         'invokables' => [
             'CustomMapping\Controller\Admin\Index' => Controller\Admin\IndexController::class,
+            'CustomMapping\Controller\Admin\Type' => Controller\Admin\TypeController::class,
             'CustomMapping\Controller\Site\Index' => Controller\Site\IndexController::class,
         ],
     ],

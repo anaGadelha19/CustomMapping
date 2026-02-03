@@ -66,6 +66,17 @@ class MappingFeature extends AbstractEntity
 protected $markerColor;
 
     /**
+     * @ManyToOne(
+     *     targetEntity="CustomMapping\Entity\MappingFeatureType"
+     * )
+     * @JoinColumn(
+     *     nullable=true,
+     *     onDelete="SET NULL"
+     * )
+     */
+    protected $featureType;
+
+    /**
      * @Column(
      *     type="geography"
      * )
@@ -125,6 +136,16 @@ protected $markerColor;
     public function setMarkerColor(?string $markerColor): void
     {
          $this->markerColor = $markerColor;
+    }
+
+    public function getFeatureType(): ?MappingFeatureType
+    {
+        return $this->featureType;
+    }
+
+    public function setFeatureType(?MappingFeatureType $featureType): void
+    {
+        $this->featureType = $featureType;
     }
     /**
      * Get geography.

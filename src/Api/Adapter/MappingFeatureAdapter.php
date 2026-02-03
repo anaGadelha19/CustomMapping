@@ -58,6 +58,17 @@ class MappingFeatureAdapter extends AbstractEntityAdapter
         if ($this->shouldHydrate($request, 'o:marker_color')) {
             $entity->setMarkerColor($request->getValue('o:marker_color'));
         }
+
+        if ($this->shouldHydrate($request, 'o:feature_type')
+            && isset($data['o:feature_type']['o:id'])
+            && is_numeric($data['o:feature_type']['o:id'])
+        ) {
+            $featureType = $this->getAdapter('custom_mapping_feature_types')
+                ->findEntity($data['o:feature_type']['o:id']);
+            $entity->setFeatureType($featureType);
+        } else {
+            $entity->setFeatureType(null);
+        }
         
 
         if ($this->shouldHydrate($request, 'o-module-mapping:geography-coordinates')) {

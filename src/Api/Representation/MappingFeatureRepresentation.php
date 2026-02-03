@@ -13,12 +13,14 @@ class MappingFeatureRepresentation extends AbstractEntityRepresentation
     public function getJsonLd()
     {
         $media = $this->media();
+        $featureType = $this->featureType();
         return [
             'o:item' => $this->item()->getReference(),
             'o:media' => $media ? $media->getReference() : null,
             'o:label' => $this->label(),
             'o:description' => $this->description(),
             'o:marker_color' => $this->markerColor(),
+            'o:feature_type' => $featureType ? $featureType->getReference() : null,
 
             'o-module-mapping:geography-type' => $this->geographyType(),
             'o-module-mapping:geography-coordinates' => $this->geographyCoordinates(),
@@ -58,6 +60,16 @@ class MappingFeatureRepresentation extends AbstractEntityRepresentation
 {
     return $this->resource->getMarkerColor();
 }
+
+    public function featureType()
+    {
+        $featureType = $this->resource->getFeatureType();
+        if (!$featureType) {
+            return null;
+        }
+        return $this->getAdapter('custom_mapping_feature_types')
+            ->getRepresentation($featureType);
+    }
 
 
 

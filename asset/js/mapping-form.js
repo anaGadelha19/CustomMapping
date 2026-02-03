@@ -8,6 +8,7 @@ $(document).ready(function () {
    * @param featureLabel
    * @param featureDescription
    * @param featureMarkerColor
+   * @param featureTypeId
    * @param featureMediaId
    */
   const addFeature = function (
@@ -16,9 +17,11 @@ $(document).ready(function () {
     featureLabel,
     featureDescription,
     featureMarkerColor,
+    featureTypeId,
     featureMediaId,
   ) {
-    const markerColor = featureMarkerColor || "blue";
+    const typeColor = featureTypeId ? getTypeColorById(featureTypeId) : null;
+    const markerColor = typeColor || featureMarkerColor || "blue";
 
     feature.on("click", function (e) {
       // Get sidebar element
@@ -31,10 +34,11 @@ $(document).ready(function () {
 
       // Populate sidebar inputs with current feature data
       sidebar.find(".mapping-feature-label").val(featureLabel);
+      sidebar.find(".mapping-feature-type").val(featureTypeId || "");
       sidebar.find(".mapping-feature-description").val(featureDescription);
       sidebar.find(".color-swatch").removeClass("selected");
 
-      if (featureMarkerColor) {
+      if (markerColor) {
         sidebar
           .find(`.color-swatch[data-color="${markerColor}"]`)
           .addClass("selected");
@@ -48,6 +52,8 @@ $(document).ready(function () {
         });
         sidebar.find(".mapping-feature-popup-image").html(mediaThumbnail);
       }
+
+      setColorPickerLocked(!!featureTypeId);
 
       // Open the sidebar
       Omeka.openSidebar(sidebar);
@@ -66,6 +72,7 @@ $(document).ready(function () {
 
     feature._mappingNamePrefix = featureNamePrefix;
     feature.markerColor = markerColor;
+    feature.featureTypeId = featureTypeId || null;
 
     // Step: 1
 
@@ -106,6 +113,14 @@ $(document).ready(function () {
         type: "hidden",
         name: featureNamePrefix + "[o:marker_color]",
         value: markerColor,
+      }),
+    );
+
+    mappingForm.append(
+      $("<input>", {
+        type: "hidden",
+        name: featureNamePrefix + "[o:feature_type][o:id]",
+        value: featureTypeId || "",
       }),
     );
 
@@ -173,6 +188,34 @@ $(document).ready(function () {
 
   const getFeatureNamePrefix = function (feature) {
     return `o-module-mapping:feature[${drawnFeatures.getLayerId(feature)}]`;
+  };
+
+  const getTypeColorById = function (typeId) {
+    if (!typeId) {
+      return null;
+    }
+    const option = $(
+      `#mapping-feature-editor .mapping-feature-type option[value="${typeId}"]`,
+    );
+    return option.length ? option.data("color") : null;
+  };
+
+  const setColorPickerLocked = function (isLocked) {
+    const colorPicker = $("#mapping-feature-editor .mapping-feature-color-picker");
+    colorPicker.toggleClass("is-locked", isLocked);
+    colorPicker
+      .find(".color-swatch, #add-custom-color, #custom-color-input")
+      .prop("disabled", isLocked);
+  };
+
+  const isColorPickerLocked = function () {
+    return $("#mapping-feature-editor .mapping-feature-color-picker").hasClass(
+      "is-locked",
+    );
+  };
+
+  const getTypeAddUrl = function () {
+    return $("#mapping-feature-editor").data("typeAddUrl");
   };
 
   // Get map data.
@@ -279,13 +322,18 @@ $(document).ready(function () {
   // Add saved features to the map.
   $.each(featuresData, function (index, data) {
     const featureMediaId = data["o:media"] ? data["o:media"]["o:id"] : null;
+    const featureTypeId = data["o:feature_type"]
+      ? data["o:feature_type"]["o:id"]
+      : null;
     const geoJson = {
       type: data["o-module-mapping:geography-type"],
       coordinates: data["o-module-mapping:geography-coordinates"],
     };
 
+    const typeColor = featureTypeId ? getTypeColorById(featureTypeId) : null;
     const markerColor =
-      data["o:marker_color"] !== undefined ? data["o:marker_color"] : "blue";
+      typeColor ||
+      (data["o:marker_color"] !== undefined ? data["o:marker_color"] : "blue");
 
     console.log("FEATURE DATA", data);
     console.log("DESCRIPTION", data["o:description"]);
@@ -313,6 +361,7 @@ $(document).ready(function () {
           data["o:label"],
           data["o:description"],
           markerColor,
+          featureTypeId,
           featureMediaId,
         );
       },
@@ -376,18 +425,18 @@ $(document).ready(function () {
   // Helper function to update feature marker color
   function updateFeatureStyle(feature, color) {
     feature.markerColor = color;
-     // Case 1: Marker 
+    // Case 1: Marker
     if (feature instanceof L.Marker && feature.setIcon) {
-        feature.setIcon(createPinIcon(color));
-        return;
+      feature.setIcon(createPinIcon(color));
+      return;
     }
 
     // Case 2: Polygnos
     if (feature.setStyle) {
-        feature.setStyle({
-            color: color,
-            fillColor: color
-        });
+      feature.setStyle({
+        color: color,
+        fillColor: color,
+      });
     }
   }
 
@@ -433,6 +482,7 @@ $(document).ready(function () {
     const sidebar = $("#mapping-feature-editor");
     const feature = sidebar.data("feature");
     if (!feature) return;
+    if (isColorPickerLocked()) return;
 
     const color = $(this).data("color");
     const featureNamePrefix = feature._mappingNamePrefix;
@@ -447,6 +497,7 @@ $(document).ready(function () {
 
   // Open native color picker
   $("#mapping-feature-editor").on("click", "#add-custom-color", function () {
+    if (isColorPickerLocked()) return;
     $("#custom-color-input").click();
   });
 
@@ -456,6 +507,7 @@ $(document).ready(function () {
     const sidebar = $("#mapping-feature-editor");
     const feature = sidebar.data("feature");
     if (!feature) return;
+    if (isColorPickerLocked()) return;
 
     // For duplicates
     if ($(`.color-swatch[data-color="${color}"]`).length) {
@@ -481,6 +533,85 @@ $(document).ready(function () {
     $(`input[name="${featureNamePrefix}[o:marker_color]"]`).val(color);
     updateFeatureStyle(feature, color);
   });
+
+  // Selecting a feature type locks color and applies type color
+  $("#mapping-feature-editor").on("change", ".mapping-feature-type", function () {
+    const sidebar = $("#mapping-feature-editor");
+    const feature = sidebar.data("feature");
+    if (!feature) return;
+
+    const featureNamePrefix = feature._mappingNamePrefix;
+    const typeId = $(this).val();
+
+    $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val(typeId);
+    feature.featureTypeId = typeId || null;
+
+    if (typeId) {
+      const typeColor = getTypeColorById(typeId) || feature.markerColor || "blue";
+      setColorPickerLocked(true);
+      $(".color-swatch").removeClass("selected");
+      sidebar
+        .find(`.color-swatch[data-color="${typeColor}"]`)
+        .addClass("selected");
+      $(`input[name="${featureNamePrefix}[o:marker_color]"]`).val(typeColor);
+      updateFeatureStyle(feature, typeColor);
+    } else {
+      setColorPickerLocked(false);
+    }
+  });
+
+  // Add new type in sidebar
+  $("#mapping-feature-editor").on(
+    "click",
+    ".mapping-type-add-button",
+    function () {
+      const addUrl = getTypeAddUrl();
+      if (!addUrl) {
+        alert("Type add URL is missing.");
+        return;
+      }
+
+      const wrapper = $("#mapping-feature-editor");
+      const label = wrapper.find(".mapping-type-label").val().trim();
+      const color = wrapper.find(".mapping-type-color").val();
+
+      if (!label) {
+        alert("Please enter a type label.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("label", label);
+      formData.append("color", color);
+
+      fetch(addUrl, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          Accept: "application/json",
+        },
+        body: formData,
+        credentials: "same-origin",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (!data || !data.id) {
+            throw new Error("Invalid response");
+          }
+          const option = $("<option>", {
+            value: data.id,
+            text: data.label,
+            "data-color": data.color,
+          });
+          wrapper.find(".mapping-feature-type").append(option);
+          wrapper.find(".mapping-feature-type").val(data.id).trigger("change");
+          wrapper.find(".mapping-type-label").val("");
+        })
+        .catch(() => {
+          alert("Could not add type.");
+        });
+    },
+  );
 
   // Handle select popup image button.
   $("#mapping-section").on(
@@ -518,4 +649,6 @@ $(document).ready(function () {
       sidebar.data("selectedMediaId", mediaId);
     },
   );
+
+
 });

@@ -162,6 +162,7 @@ const MappingModule = {
             layer.on("click", function (e) {
               e.originalEvent.stopPropagation(); // prevent map click
 
+        
               if (!getFeaturePopupContentUrl) {
                 return;
               }
@@ -171,7 +172,6 @@ const MappingModule = {
                 { feature_id: featureId },
                 function (content) {
                   const sidebar = $("#mapping-view-sidebar");
-                  // sidebar.find(".sidebar-content").html(content);
 
                   MappingModule.renderSidebarContent(
                     sidebar,
@@ -186,7 +186,9 @@ const MappingModule = {
                     sidebar.show();
                   }
                 },
-              );
+              ).fail(function(xhr, status, error) {
+                console.error('Failed to load feature content:', error, xhr);
+              });
             });
 
             MappingModule.addFeature(

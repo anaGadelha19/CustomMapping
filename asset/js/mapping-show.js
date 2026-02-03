@@ -1,11 +1,20 @@
 $(document).ready( function() {
 
+console.log('mapping-show.js loaded');
+console.log('mappingIsAdmin:', window.mappingIsAdmin);
     
 let mappingSidebarOpen = false;
 let lastClickedLayer = null;
 
 const mappingMap = $('#mapping-map');
+console.log('mappingMap element:', mappingMap.length, mappingMap);
+
 const mappingData = mappingMap.data('mapping');
+
+if (!mappingMap.length) {
+    console.error('No #mapping-map element found!');
+    return;
+}
 
 const [
     map,
@@ -17,6 +26,8 @@ const [
     disableClustering: mappingMap.data('disable-clustering'),
     basemapProvider: mappingMap.data('basemap-provider')
 });
+
+console.log('Map initialized:', map);
 
 let defaultBounds = null;
 if (mappingData && mappingData['o-module-mapping:bounds'] !== null) {
@@ -56,6 +67,10 @@ MappingModule.loadFeaturesAsync(
     JSON.stringify(mappingMap.data('featuresQuery')),
     onFeaturesLoad
 );
+
+console.log('Features URL:', mappingMap.data('featuresUrl'));
+console.log('Popup URL:', mappingMap.data('featurePopupContentUrl'));
+console.log('Loading features...');
 
 // Switching sections changes map dimensions, so make the necessary adjustments.
 $('#mapping-section').one('o:section-opened', function(e) {
