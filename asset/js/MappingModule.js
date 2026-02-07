@@ -142,6 +142,7 @@ const MappingModule = {
         const resourceId = featureData[1];
         const featureGeography = featureData[2];
         const markerColor = featureData[3] || "#3498db";
+        const featureTypeId = featureData[4] ? String(featureData[4]) : null;
 
         L.geoJSON(featureGeography, {
           pointToLayer: function (feature, latlng) {
@@ -198,6 +199,14 @@ const MappingModule = {
               layer,
               feature.type,
             );
+
+            layer._mappingTypeId = featureTypeId;
+            layer._mappingFeatureGroup =
+              "Point" === feature.type ? featuresPoint : featuresPoly;
+            if (!map._mappingAllLayers) {
+              map._mappingAllLayers = [];
+            }
+            map._mappingAllLayers.push(layer);
 
             if (!(resourceId in featuresByResource)) {
               featuresByResource[resourceId] = L.featureGroup();
@@ -259,7 +268,7 @@ const MappingModule = {
     switch (type) {
       case "Point":
         featuresPoint.addLayer(layer);
-        break;
+        return featuresPoint;
       case "LineString":
       case "Polygon":
       case "MultiPolygon":
@@ -271,7 +280,122 @@ const MappingModule = {
           layer.setStyle({ color: "#3388ff" });
         });
         featuresPoly.addLayer(layer);
-        break;
+        return featuresPoly;
     }
+  },
+
+  bindLegendFilters: function (map, mapDiv, featuresPoint, featuresPoly) {
+    const container = $(mapDiv).closest(".mapping-map-container");
+    const toggles = container.find(".mapping-legend-toggle");
+    if (!toggles.length) {
+      return;
+    }
+
+    let filtersEnabled = true;
+    const legend = container.find(".mapping-map-legend");
+
+    const ensureAllVisible = function () {
+      if (!map._mappingAllLayers) {
+        return;
+      }
+      map._mappingAllLayers.forEach((layer) => {
+        const group =
+          layer._mappingFeatureGroup ||
+          (layer instanceof L.Marker ? featuresPoint : featuresPoly);
+        if (group && !group.hasLayer(layer)) {
+          group.addLayer(layer);
+        }
+      });
+    };
+
+    const applyFilters = function () {
+      if (!filtersEnabled) {
+        ensureAllVisible();
+        return;
+      }
+      const checked = new Set(
+        toggles
+          .filter(":checked")
+          .map(function () {
+            return String($(this).data("typeId"));
+          })
+          .get(),
+      );
+
+      if (!map._mappingAllLayers) {
+        return;
+      }
+
+      map._mappingAllLayers.forEach((layer) => {
+        const typeId = layer._mappingTypeId;
+        if (!typeId) {
+          // No type: always show.
+          if (layer._mappingFeatureGroup && !layer._mappingFeatureGroup.hasLayer(layer)) {
+            layer._mappingFeatureGroup.addLayer(layer);
+          }
+          return;
+        }
+
+        const shouldShow = checked.has(String(typeId));
+        const group = layer._mappingFeatureGroup || (layer instanceof L.Marker ? featuresPoint : featuresPoly);
+        if (shouldShow) {
+          if (!group.hasLayer(layer)) {
+            group.addLayer(layer);
+          }
+        } else {
+          if (group.hasLayer(layer)) {
+            group.removeLayer(layer);
+          }
+        }
+      });
+    };
+
+    const updateLegendState = function () {
+      if (filtersEnabled) {
+        legend.removeClass("filters-hidden");
+      } else {
+        legend.addClass("filters-hidden");
+      }
+    };
+
+    const FilterControl = L.Control.extend({
+      options: { position: "topleft" },
+      onAdd: function () {
+        const container = L.DomUtil.create(
+          "div",
+          "leaflet-bar mapping-legend-filter-control",
+        );
+        const button = L.DomUtil.create(
+          "a",
+          "mapping-legend-filter-button",
+          container,
+        );
+        button.href = "#";
+        button.title = "Toggle type filter";
+        button.setAttribute("aria-label", "Toggle type filter");
+        button.innerHTML =
+          "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 5h18l-7 8v5l-4 2v-7L3 5z\"></path></svg>";
+
+        L.DomEvent.on(button, "click", function (e) {
+          L.DomEvent.preventDefault(e);
+          filtersEnabled = !filtersEnabled;
+          button.classList.toggle("is-disabled", !filtersEnabled);
+          button.setAttribute(
+            "aria-pressed",
+            filtersEnabled ? "true" : "false",
+          );
+          updateLegendState();
+          applyFilters();
+        });
+
+        return container;
+      },
+    });
+
+    map.addControl(new FilterControl());
+
+    toggles.on("change", applyFilters);
+    updateLegendState();
+    applyFilters();
   },
 };

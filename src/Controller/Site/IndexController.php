@@ -49,11 +49,15 @@ class IndexController extends AbstractActionController
 
         $features = [];
         foreach ($featureResponse->getContent() as $feature) {
+            $featureType = $feature->featureType();
+            $markerColor = $featureType ? $featureType->color() : $feature->markerColor();
+            $featureTypeId = $featureType ? $featureType->id() : null;
             $features[] = [
                 $feature->id(),
                 $feature->item()->id(),
                 $feature->geography(),
-                $feature->markerColor(),
+                $markerColor,
+                $featureTypeId,
 
             ];
         }

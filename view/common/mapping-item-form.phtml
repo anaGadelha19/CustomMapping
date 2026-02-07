@@ -37,11 +37,17 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
 <!-- ADMIN SIDE -->
 <fieldset id="mapping-section" class="section">
     <legend id="mapping-legend"><?php echo $this->translate('Mapping'); ?></legend>
-    <div id="mapping-map" style="height:700px;" data-mapping="<?php echo $this->escapeHtml(json_encode($mapping)); ?>"
-        data-features="<?php echo $this->escapeHtml(json_encode($features)); ?>"></div>
+    <div class="mapping-map-container">
+        <div id="mapping-map" style="height:700px;"
+            data-mapping="<?php echo $this->escapeHtml(json_encode($mapping)); ?>"
+            data-features="<?php echo $this->escapeHtml(json_encode($features)); ?>"></div>
+    </div>
 
 
-    <div id="mapping-feature-editor" class="sidebar" data-type-add-url="<?php echo $this->url('admin/custom-mapping', ['controller' => 'type', 'action' => 'add']); ?>">
+    <div id="mapping-feature-editor" class="sidebar"
+        data-type-add-url="<?php echo $this->url('admin/custom-mapping', ['controller' => 'type', 'action' => 'add']); ?>"
+        data-type-delete-url="<?php echo $this->url('admin/custom-mapping', ['controller' => 'type', 'action' => 'delete']); ?>"
+        data-type-update-url="<?php echo $this->url('admin/custom-mapping', ['controller' => 'type', 'action' => 'update']); ?>">
         <a href="#" class="sidebar-close o-icon-close"><span
                 class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
         <h3><?php echo $this->translate('Marker Details'); ?></h3>
@@ -57,73 +63,166 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
         </div>
         <!-- Type Selection -->
         <div class='gap'>
-            <select class="mapping-feature-type">
-                <option value=""><?php echo $this->translate('Select type'); ?></option>
-                <?php foreach ($featureTypes as $featureType): ?>
-                    <option value="<?php echo $this->escapeHtml($featureType->id()); ?>"
-                        data-color="<?php echo $this->escapeHtml($featureType->color()); ?>">
-                        <?php echo $this->escapeHtml($featureType->label()); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class='gap mapping-type-inline-add'>
-            <div><?php echo $this->translate('Add new type'); ?></div>
-            <div class="mapping-type-inline-fields">
-                <input type="text" class="mapping-type-label" placeholder="<?php echo $this->translate('Type label'); ?>">
-                <input type="color" class="mapping-type-color" value="#3498db">
-                <button type="button" class="button mapping-type-add-button"><?php echo $this->translate('Add'); ?></button>
+            <div><?php echo $this->translate('Type'); ?></div>
+            <div class="type-selection-container">
+                <select class="mapping-feature-type">
+                    <option value=""><?php echo $this->translate('No type'); ?></option>
+                    <?php foreach ($featureTypes as $featureType): ?>
+                        <option value="<?php echo $this->escapeHtml($featureType->id()); ?>"
+                            data-color="<?php echo $this->escapeHtml($featureType->color()); ?>">
+                            <?php echo $this->escapeHtml($featureType->label()); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <button type="button" class="mapping-type-manager-button" aria-label="<?php echo $this->translate('Edit types'); ?>" title="<?php echo $this->translate('Edit types'); ?>">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M19.14 12.94a7.88 7.88 0 0 0 .06-.94 7.88 7.88 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.23 7.23 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.49.4l-.36 2.54a7.23 7.23 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.7 8.46a.5.5 0 0 0 .12.64l2.03 1.58a7.88 7.88 0 0 0-.06.94 7.88 7.88 0 0 0 .06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96a7.23 7.23 0 0 0 1.63.94l.36 2.54a.5.5 0 0 0 .49.4h3.8a.5.5 0 0 0 .49-.4l.36-2.54a7.23 7.23 0 0 0 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64Zm-7.14 2.56A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5Z"></path>
+                    </svg>
+                </button>
+
+
             </div>
+
         </div>
+
         <!-- Color Selection -->
         <div class='gap'>
             <div><?php echo $this->translate('Marker color'); ?></div>
             <div class="mapping-feature-color-picker">
 
-            <div class="color-swatches">
-                <button type="button" data-color="#db1d08" class="color-swatch red"></button>
-                <button type="button" data-color="#3498db" class="color-swatch blue"></button>
-                <button type="button" data-color="#2ecc71" class="color-swatch green"></button>
-                <button type="button" data-color="#f39c12" class="color-swatch orange"></button>
-                <button type="button" data-color="#9b59b6" class="color-swatch purple"></button>
-            </div>
+                <div class="color-swatches">
+                    <button type="button" data-color="#db1d08" class="color-swatch red"></button>
+                    <button type="button" data-color="#3498db" class="color-swatch blue"></button>
+                    <button type="button" data-color="#2ecc71" class="color-swatch green"></button>
+                    <button type="button" data-color="#f39c12" class="color-swatch orange"></button>
+                    <button type="button" data-color="#9b59b6" class="color-swatch purple"></button>
+                </div>
 
                 <button class="color-picker-trigger" type="button" id="add-custom-color">+</button>
-                <input class="color-picker" type="color" id="custom-color-input" >
+                <input class="color-picker" type="color" id="custom-color-input">
 
 
+            </div>
+
+            <!-- Image Selector -->
+            <div class="mapping-feature-popup-image"></div>
+            <button
+                class="mapping-feature-popup-image-select"><?php echo $this->translate('Select feature image'); ?></button>
+        </div>
+        <div id="mapping-form">
+            <input type="hidden" name="o-module-mapping:mapping[o:id]">
+            <input type="hidden" name="o-module-mapping:mapping[o-module-mapping:bounds]" value="">
         </div>
 
-        <!-- Image Selector -->
-        <div class="mapping-feature-popup-image"></div>
-        <button
-            class="mapping-feature-popup-image-select"><?php echo $this->translate('Select feature image'); ?></button>
-    </div>
-    <div id="mapping-form">
-        <input type="hidden" name="o-module-mapping:mapping[o:id]">
-        <input type="hidden" name="o-module-mapping:mapping[o-module-mapping:bounds]" value="">
-    </div>
+        <div id="mapping-type-manager" class="mapping-type-modal" aria-hidden="true">
+            <div class="mapping-type-modal-overlay"></div>
+            <div class="mapping-type-modal-dialog" role="dialog" aria-modal="true"
+                aria-labelledby="mapping-type-manager-title">
+                <div class="mapping-type-modal-header">
+                    <div id="mapping-type-manager-title"><?php echo $this->translate('Type Manager'); ?></div>
+                    <button type="button" class="mapping-type-manager-close o-icon-close"><span
+                            class="screen-reader-text"><?php echo $this->translate('Close'); ?></span></button>
+                </div>
+                <div class="mapping-type-modal-body">
+                    <div class="mapping-type-list" role="list">
+                        <?php foreach ($featureTypes as $featureType): ?>
+                            <div class="mapping-type-item" role="listitem"
+                                data-type-id="<?php echo $this->escapeHtml($featureType->id()); ?>"
+                                data-color="<?php echo $this->escapeHtml($featureType->color()); ?>">
+                                <span class="mapping-type-color"
+                                    style="background-color: <?php echo $this->escapeHtml($featureType->color()); ?>;"></span>
+                                <span
+                                    class="mapping-type-label-text"><?php echo $this->escapeHtml($featureType->label()); ?></span>
+                                <button type="button" class="mapping-type-edit o-icon-edit"
+                                    data-type-id="<?php echo $this->escapeHtml($featureType->id()); ?>"><span
+                                        class="screen-reader-text"><?php echo $this->translate('Edit'); ?></span></button>
+                                <button type="button" class="mapping-type-delete o-icon-delete"
+                                    data-type-id="<?php echo $this->escapeHtml($featureType->id()); ?>"><span
+                                        class="screen-reader-text"><?php echo $this->translate('Delete'); ?></span></button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <div class="mapping-type-add-toggle">
+                        <button type="button" class="button mapping-type-add-toggle-button"><?php echo $this->translate('Add new type'); ?></button>
+                    </div>
+
+                    <div class="mapping-type-add-form" hidden>
+                        <h4><?php echo $this->translate('Add new type'); ?></h4>
+                        <div class="mapping-type-inline-fields">
+                            <input type="text" class="mapping-type-label"
+                                placeholder="<?php echo $this->translate('Type label'); ?>">
+                            <div class="mapping-type-color-picker">
+                                <button type="button" class="mapping-type-color-swatch" data-color="#db1d08"
+                                    style="background-color:#db1d08;"></button>
+                                <button type="button" class="mapping-type-color-swatch" data-color="#3498db"
+                                    style="background-color:#3498db;"></button>
+                                <button type="button" class="mapping-type-color-swatch" data-color="#2ecc71"
+                                    style="background-color:#2ecc71;"></button>
+                                <button type="button" class="mapping-type-color-swatch" data-color="#f39c12"
+                                    style="background-color:#f39c12;"></button>
+                                <button type="button" class="mapping-type-color-swatch" data-color="#9b59b6"
+                                    style="background-color:#9b59b6;"></button>
+                                <button type="button" class="mapping-type-add-custom-color"
+                                    title="<?php echo $this->translate('Custom color'); ?>">+</button>
+                                <input type="color" class="mapping-type-custom-color-input" value="#3498db">
+                            </div>
+                            <input type="hidden" class="mapping-type-color-input" value="#3498db">
+                            <button type="button"
+                                class="button mapping-type-add-button"><?php echo $this->translate('Add'); ?></button>
+                        </div>
+                    </div>
+
+                    <div class="mapping-type-edit-panel" aria-live="polite">
+                        <h4><?php echo $this->translate('Edit type color'); ?></h4>
+                        <div class="mapping-type-edit-current"><?php echo $this->translate('Select a type to edit.'); ?>
+                        </div>
+                        <div class="mapping-type-edit-fields">
+                            <div class="mapping-type-edit-color-picker">
+                                <button type="button" class="mapping-type-edit-color-swatch" data-color="#db1d08"
+                                    style="background-color:#db1d08;"></button>
+                                <button type="button" class="mapping-type-edit-color-swatch" data-color="#3498db"
+                                    style="background-color:#3498db;"></button>
+                                <button type="button" class="mapping-type-edit-color-swatch" data-color="#2ecc71"
+                                    style="background-color:#2ecc71;"></button>
+                                <button type="button" class="mapping-type-edit-color-swatch" data-color="#f39c12"
+                                    style="background-color:#f39c12;"></button>
+                                <button type="button" class="mapping-type-edit-color-swatch" data-color="#9b59b6"
+                                    style="background-color:#9b59b6;"></button>
+                                <button type="button" class="mapping-type-edit-add-custom-color"
+                                    title="<?php echo $this->translate('Custom color'); ?>">+</button>
+                                <input type="color" class="mapping-type-edit-custom-color-input" value="#3498db">
+                            </div>
+                            <input type="hidden" class="mapping-type-edit-color-input" value="#3498db">
+                            <button type="button" class="button mapping-type-edit-save"
+                                disabled><?php echo $this->translate('Save'); ?></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
-    <div id="mapping-feature-image-selector" class="sidebar">
-        <a href="#" class="sidebar-close o-icon-close"><span
-                class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
-        <h3><?php echo $this->translate('Feature image'); ?></h3>
-        <label><input type="radio" class="mapping-feature-image-select" name="feature-image" value=""
-                checked><?php echo $this->translate(' No Image'); ?></label>
-        <?php foreach ($itemMedia as $media): ?>
-            <?php if ($media->hasThumbnails()): ?>
-                <label style="cursor:pointer;">
-                    <input type="radio" class="mapping-feature-image-select" name="feature-image" style="display:none;"
-                        value="<?php echo $this->escapeHtml($media->id()); ?>"
-                        data-media-thumbnail-url="<?php echo $this->escapeHtml($media->thumbnailUrl('medium')); ?>"
-                        data-media-title="<?php echo $this->escapeHtml($media->displayTitle()); ?>">
-                    <img src="<?php echo $this->escapeHtml($media->thumbnailUrl('medium')); ?>"
-                        title="<?php echo $this->escapeHtml($media->displayTitle()); ?>">
-                </label>
-            <?php endif; ?>
-        <?php endforeach; ?>
-    </div>
+        <div id="mapping-feature-image-selector" class="sidebar">
+            <a href="#" class="sidebar-close o-icon-close"><span
+                    class="screen-reader-text"><?php echo $this->translate('Close Me'); ?></span></a>
+            <h3><?php echo $this->translate('Feature image'); ?></h3>
+            <label><input type="radio" class="mapping-feature-image-select" name="feature-image" value=""
+                    checked><?php echo $this->translate(' No Image'); ?></label>
+            <?php foreach ($itemMedia as $media): ?>
+                <?php if ($media->hasThumbnails()): ?>
+                    <label style="cursor:pointer;">
+                        <input type="radio" class="mapping-feature-image-select" name="feature-image" style="display:none;"
+                            value="<?php echo $this->escapeHtml($media->id()); ?>"
+                            data-media-thumbnail-url="<?php echo $this->escapeHtml($media->thumbnailUrl('medium')); ?>"
+                            data-media-title="<?php echo $this->escapeHtml($media->displayTitle()); ?>">
+                        <img src="<?php echo $this->escapeHtml($media->thumbnailUrl('medium')); ?>"
+                            title="<?php echo $this->escapeHtml($media->displayTitle()); ?>">
+                    </label>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
 
 
 </fieldset>

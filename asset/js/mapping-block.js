@@ -32,6 +32,8 @@ function MappingBlock(mapDiv, timelineDiv) {
         excludeFitBoundsControl: (timelineDiv && timelineDiv.length),
     });
 
+    MappingModule.bindLegendFilters(map, mapDiv[0], featuresPoint, featuresPoly);
+
     // For easy reference, assign the Leaflet map object directly to the map element.
     mapDiv[0].mapping_map = map;
 

@@ -27,6 +27,8 @@ const [
     basemapProvider: mappingMap.data('basemap-provider')
 });
 
+MappingModule.bindLegendFilters(map, mappingMap[0], featuresPoint, featuresPoly);
+
 console.log('Map initialized:', map);
 
 let defaultBounds = null;

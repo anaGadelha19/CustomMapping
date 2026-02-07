@@ -13,6 +13,8 @@ const [
     basemapProvider: mappingMap.data('basemap-provider')
 });
 
+MappingModule.bindLegendFilters(map, mappingMap[0], featuresPoint, featuresPoly);
+
 const onFeaturesLoad = function() {
     if (!map.mapping_map_interaction) {
         // Call fitBounds only when there was no map interaction. This prevents

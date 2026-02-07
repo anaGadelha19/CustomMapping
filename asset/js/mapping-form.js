@@ -21,7 +21,7 @@ $(document).ready(function () {
     featureMediaId,
   ) {
     const typeColor = featureTypeId ? getTypeColorById(featureTypeId) : null;
-    const markerColor = typeColor || featureMarkerColor || "blue";
+    const markerColor = typeColor || featureMarkerColor || "#3498db";
 
     feature.on("click", function (e) {
       // Get sidebar element
@@ -218,6 +218,153 @@ $(document).ready(function () {
     return $("#mapping-feature-editor").data("typeAddUrl");
   };
 
+  const getTypeDeleteUrl = function () {
+    return $("#mapping-feature-editor").data("typeDeleteUrl");
+  };
+
+  const getTypeUpdateUrl = function () {
+    return $("#mapping-feature-editor").data("typeUpdateUrl");
+  };
+
+  const typeManager = $("#mapping-type-manager");
+  const typeList = typeManager.find(".mapping-type-list");
+
+  const openTypeManager = function () {
+    typeManager.addClass("is-open").attr("aria-hidden", "false");
+    typeManager.find(".mapping-type-add-form").prop("hidden", true);
+  };
+
+  const closeTypeManager = function () {
+    typeManager.removeClass("is-open").attr("aria-hidden", "true");
+    const panel = $("#mapping-type-manager .mapping-type-edit-panel");
+    panel.removeClass("is-open");
+    panel.data("typeId", null);
+    panel.find(".mapping-type-edit-current").text("Select a type to edit.");
+    panel.find(".mapping-type-edit-save").prop("disabled", true);
+    typeManager.find(".mapping-type-add-form").prop("hidden", true);
+  };
+
+  const addTypeOption = function (type) {
+    const option = $("<option>", {
+      value: type.id,
+      text: type.label,
+      "data-color": type.color,
+    });
+    $("#mapping-feature-editor .mapping-feature-type").append(option);
+  };
+
+  const addTypeListItem = function (type) {
+    const item = $("<div>", {
+      class: "mapping-type-item",
+      role: "listitem",
+      "data-type-id": type.id,
+      "data-color": type.color,
+    });
+    const color = $("<span>", {
+      class: "mapping-type-color",
+      css: { backgroundColor: type.color },
+    });
+    const label = $("<span>", {
+      class: "mapping-type-label-text",
+      text: type.label,
+    });
+    const edit = $("<button>", {
+      type: "button",
+      class: "mapping-type-edit o-icon-edit",
+      "data-type-id": type.id,
+    }).append(
+      $("<span>", {
+        class: "screen-reader-text",
+        text: "Edit",
+      }),
+    );
+    const del = $("<button>", {
+      type: "button",
+      class: "mapping-type-delete o-icon-delete",
+      "data-type-id": type.id,
+    }).append(
+      $("<span>", {
+        class: "screen-reader-text",
+        text: "Delete",
+      }),
+    );
+
+    item.append(color, label, edit, del);
+    typeList.append(item);
+  };
+
+  const showToast = function (message) {
+    let toast = $(".mapping-toast");
+    if (!toast.length) {
+      toast = $("<div>", { class: "mapping-toast" }).appendTo("body");
+    }
+    toast.text(message).addClass("is-visible");
+    clearTimeout(toast.data("timeout"));
+    const timeout = setTimeout(() => {
+      toast.removeClass("is-visible");
+    }, 3000);
+    toast.data("timeout", timeout);
+  };
+
+  const isDuplicateTypeColor = function (color, excludeTypeId = null) {
+    if (!color) return false;
+    const target = String(color).toLowerCase();
+    let duplicate = false;
+    typeList.find(".mapping-type-item").each(function () {
+      const item = $(this);
+      const itemId = String(item.data("typeId"));
+      if (excludeTypeId && String(excludeTypeId) === itemId) {
+        return;
+      }
+      const existing = String(item.data("color") || "").toLowerCase();
+      if (existing && existing === target) {
+        duplicate = true;
+      }
+    });
+    return duplicate;
+  };
+
+  const setTypeColorSelection = function (container, color) {
+    container
+      .find(".mapping-type-color-swatch")
+      .removeClass("selected");
+    container
+      .find(`.mapping-type-color-swatch[data-color="${color}"]`)
+      .addClass("selected");
+    container.find(".mapping-type-color-input").val(color);
+  };
+
+  const setTypeEditColorSelection = function (container, color) {
+    container
+      .find(".mapping-type-edit-color-swatch")
+      .removeClass("selected");
+    container
+      .find(`.mapping-type-edit-color-swatch[data-color="${color}"]`)
+      .addClass("selected");
+    container.find(".mapping-type-edit-color-input").val(color);
+  };
+
+  const ensureTypeSwatch = function (picker, color, swatchClass) {
+    if (picker.find(`[data-color="${color}"]`).length) {
+      return;
+    }
+    const swatch = $("<button>", {
+      type: "button",
+      class: swatchClass,
+      "data-color": color,
+      css: { backgroundColor: color },
+    });
+    const addBtn = picker.find(".mapping-type-add-custom-color, .mapping-type-edit-add-custom-color");
+    if (addBtn.length) {
+      addBtn.first().before(swatch);
+    } else {
+      picker.append(swatch);
+    }
+  };
+
+  setTypeColorSelection(typeManager, "#3498db");
+  setTypeEditColorSelection(typeManager, "#3498db");
+
   // Get map data.
   const mappingMap = $("#mapping-map");
   const mappingForm = $("#mapping-form");
@@ -268,6 +415,8 @@ $(document).ready(function () {
       featureGroup: drawnFeatures,
     },
   });
+
+  L.Draw.Marker.prototype.options.icon = createPinIcon("#3498db");
   // Customize strings.
   // @see https://github.com/Leaflet/Leaflet.draw?tab=readme-ov-file#customizing-language-and-text-in-leafletdraw
   L.drawLocal.edit.toolbar.buttons = {
@@ -333,7 +482,7 @@ $(document).ready(function () {
     const typeColor = featureTypeId ? getTypeColorById(featureTypeId) : null;
     const markerColor =
       typeColor ||
-      (data["o:marker_color"] !== undefined ? data["o:marker_color"] : "blue");
+      (data["o:marker_color"] !== undefined ? data["o:marker_color"] : "#3498db");
 
     console.log("FEATURE DATA", data);
     console.log("DESCRIPTION", data["o:description"]);
@@ -387,6 +536,9 @@ $(document).ready(function () {
   // Handle adding new features.
   map.on("draw:created", function (e) {
     if (["marker", "polyline", "polygon", "rectangle"].includes(e.layerType)) {
+      if (e.layerType === "marker" && e.layer && e.layer.setIcon) {
+        e.layer.setIcon(createPinIcon("#3498db"));
+      }
       addFeature(e.layer);
     }
   });
@@ -408,7 +560,9 @@ $(document).ready(function () {
   // Handle adding a geocoded marker.
   map.on("geosearch/showlocation", function (e) {
     addFeature(
-      new L.Marker([e.location.y, e.location.x]),
+      new L.Marker([e.location.y, e.location.x], {
+        icon: createPinIcon("#3498db"),
+      }),
       null,
       e.location.label,
     );
@@ -547,7 +701,7 @@ $(document).ready(function () {
     feature.featureTypeId = typeId || null;
 
     if (typeId) {
-      const typeColor = getTypeColorById(typeId) || feature.markerColor || "blue";
+      const typeColor = getTypeColorById(typeId) || feature.markerColor || "#3498db";
       setColorPickerLocked(true);
       $(".color-swatch").removeClass("selected");
       sidebar
@@ -560,8 +714,69 @@ $(document).ready(function () {
     }
   });
 
-  // Add new type in sidebar
+  // Open/close type manager modal
   $("#mapping-feature-editor").on(
+    "click",
+    ".mapping-type-manager-button",
+    function () {
+      openTypeManager();
+    },
+  );
+
+  $("#mapping-type-manager").on(
+    "click",
+    ".mapping-type-manager-close, .mapping-type-modal-overlay",
+    function () {
+      closeTypeManager();
+    },
+  );
+
+  // Toggle add new type section
+  $("#mapping-type-manager").on(
+    "click",
+    ".mapping-type-add-toggle-button",
+    function () {
+      const wrapper = $("#mapping-type-manager");
+      const form = wrapper.find(".mapping-type-add-form");
+      const isHidden = form.prop("hidden");
+      form.prop("hidden", !isHidden);
+    },
+  );
+
+  // Select type color swatch
+  $("#mapping-type-manager").on(
+    "click",
+    ".mapping-type-color-swatch",
+    function () {
+      const wrapper = $("#mapping-type-manager");
+      const color = $(this).data("color");
+      setTypeColorSelection(wrapper, color);
+    },
+  );
+
+  // Add custom color for new type
+  $("#mapping-type-manager").on(
+    "click",
+    ".mapping-type-add-custom-color",
+    function () {
+      $("#mapping-type-manager .mapping-type-custom-color-input").click();
+    },
+  );
+
+  $("#mapping-type-manager").on(
+    "change",
+    ".mapping-type-custom-color-input",
+    function () {
+      const wrapper = $("#mapping-type-manager");
+      const color = $(this).val();
+      const picker = wrapper.find(".mapping-type-color-picker");
+      ensureTypeSwatch(picker, color, "mapping-type-color-swatch");
+      setTypeColorSelection(wrapper, color);
+    },
+  );
+
+  // Add new type in modal
+  $("#mapping-type-manager").on(
     "click",
     ".mapping-type-add-button",
     function () {
@@ -571,9 +786,9 @@ $(document).ready(function () {
         return;
       }
 
-      const wrapper = $("#mapping-feature-editor");
+      const wrapper = $("#mapping-type-manager");
       const label = wrapper.find(".mapping-type-label").val().trim();
-      const color = wrapper.find(".mapping-type-color").val();
+      const color = wrapper.find(".mapping-type-color-input").val();
 
       if (!label) {
         alert("Please enter a type label.");
@@ -598,17 +813,217 @@ $(document).ready(function () {
           if (!data || !data.id) {
             throw new Error("Invalid response");
           }
-          const option = $("<option>", {
-            value: data.id,
-            text: data.label,
-            "data-color": data.color,
-          });
-          wrapper.find(".mapping-feature-type").append(option);
-          wrapper.find(".mapping-feature-type").val(data.id).trigger("change");
+          addTypeOption(data);
+          addTypeListItem(data);
+          $("#mapping-feature-editor .mapping-feature-type")
+            .val(data.id)
+            .trigger("change");
           wrapper.find(".mapping-type-label").val("");
+          setTypeColorSelection(wrapper, "#3498db");
         })
         .catch(() => {
-          alert("Could not add type.");
+          alert("Could not add type. Repeated colors are not allowed.");
+        });
+    },
+  );
+
+  // Start editing type color
+  $("#mapping-type-manager").on(
+    "click",
+    ".mapping-type-edit",
+    function () {
+      const typeId = $(this).data("typeId");
+      if (!typeId) return;
+
+      const item = typeList.find(`.mapping-type-item[data-type-id="${typeId}"]`);
+      const label = item.find(".mapping-type-label-text").text();
+      const color = item.data("color") || item.find(".mapping-type-color").css("background-color");
+
+      const panel = $("#mapping-type-manager .mapping-type-edit-panel");
+      panel.data("typeId", typeId);
+      panel.addClass("is-open");
+      panel.find(".mapping-type-edit-current").text(label);
+      panel.find(".mapping-type-edit-save").prop("disabled", false);
+
+      const picker = panel.find(".mapping-type-edit-color-picker");
+      if (color && color.startsWith("rgb")) {
+        // Convert rgb to hex
+        const rgb = color.match(/\d+/g);
+        if (rgb && rgb.length >= 3) {
+          const hex =
+            "#" +
+            rgb
+              .slice(0, 3)
+              .map((x) => Number(x).toString(16).padStart(2, "0"))
+              .join("");
+          ensureTypeSwatch(picker, hex, "mapping-type-edit-color-swatch");
+          setTypeEditColorSelection(panel, hex);
+          return;
+        }
+      }
+
+      if (color) {
+        ensureTypeSwatch(picker, color, "mapping-type-edit-color-swatch");
+        setTypeEditColorSelection(panel, color);
+      }
+    },
+  );
+
+  // Select edit color swatch
+  $("#mapping-type-manager").on(
+    "click",
+    ".mapping-type-edit-color-swatch",
+    function () {
+      const panel = $("#mapping-type-manager .mapping-type-edit-panel");
+      const color = $(this).data("color");
+      setTypeEditColorSelection(panel, color);
+    },
+  );
+
+  // Add custom color for edit
+  $("#mapping-type-manager").on(
+    "click",
+    ".mapping-type-edit-add-custom-color",
+    function () {
+      $("#mapping-type-manager .mapping-type-edit-custom-color-input").click();
+    },
+  );
+
+  $("#mapping-type-manager").on(
+    "change",
+    ".mapping-type-edit-custom-color-input",
+    function () {
+      const panel = $("#mapping-type-manager .mapping-type-edit-panel");
+      const color = $(this).val();
+      const picker = panel.find(".mapping-type-edit-color-picker");
+      ensureTypeSwatch(picker, color, "mapping-type-edit-color-swatch");
+      setTypeEditColorSelection(panel, color);
+    },
+  );
+
+  // Save edited type color
+  $("#mapping-type-manager").on(
+    "click",
+    ".mapping-type-edit-save",
+    function () {
+      const updateUrl = getTypeUpdateUrl();
+      if (!updateUrl) {
+        alert("Type update URL is missing.");
+        return;
+      }
+
+      const panel = $("#mapping-type-manager .mapping-type-edit-panel");
+      const typeId = panel.data("typeId");
+      const color = panel.find(".mapping-type-edit-color-input").val();
+      if (!typeId || !color) return;
+
+      const formData = new FormData();
+      formData.append("id", typeId);
+      formData.append("color", color);
+
+      fetch(updateUrl, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          Accept: "application/json",
+        },
+        body: formData,
+        credentials: "same-origin",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (!data || !data.success) {
+            throw new Error("Invalid response");
+          }
+
+          const item = typeList.find(`.mapping-type-item[data-type-id="${typeId}"]`);
+          item.data("color", color);
+          item.find(".mapping-type-color").css("background-color", color);
+
+          const select = $("#mapping-feature-editor .mapping-feature-type");
+          select.find(`option[value="${typeId}"]`).data("color", color);
+
+          const sidebar = $("#mapping-feature-editor");
+          const feature = sidebar.data("feature");
+          if (feature && feature.featureTypeId && String(feature.featureTypeId) === String(typeId)) {
+            const featureNamePrefix = feature._mappingNamePrefix;
+            setColorPickerLocked(true);
+            sidebar.find(".color-swatch").removeClass("selected");
+            if (!sidebar.find(`.color-swatch[data-color="${color}"]`).length) {
+              const newSwatch = $("<button>", {
+                type: "button",
+                class: "color-swatch",
+                "data-color": color,
+                css: { backgroundColor: color },
+              });
+              sidebar.find(".color-swatches").append(newSwatch);
+            }
+            sidebar.find(`.color-swatch[data-color="${color}"]`).addClass("selected");
+            $(`input[name="${featureNamePrefix}[o:marker_color]"]`).val(color);
+            updateFeatureStyle(feature, color);
+          }
+
+          // Close the type edit panel after saving a new color
+          const panel = $("#mapping-type-manager .mapping-type-edit-panel");
+          panel.removeClass("is-open");
+          panel.data("typeId", null);
+          panel.find(".mapping-type-edit-current").text("Select a type to edit.");
+          panel.find(".mapping-type-edit-save").prop("disabled", true);
+        })
+        .catch(() => {
+          alert("Could not update type color. Repeated colors are not allowed.");
+        });
+    },
+  );
+
+  // Delete existing type
+  $("#mapping-type-manager").on(
+    "click",
+    ".mapping-type-delete",
+    function () {
+      const deleteUrl = getTypeDeleteUrl();
+      if (!deleteUrl) {
+        alert("Type delete URL is missing.");
+        return;
+      }
+
+      const typeId = $(this).data("typeId");
+      if (!typeId) return;
+
+      if (!confirm("Delete this type?")) {
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("id", typeId);
+
+      fetch(deleteUrl, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          Accept: "application/json",
+        },
+        body: formData,
+        credentials: "same-origin",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (!data || !data.success) {
+            throw new Error("Invalid response");
+          }
+
+          typeList
+            .find(`.mapping-type-item[data-type-id="${typeId}"]`)
+            .remove();
+          const select = $("#mapping-feature-editor .mapping-feature-type");
+          select.find(`option[value="${typeId}"]`).remove();
+
+          if (select.val() === String(typeId)) {
+            select.val("").trigger("change");
+          }
+        })
+        .catch(() => {
+          alert("Could not delete type.");
         });
     },
   );
