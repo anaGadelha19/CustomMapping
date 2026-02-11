@@ -5,6 +5,36 @@ $description = $feature->description();
 $media = $feature->media();
 $item = $feature->item();
 $color = $feature->markerColor();
+$selectedPropertyIds = $feature->propertyIds();
+$selectedFields = [];
+if ($selectedPropertyIds) {
+    $selectedSet = array_flip($selectedPropertyIds);
+    foreach ($item->values() as $propertyData) {
+        $property = $propertyData['property'];
+        $propertyId = $property->id();
+        if (!isset($selectedSet[$propertyId])) {
+            continue;
+        }
+        $valueTexts = [];
+        foreach ($propertyData['values'] as $value) {
+            $text = null;
+            if ($value->valueResource()) {
+                $text = $value->valueResource()->displayTitle();
+            } else {
+                $text = $value->value();
+            }
+            if (is_string($text) && trim($text) !== '') {
+                $valueTexts[] = $text;
+            }
+        }
+        if ($valueTexts) {
+            $selectedFields[] = [
+                'label' => $property->label(),
+                'values' => $valueTexts,
+            ];
+        }
+    }
+}
 ?>
 <span class="group-type" style="<?php echo $color ? 'color:' . $this->escapeHtmlAttr($color) : ''; ?>">
 
@@ -26,6 +56,17 @@ $color = $feature->markerColor();
         <p class="sidebar-description">
             <?php echo $this->escapeHtml($description); ?>
         </p>
+    <?php endif; ?>
+
+    <?php if (!empty($selectedFields)): ?>
+        <dl class="mapping-feature-item-values">
+            <?php foreach ($selectedFields as $field): ?>
+                <div class="mapping-feature-item-values-row">
+                    <dt><?php echo $this->escapeHtml($field['label']); ?></dt>
+                    <dd><?php echo $this->escapeHtml(implode('; ', $field['values'])); ?></dd>
+                </div>
+            <?php endforeach; ?>
+        </dl>
     <?php endif; ?>
 
 </span>

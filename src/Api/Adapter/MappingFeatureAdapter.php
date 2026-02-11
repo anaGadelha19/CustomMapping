@@ -59,6 +59,10 @@ class MappingFeatureAdapter extends AbstractEntityAdapter
             $entity->setMarkerColor($request->getValue('o:marker_color'));
         }
 
+        if ($this->shouldHydrate($request, 'o-module-mapping:property_ids')) {
+            $entity->setPropertyIds($request->getValue('o-module-mapping:property_ids'));
+        }
+
         if ($this->shouldHydrate($request, 'o:feature_type')
             && isset($data['o:feature_type']['o:id'])
             && is_numeric($data['o:feature_type']['o:id'])

@@ -245,6 +245,14 @@ const MappingModule = {
     const description = $content.find("p.sidebar-description").html() || "";
     sidebar.find(".sidebar-description").html(description);
 
+    // Item fields
+    const itemFieldsContainer = sidebar.find(".sidebar-item-fields");
+    itemFieldsContainer.empty();
+    const itemFields = $content.find("dl.mapping-feature-item-values").first();
+    if (itemFields.length) {
+      itemFieldsContainer.append(itemFields.clone());
+    }
+
     // Media
     const mediaContainer = sidebar.find(".sidebar-media");
     mediaContainer.empty();

@@ -19,6 +19,7 @@ $(document).ready(function () {
     featureMarkerColor,
     featureTypeId,
     featureMediaId,
+    featurePropertyIds,
   ) {
     const typeColor = featureTypeId ? getTypeColorById(featureTypeId) : null;
     const markerColor = typeColor || featureMarkerColor || "#3498db";
@@ -30,6 +31,7 @@ $(document).ready(function () {
       // Attach the feature data to the sidebar for use
       sidebar.data("feature", feature);
       sidebar.data("selectedMediaId", featureMediaId);
+      sidebar.data("propertyIds", feature.propertyIds || []);
       // sidebar.data('featureMarkerColor', featureMarkerColor);
 
       // Populate sidebar inputs with current feature data
@@ -54,6 +56,7 @@ $(document).ready(function () {
       }
 
       setColorPickerLocked(!!featureTypeId);
+      renderItemFieldsForFeature(sidebar, feature);
 
       // Open the sidebar
       Omeka.openSidebar(sidebar);
@@ -73,6 +76,7 @@ $(document).ready(function () {
     feature._mappingNamePrefix = featureNamePrefix;
     feature.markerColor = markerColor;
     feature.featureTypeId = featureTypeId || null;
+    feature.propertyIds = normalizePropertyIds(featurePropertyIds);
 
     // Step: 1
 
@@ -121,6 +125,14 @@ $(document).ready(function () {
         type: "hidden",
         name: featureNamePrefix + "[o:feature_type][o:id]",
         value: featureTypeId || "",
+      }),
+    );
+
+    mappingForm.append(
+      $("<input>", {
+        type: "hidden",
+        name: featureNamePrefix + "[o-module-mapping:property_ids]",
+        value: JSON.stringify(feature.propertyIds),
       }),
     );
 
@@ -186,6 +198,7 @@ $(document).ready(function () {
     }
   };
 
+  // Auxiliar Functions
   const getFeatureNamePrefix = function (feature) {
     return `o-module-mapping:feature[${drawnFeatures.getLayerId(feature)}]`;
   };
@@ -199,21 +212,23 @@ $(document).ready(function () {
     );
     return option.length ? option.data("color") : null;
   };
-
+  // Lock color picker when type is selected
   const setColorPickerLocked = function (isLocked) {
-    const colorPicker = $("#mapping-feature-editor .mapping-feature-color-picker");
+    const colorPicker = $(
+      "#mapping-feature-editor .mapping-feature-color-picker",
+    );
     colorPicker.toggleClass("is-locked", isLocked);
     colorPicker
       .find(".color-swatch, #add-custom-color, #custom-color-input")
       .prop("disabled", isLocked);
   };
-
+  // Checks if color picker is locked
   const isColorPickerLocked = function () {
     return $("#mapping-feature-editor .mapping-feature-color-picker").hasClass(
       "is-locked",
     );
   };
-
+// Type management functions
   const getTypeAddUrl = function () {
     return $("#mapping-feature-editor").data("typeAddUrl");
   };
@@ -224,6 +239,113 @@ $(document).ready(function () {
 
   const getTypeUpdateUrl = function () {
     return $("#mapping-feature-editor").data("typeUpdateUrl");
+  };
+
+  // 
+  const itemFieldsContainer = $(
+    "#mapping-feature-editor .mapping-feature-item-fields",
+  );
+  const rawItemFields = itemFieldsContainer.length
+    ? itemFieldsContainer.data("itemFields")
+    : [];
+  const itemFields = Array.isArray(rawItemFields) ? rawItemFields : [];
+  const itemFieldsById = {};
+  itemFields.forEach((field) => {
+    itemFieldsById[String(field.id)] = field;
+  });
+
+  const normalizePropertyIds = function (value) {
+    if (Array.isArray(value)) {
+      return value.map((id) => String(id));
+    }
+    if (typeof value === "string" && value.trim() !== "") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return parsed.map((id) => String(id));
+        }
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  const renderItemFieldsList = function (sidebar, propertyIds) {
+    const list = sidebar.find(".mapping-feature-item-fields-list");
+    list.empty();
+    const ids = Array.isArray(propertyIds) ? propertyIds : [];
+    if (!ids.length) {
+      list.append(
+        $("<div>", {
+          class: "mapping-feature-item-fields-empty",
+          text: "No fields added.",
+        }),
+      );
+      return;
+    }
+    ids.forEach((id) => {
+      const field = itemFieldsById[String(id)];
+      if (!field) {
+        return;
+      }
+      const values = Array.isArray(field.values) ? field.values.join("; ") : "";
+      const row = $("<div>", {
+        class: "mapping-feature-item-field",
+        "data-field-id": id,
+      });
+      row.append(
+        $("<div>", {
+          class: "mapping-feature-item-field-label",
+          text: `${field.label}:`,
+        }),
+      );
+      row.append(
+        $("<div>", {
+          class: "mapping-feature-item-field-values",
+          text: values,
+        }),
+      );
+      row.append(
+        $("<button>", {
+          type: "button",
+          class: "mapping-feature-item-field-remove o-icon-close",
+          "aria-label": "Remove field",
+        }).append($("<span>", { class: "screen-reader-text", text: "Remove" })),
+      );
+      list.append(row);
+    });
+  };
+
+  const buildItemFieldsSelect = function (sidebar, propertyIds) {
+    const select = sidebar.find(".mapping-feature-item-fields-select");
+    select.find("option:not(:first)").remove();
+    const selectedSet = new Set(
+      (Array.isArray(propertyIds) ? propertyIds : []).map((id) => String(id)),
+    );
+    itemFields.forEach((field) => {
+      if (selectedSet.has(String(field.id))) {
+        return;
+      }
+      select.append($("<option>", { value: field.id, text: field.label }));
+    });
+    const hasOptions = select.find("option").length > 1;
+    select.prop("disabled", !hasOptions);
+  };
+
+  const updateFeaturePropertyIds = function (feature, propertyIds) {
+    const ids = Array.isArray(propertyIds) ? propertyIds : [];
+    feature.propertyIds = ids;
+    const featureNamePrefix = getFeatureNamePrefix(feature);
+    $(`input[name="${featureNamePrefix}[o-module-mapping:property_ids]"]`).val(
+      JSON.stringify(ids),
+    );
+  };
+
+  const renderItemFieldsForFeature = function (sidebar, feature) {
+    const ids = normalizePropertyIds(feature.propertyIds);
+    renderItemFieldsList(sidebar, ids);
+    buildItemFieldsSelect(sidebar, ids);
   };
 
   const typeManager = $("#mapping-type-manager");
@@ -325,9 +447,7 @@ $(document).ready(function () {
   };
 
   const setTypeColorSelection = function (container, color) {
-    container
-      .find(".mapping-type-color-swatch")
-      .removeClass("selected");
+    container.find(".mapping-type-color-swatch").removeClass("selected");
     container
       .find(`.mapping-type-color-swatch[data-color="${color}"]`)
       .addClass("selected");
@@ -335,9 +455,7 @@ $(document).ready(function () {
   };
 
   const setTypeEditColorSelection = function (container, color) {
-    container
-      .find(".mapping-type-edit-color-swatch")
-      .removeClass("selected");
+    container.find(".mapping-type-edit-color-swatch").removeClass("selected");
     container
       .find(`.mapping-type-edit-color-swatch[data-color="${color}"]`)
       .addClass("selected");
@@ -354,7 +472,9 @@ $(document).ready(function () {
       "data-color": color,
       css: { backgroundColor: color },
     });
-    const addBtn = picker.find(".mapping-type-add-custom-color, .mapping-type-edit-add-custom-color");
+    const addBtn = picker.find(
+      ".mapping-type-add-custom-color, .mapping-type-edit-add-custom-color",
+    );
     if (addBtn.length) {
       addBtn.first().before(swatch);
     } else {
@@ -482,7 +602,9 @@ $(document).ready(function () {
     const typeColor = featureTypeId ? getTypeColorById(featureTypeId) : null;
     const markerColor =
       typeColor ||
-      (data["o:marker_color"] !== undefined ? data["o:marker_color"] : "#3498db");
+      (data["o:marker_color"] !== undefined
+        ? data["o:marker_color"]
+        : "#3498db");
 
     console.log("FEATURE DATA", data);
     console.log("DESCRIPTION", data["o:description"]);
@@ -512,6 +634,7 @@ $(document).ready(function () {
           markerColor,
           featureTypeId,
           featureMediaId,
+          data["o-module-mapping:property_ids"],
         );
       },
     });
@@ -594,7 +717,7 @@ $(document).ready(function () {
     }
   }
 
-  // -------------------- Step: 2 --------------------
+  // --------------------- Title ---------------------
   // Handle title input
   $("#mapping-section").on(
     "keyup",
@@ -612,6 +735,7 @@ $(document).ready(function () {
     },
   );
 
+  // --------------------- Description ---------------------
   // Handle description text area
   $("#mapping-section").on(
     "keyup",
@@ -631,6 +755,54 @@ $(document).ready(function () {
     },
   );
 
+  // --------------------- Fields ---------------------
+  // Add selected item field
+  $("#mapping-feature-editor").on(
+    "click",
+    ".mapping-feature-item-fields-add",
+    function () {
+      const sidebar = $("#mapping-feature-editor");
+      const feature = sidebar.data("feature");
+      if (!feature) return;
+
+      const container = $(this).closest(".mapping-feature-item-fields");
+      const select = container.find(".mapping-feature-item-fields-select");
+      const selectedId = select.val();
+      if (!selectedId) return;
+
+      const ids = normalizePropertyIds(feature.propertyIds);
+      if (!ids.includes(String(selectedId))) {
+        ids.push(String(selectedId));
+        updateFeaturePropertyIds(feature, ids);
+      }
+      renderItemFieldsList(sidebar, ids);
+      buildItemFieldsSelect(sidebar, ids);
+      select.val("");
+    },
+  );
+
+  // Remove item field
+  $("#mapping-feature-editor").on(
+    "click",
+    ".mapping-feature-item-field-remove",
+    function () {
+      const sidebar = $("#mapping-feature-editor");
+      const feature = sidebar.data("feature");
+      if (!feature) return;
+
+      const fieldId = $(this)
+        .closest(".mapping-feature-item-field")
+        .data("fieldId");
+      const ids = normalizePropertyIds(feature.propertyIds).filter(
+        (id) => String(id) !== String(fieldId),
+      );
+      updateFeaturePropertyIds(feature, ids);
+      renderItemFieldsList(sidebar, ids);
+      buildItemFieldsSelect(sidebar, ids);
+    },
+  );
+
+  // --------------------- Marker Color Selection ---------------------
   // Selecting a marker color
   $("#mapping-feature-editor").on("click", ".color-swatch", function () {
     const sidebar = $("#mapping-feature-editor");
@@ -669,7 +841,7 @@ $(document).ready(function () {
       return;
     }
 
-    // Create new swatch
+    // Custom new swatch
     const swatch = $("<button>", {
       type: "button",
       class: "color-swatch selected",
@@ -688,33 +860,39 @@ $(document).ready(function () {
     updateFeatureStyle(feature, color);
   });
 
-  // Selecting a feature type locks color and applies type color
-  $("#mapping-feature-editor").on("change", ".mapping-feature-type", function () {
-    const sidebar = $("#mapping-feature-editor");
-    const feature = sidebar.data("feature");
-    if (!feature) return;
+  // --------------------- Types ---------------------
+  // Selecting a type locks color picker and applies type color
+  $("#mapping-feature-editor").on(
+    "change",
+    ".mapping-feature-type",
+    function () {
+      const sidebar = $("#mapping-feature-editor");
+      const feature = sidebar.data("feature");
+      if (!feature) return;
 
-    const featureNamePrefix = feature._mappingNamePrefix;
-    const typeId = $(this).val();
+      const featureNamePrefix = feature._mappingNamePrefix;
+      const typeId = $(this).val();
 
-    $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val(typeId);
-    feature.featureTypeId = typeId || null;
+      $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val(typeId);
+      feature.featureTypeId = typeId || null;
 
-    if (typeId) {
-      const typeColor = getTypeColorById(typeId) || feature.markerColor || "#3498db";
-      setColorPickerLocked(true);
-      $(".color-swatch").removeClass("selected");
-      sidebar
-        .find(`.color-swatch[data-color="${typeColor}"]`)
-        .addClass("selected");
-      $(`input[name="${featureNamePrefix}[o:marker_color]"]`).val(typeColor);
-      updateFeatureStyle(feature, typeColor);
-    } else {
-      setColorPickerLocked(false);
-    }
-  });
+      if (typeId) {
+        const typeColor =
+          getTypeColorById(typeId) || feature.markerColor || "#3498db";
+        setColorPickerLocked(true);
+        $(".color-swatch").removeClass("selected");
+        sidebar
+          .find(`.color-swatch[data-color="${typeColor}"]`)
+          .addClass("selected");
+        $(`input[name="${featureNamePrefix}[o:marker_color]"]`).val(typeColor);
+        updateFeatureStyle(feature, typeColor);
+      } else {
+        setColorPickerLocked(false);
+      }
+    },
+  );
 
-  // Open/close type manager modal
+  // Open/close type modal
   $("#mapping-feature-editor").on(
     "click",
     ".mapping-type-manager-button",
@@ -828,46 +1006,44 @@ $(document).ready(function () {
   );
 
   // Start editing type color
-  $("#mapping-type-manager").on(
-    "click",
-    ".mapping-type-edit",
-    function () {
-      const typeId = $(this).data("typeId");
-      if (!typeId) return;
+  $("#mapping-type-manager").on("click", ".mapping-type-edit", function () {
+    const typeId = $(this).data("typeId");
+    if (!typeId) return;
 
-      const item = typeList.find(`.mapping-type-item[data-type-id="${typeId}"]`);
-      const label = item.find(".mapping-type-label-text").text();
-      const color = item.data("color") || item.find(".mapping-type-color").css("background-color");
+    const item = typeList.find(`.mapping-type-item[data-type-id="${typeId}"]`);
+    const label = item.find(".mapping-type-label-text").text();
+    const color =
+      item.data("color") ||
+      item.find(".mapping-type-color").css("background-color");
 
-      const panel = $("#mapping-type-manager .mapping-type-edit-panel");
-      panel.data("typeId", typeId);
-      panel.addClass("is-open");
-      panel.find(".mapping-type-edit-current").text(label);
-      panel.find(".mapping-type-edit-save").prop("disabled", false);
+    const panel = $("#mapping-type-manager .mapping-type-edit-panel");
+    panel.data("typeId", typeId);
+    panel.addClass("is-open");
+    panel.find(".mapping-type-edit-current").text(label);
+    panel.find(".mapping-type-edit-save").prop("disabled", false);
 
-      const picker = panel.find(".mapping-type-edit-color-picker");
-      if (color && color.startsWith("rgb")) {
-        // Convert rgb to hex
-        const rgb = color.match(/\d+/g);
-        if (rgb && rgb.length >= 3) {
-          const hex =
-            "#" +
-            rgb
-              .slice(0, 3)
-              .map((x) => Number(x).toString(16).padStart(2, "0"))
-              .join("");
-          ensureTypeSwatch(picker, hex, "mapping-type-edit-color-swatch");
-          setTypeEditColorSelection(panel, hex);
-          return;
-        }
+    const picker = panel.find(".mapping-type-edit-color-picker");
+    if (color && color.startsWith("rgb")) {
+      // Convert rgb to hex
+      const rgb = color.match(/\d+/g);
+      if (rgb && rgb.length >= 3) {
+        const hex =
+          "#" +
+          rgb
+            .slice(0, 3)
+            .map((x) => Number(x).toString(16).padStart(2, "0"))
+            .join("");
+        ensureTypeSwatch(picker, hex, "mapping-type-edit-color-swatch");
+        setTypeEditColorSelection(panel, hex);
+        return;
       }
+    }
 
-      if (color) {
-        ensureTypeSwatch(picker, color, "mapping-type-edit-color-swatch");
-        setTypeEditColorSelection(panel, color);
-      }
-    },
-  );
+    if (color) {
+      ensureTypeSwatch(picker, color, "mapping-type-edit-color-swatch");
+      setTypeEditColorSelection(panel, color);
+    }
+  });
 
   // Select edit color swatch
   $("#mapping-type-manager").on(
@@ -936,7 +1112,9 @@ $(document).ready(function () {
             throw new Error("Invalid response");
           }
 
-          const item = typeList.find(`.mapping-type-item[data-type-id="${typeId}"]`);
+          const item = typeList.find(
+            `.mapping-type-item[data-type-id="${typeId}"]`,
+          );
           item.data("color", color);
           item.find(".mapping-type-color").css("background-color", color);
 
@@ -945,7 +1123,11 @@ $(document).ready(function () {
 
           const sidebar = $("#mapping-feature-editor");
           const feature = sidebar.data("feature");
-          if (feature && feature.featureTypeId && String(feature.featureTypeId) === String(typeId)) {
+          if (
+            feature &&
+            feature.featureTypeId &&
+            String(feature.featureTypeId) === String(typeId)
+          ) {
             const featureNamePrefix = feature._mappingNamePrefix;
             setColorPickerLocked(true);
             sidebar.find(".color-swatch").removeClass("selected");
@@ -958,7 +1140,9 @@ $(document).ready(function () {
               });
               sidebar.find(".color-swatches").append(newSwatch);
             }
-            sidebar.find(`.color-swatch[data-color="${color}"]`).addClass("selected");
+            sidebar
+              .find(`.color-swatch[data-color="${color}"]`)
+              .addClass("selected");
             $(`input[name="${featureNamePrefix}[o:marker_color]"]`).val(color);
             updateFeatureStyle(feature, color);
           }
@@ -967,66 +1151,64 @@ $(document).ready(function () {
           const panel = $("#mapping-type-manager .mapping-type-edit-panel");
           panel.removeClass("is-open");
           panel.data("typeId", null);
-          panel.find(".mapping-type-edit-current").text("Select a type to edit.");
+          panel
+            .find(".mapping-type-edit-current")
+            .text("Select a type to edit.");
           panel.find(".mapping-type-edit-save").prop("disabled", true);
         })
         .catch(() => {
-          alert("Could not update type color. Repeated colors are not allowed.");
+          alert(
+            "Could not update type color. Repeated colors are not allowed.",
+          );
         });
     },
   );
 
   // Delete existing type
-  $("#mapping-type-manager").on(
-    "click",
-    ".mapping-type-delete",
-    function () {
-      const deleteUrl = getTypeDeleteUrl();
-      if (!deleteUrl) {
-        alert("Type delete URL is missing.");
-        return;
-      }
+  $("#mapping-type-manager").on("click", ".mapping-type-delete", function () {
+    const deleteUrl = getTypeDeleteUrl();
+    if (!deleteUrl) {
+      alert("Type delete URL is missing.");
+      return;
+    }
 
-      const typeId = $(this).data("typeId");
-      if (!typeId) return;
+    const typeId = $(this).data("typeId");
+    if (!typeId) return;
 
-      if (!confirm("Delete this type?")) {
-        return;
-      }
+    if (!confirm("Delete this type?")) {
+      return;
+    }
 
-      const formData = new FormData();
-      formData.append("id", typeId);
+    const formData = new FormData();
+    formData.append("id", typeId);
 
-      fetch(deleteUrl, {
-        method: "POST",
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-          Accept: "application/json",
-        },
-        body: formData,
-        credentials: "same-origin",
+    fetch(deleteUrl, {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        Accept: "application/json",
+      },
+      body: formData,
+      credentials: "same-origin",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data || !data.success) {
+          throw new Error("Invalid response");
+        }
+
+        typeList.find(`.mapping-type-item[data-type-id="${typeId}"]`).remove();
+        const select = $("#mapping-feature-editor .mapping-feature-type");
+        select.find(`option[value="${typeId}"]`).remove();
+
+        if (select.val() === String(typeId)) {
+          select.val("").trigger("change");
+        }
       })
-        .then((response) => response.json())
-        .then((data) => {
-          if (!data || !data.success) {
-            throw new Error("Invalid response");
-          }
-
-          typeList
-            .find(`.mapping-type-item[data-type-id="${typeId}"]`)
-            .remove();
-          const select = $("#mapping-feature-editor .mapping-feature-type");
-          select.find(`option[value="${typeId}"]`).remove();
-
-          if (select.val() === String(typeId)) {
-            select.val("").trigger("change");
-          }
-        })
-        .catch(() => {
-          alert("Could not delete type.");
-        });
-    },
-  );
+      .catch(() => {
+        alert("Could not delete type.");
+      });
+  });
 
   // Handle select popup image button.
   $("#mapping-section").on(
@@ -1065,5 +1247,39 @@ $(document).ready(function () {
     },
   );
 
+  // Handle fullscreen mode - ensure sidebar and legend are visible
+  map.on('enterFullscreen', function() {
+    const mapContainer = map.getContainer();
+    const sidebar = $('#mapping-feature-editor');
+    const legend = $('.mapping-map-legend');
+    
+    // Move elements into fullscreen container
+    if (sidebar.length) {
+      sidebar.appendTo(mapContainer);
+    }
+    if (legend.length) {
+      legend.appendTo(mapContainer);
+    }
+    
+    // Add fullscreen class to body for additional styling
+    $('body').addClass('mapping-fullscreen-active');
+  });
 
+  map.on('exitFullscreen', function() {
+    const sidebar = $('#mapping-feature-editor');
+    const legend = $('.mapping-map-legend');
+    const mapSection = $('#mapping-section');
+    const mapContainer = $('.mapping-map-container');
+    
+    // Move elements back to their original positions
+    if (sidebar.length && mapSection.length) {
+      sidebar.appendTo(mapSection);
+    }
+    if (legend.length && mapContainer.length) {
+      legend.appendTo(mapContainer);
+    }
+    
+    // Remove fullscreen class from body
+    $('body').removeClass('mapping-fullscreen-active');
+  });
 });

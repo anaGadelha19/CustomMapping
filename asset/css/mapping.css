@@ -51,21 +51,25 @@
   align-items: center;
 }
 
+/* Client Side Checkboxes */
 .mapping-map-legend-toggle input[type="checkbox"] {
   margin: 0 4px 0 0;
+  height: 16px;
+  width: 16px;
+  /* background-color: rgb(103, 103, 103); */
 }
 
 .mapping-map-legend-pin {
-  width: 16px;
-  height: 24px;
+   width: 18px;
+  height: 26px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 .mapping-map-legend-pin svg {
-  width: 16px;
-  height: 24px;
+ width: 18px;
+  height: 26px;
 }
 
 .mapping-map-legend-label {
@@ -194,6 +198,8 @@
 .sidebar {
   padding: 16px;
   gap: 16px;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .gap {
@@ -204,6 +210,111 @@
   display: flex;
   justify-content: flex-end;
   text-decoration: none;
+}
+
+.mapping-feature-item-fields {
+  display: flex;
+  flex-direction: column;
+  /* gap: 8px; */
+}
+
+.mapping-feature-item-fields-picker {
+  display: flex;
+  margin-bottom: 8px;
+  /* gap: 8px; */
+  /* align-items: center; */
+}
+
+.mapping-feature-item-fields-list {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mapping-feature-item-field {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 10px;
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  background: #d8d8d8;
+  /* width: 100%; */
+}
+
+.mapping-feature-item-field-label {
+  font-weight: 600;
+  /* color: #333; */
+}
+
+.mapping-feature-item-field-values {
+  grid-column: 1 / -1;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.mapping-feature-item-fields-empty {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.mapping-feature-item-fields-add {
+  background-color: transparent !important;
+  color:  rgb(103, 103, 103) !important;
+  border: none !important;
+  box-shadow: none;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  margin-right: -10px;
+}
+
+.mapping-feature-item-fields-add:hover {
+  color: #333 !important;
+  background-color: transparent;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.mapping-feature-item-field-remove.o-icon-close{
+  background-color: transparent;
+  color: rgb(103, 103, 103);
+  border: none;
+  box-shadow: none;
+  height: 16px;
+  width: 16px;
+  padding: 0;
+  margin: 0;
+}
+.mapping-feature-item-field-remove.o-icon-close:hover{
+  background-color: transparent;
+  color: #333;
+  border: none;
+  box-shadow: none;
+}
+
+.mapping-feature-item-values {
+  margin: 12px 0 0;
+}
+
+.mapping-feature-item-values-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 2fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mapping-feature-item-values-row dt {
+  font-weight: 600;
+}
+
+.mapping-feature-item-values-row dd {
+  margin: 0;
 }
 
 /* ---------- Marker Pins ---------- */
@@ -670,4 +781,36 @@
   height: auto;
   border-radius: 6px;
   margin-top: 0.5rem;
+}
+
+/* ---------- Fullscreen Mode ---------- */
+
+/* Legend visible in fullscreen */
+.leaflet-container.leaflet-fullscreen-on .mapping-map-legend {
+  position: absolute !important;
+  z-index: 1000 !important;
+  bottom: 12px !important;
+  left: 12px !important;
+}
+
+/* Sidebar visible in fullscreen */
+.leaflet-container.leaflet-fullscreen-on .sidebar {
+  position: fixed !important;
+  z-index: 1001 !important;
+}
+
+body.mapping-fullscreen-active .mapping-map-legend,
+body.mapping-fullscreen-active .sidebar {
+  z-index: 999999 !important;
+}
+
+/* When map container is in fullscreen */
+.mapping-map-container:fullscreen .mapping-map-legend,
+.mapping-map-container:-webkit-full-screen .mapping-map-legend,
+.mapping-map-container:-moz-full-screen .mapping-map-legend,
+.mapping-map-container:-ms-fullscreen .mapping-map-legend {
+  position: fixed !important;
+  z-index: 999999 !important;
+  bottom: 12px !important;
+  left: 12px !important;
 }

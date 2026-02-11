@@ -83,6 +83,14 @@ protected $markerColor;
      */
     protected $geography;
 
+    /**
+     * @Column(
+     *     type="text",
+     *     nullable=true
+     * )
+     */
+    protected $propertyIds;
+
     public function getId()
     {
         return $this->id;
@@ -165,5 +173,29 @@ protected $markerColor;
     public function setGeography(GeographyInterface $geography)
     {
         $this->geography = $geography;
+    }
+
+    public function getPropertyIds(): array
+    {
+        if (!$this->propertyIds) {
+            return [];
+        }
+        $decoded = json_decode($this->propertyIds, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    public function setPropertyIds($propertyIds): void
+    {
+        if (is_string($propertyIds)) {
+            $decoded = json_decode($propertyIds, true);
+            $propertyIds = is_array($decoded) ? $decoded : [];
+        }
+        if (!is_array($propertyIds)) {
+            $propertyIds = [];
+        }
+        $propertyIds = array_values(array_filter($propertyIds, function ($id) {
+            return is_numeric($id) || (is_string($id) && trim($id) !== '');
+        }));
+        $this->propertyIds = $propertyIds ? json_encode($propertyIds) : null;
     }
 }

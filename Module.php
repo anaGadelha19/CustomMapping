@@ -146,7 +146,7 @@ class Module extends AbstractModule
     {
         $conn = $serviceLocator->get('Omeka\Connection');
         $conn->exec("CREATE TABLE custom_mapping_feature_type (id INT UNSIGNED AUTO_INCREMENT NOT NULL, `label` VARCHAR(255) NOT NULL, color VARCHAR(50) NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
-        $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL,  `description` LONGTEXT DEFAULT NULL, marker_color VARCHAR(50) DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
+        $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL,  `description` LONGTEXT DEFAULT NULL, marker_color VARCHAR(50) DEFAULT NULL, property_ids LONGTEXT DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
         $conn->exec("CREATE TABLE custom_mapping (id INT AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, bounds VARCHAR(255) DEFAULT NULL, UNIQUE INDEX UNIQ_49E62C8A126F525E (item_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD feature_type_id INT UNSIGNED DEFAULT NULL;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD INDEX IDX_CUSTOM_MAPPING_FEATURE_TYPE (feature_type_id);");
@@ -187,6 +187,10 @@ class Module extends AbstractModule
             $conn->exec("ALTER TABLE custom_mapping_feature ADD feature_type_id INT UNSIGNED DEFAULT NULL;");
             $conn->exec("ALTER TABLE custom_mapping_feature ADD INDEX IDX_CUSTOM_MAPPING_FEATURE_TYPE (feature_type_id);");
             $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_CUSTOM_MAPPING_FEATURE_TYPE FOREIGN KEY (feature_type_id) REFERENCES custom_mapping_feature_type (id) ON DELETE SET NULL;");
+        }
+        if (Comparator::lessThan($oldVersion, '2.3.1')) {
+            $conn = $services->get('Omeka\Connection');
+            $conn->exec("ALTER TABLE custom_mapping_feature ADD property_ids LONGTEXT DEFAULT NULL;");
         }
     }
 

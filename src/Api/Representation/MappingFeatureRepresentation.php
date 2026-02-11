@@ -21,6 +21,7 @@ class MappingFeatureRepresentation extends AbstractEntityRepresentation
             'o:description' => $this->description(),
             'o:marker_color' => $this->markerColor(),
             'o:feature_type' => $featureType ? $featureType->getReference() : null,
+            'o-module-mapping:property_ids' => $this->propertyIds(),
 
             'o-module-mapping:geography-type' => $this->geographyType(),
             'o-module-mapping:geography-coordinates' => $this->geographyCoordinates(),
@@ -69,6 +70,11 @@ class MappingFeatureRepresentation extends AbstractEntityRepresentation
         }
         return $this->getAdapter('custom_mapping_feature_types')
             ->getRepresentation($featureType);
+    }
+
+    public function propertyIds(): array
+    {
+        return $this->resource->getPropertyIds();
     }
 
 

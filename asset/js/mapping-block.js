@@ -297,6 +297,42 @@ function MappingBlock(mapDiv, timelineDiv) {
             }
         });
     }
+
+    // Handle fullscreen mode - ensure sidebar and legend are visible
+    map.on('enterFullscreen', function() {
+        const mapContainer = map.getContainer();
+        const sidebar = $('#mapping-view-sidebar');
+        const legend = $('.mapping-map-legend');
+        
+        // Move elements into fullscreen container
+        if (sidebar.length) {
+            sidebar.appendTo(mapContainer);
+        }
+        if (legend.length) {
+            legend.appendTo(mapContainer);
+        }
+        
+        // Add fullscreen class to body for additional styling
+        $('body').addClass('mapping-fullscreen-active');
+    });
+
+    map.on('exitFullscreen', function() {
+        const sidebar = $('#mapping-view-sidebar');
+        const legend = $('.mapping-map-legend');
+        const mappingBlock = mapDiv.closest('.mapping-block');
+        const mapContainer = mapDiv.parent('.mapping-map-container');
+        
+        // Move elements back to their original positions
+        if (sidebar.length && mappingBlock.length) {
+            sidebar.appendTo(mappingBlock);
+        }
+        if (legend.length && mapContainer.length) {
+            legend.appendTo(mapContainer);
+        }
+        
+        // Remove fullscreen class from body
+        $('body').removeClass('mapping-fullscreen-active');
+    });
 }
 
 $(document).ready( function() {

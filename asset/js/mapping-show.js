@@ -100,6 +100,42 @@ map.on('click', function() {
     }
 });
 
+// Handle fullscreen mode - ensure sidebar and legend are visible
+map.on('enterFullscreen', function() {
+    const mapContainer = map.getContainer();
+    const sidebar = $('#mapping-view-sidebar');
+    const legend = $('.mapping-map-legend');
+    
+    // Move elements into fullscreen container
+    if (sidebar.length) {
+        sidebar.appendTo(mapContainer);
+    }
+    if (legend.length) {
+        legend.appendTo(mapContainer);
+    }
+    
+    // Add fullscreen class to body for additional styling
+    $('body').addClass('mapping-fullscreen-active');
+});
+
+map.on('exitFullscreen', function() {
+    const sidebar = $('#mapping-view-sidebar');
+    const legend = $('.mapping-map-legend');
+    const mapSection = $('#mapping-section');
+    const mapContainer = $('.mapping-map-container');
+    
+    // Move elements back to their original positions
+    if (sidebar.length && mapSection.length) {
+        sidebar.appendTo(mapSection);
+    }
+    if (legend.length && mapContainer.length) {
+        legend.appendTo(mapContainer);
+    }
+    
+    // Remove fullscreen class from body
+    $('body').removeClass('mapping-fullscreen-active');
+});
+
 });
 
 
