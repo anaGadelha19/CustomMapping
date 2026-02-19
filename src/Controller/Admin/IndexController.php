@@ -25,12 +25,33 @@ class IndexController extends AbstractActionController
             $featureType = $feature->featureType();
             $markerColor = $featureType ? $featureType->color() : $feature->markerColor();
             $featureTypeId = $featureType ? $featureType->id() : null;
+            
+            // Get dates from the item
+            $itemDates = [];
+            $item = $feature->item();
+            if ($item) {
+                $dateValues = $item->value('dcterms:date');
+                if ($dateValues) {
+                    if (!is_array($dateValues)) {
+                        $dateValues = [$dateValues];
+                    }
+                    foreach ($dateValues as $dateValue) {
+                        if (is_object($dateValue) && method_exists($dateValue, 'value')) {
+                            $itemDates[] = $dateValue->value();
+                        } else {
+                            $itemDates[] = (string)$dateValue;
+                        }
+                    }
+                }
+            }
+            
             $features[] = [
                 $feature->id(),
                 $feature->item()->id(),
                 $feature->geography(),
                 $markerColor,
                 $featureTypeId,
+                $itemDates,
             ];
         }
 

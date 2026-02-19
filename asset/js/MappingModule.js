@@ -66,6 +66,12 @@ const MappingModule = {
     // Set the initial view to the geographical center of world.
     map.setView([20, 0], 2);
 
+    // Store feature groups on the map for later retrieval
+    map._mappingFeatures = features;
+    map._mappingFeaturesPoint = featuresPoint;
+    map._mappingFeaturesPoly = featuresPoly;
+    map._mappingBaseMaps = baseMaps;
+
     return [map, features, featuresPoint, featuresPoly, baseMaps];
   },
 
@@ -143,6 +149,14 @@ const MappingModule = {
         const featureGeography = featureData[2];
         const markerColor = featureData[3] || "#3498db";
         const featureTypeId = featureData[4] ? String(featureData[4]) : null;
+        const itemDates = featureData[5] || [];
+        
+        console.log('Processing feature:', {
+          featureId,
+          resourceId,
+          itemDates,
+          fullData: featureData
+        });
 
         L.geoJSON(featureGeography, {
           pointToLayer: function (feature, latlng) {
@@ -160,6 +174,21 @@ const MappingModule = {
             };
           },
           onEachFeature: function (feature, layer) {
+            // Add dates to the feature properties for timeline filtering
+            if (!feature.properties) {
+              feature.properties = {};
+            }
+            feature.properties.dates = itemDates;
+            
+            // Store dates directly on the layer as well
+            layer._mappingDates = itemDates;
+            
+            console.log('Set dates on layer:', {
+              featureId,
+              itemDates,
+              layerDates: layer._mappingDates
+            });
+            
             layer.on("click", function (e) {
               e.originalEvent.stopPropagation(); // prevent map click
 
@@ -365,42 +394,6 @@ const MappingModule = {
         legend.addClass("filters-hidden");
       }
     };
-
-    const FilterControl = L.Control.extend({
-      options: { position: "topleft" },
-      onAdd: function () {
-        const container = L.DomUtil.create(
-          "div",
-          "leaflet-bar mapping-legend-filter-control",
-        );
-        const button = L.DomUtil.create(
-          "a",
-          "mapping-legend-filter-button",
-          container,
-        );
-        button.href = "#";
-        button.title = "Toggle type filter";
-        button.setAttribute("aria-label", "Toggle type filter");
-        button.innerHTML =
-          "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 5h18l-7 8v5l-4 2v-7L3 5z\"></path></svg>";
-
-        L.DomEvent.on(button, "click", function (e) {
-          L.DomEvent.preventDefault(e);
-          filtersEnabled = !filtersEnabled;
-          button.classList.toggle("is-disabled", !filtersEnabled);
-          button.setAttribute(
-            "aria-pressed",
-            filtersEnabled ? "true" : "false",
-          );
-          updateLegendState();
-          applyFilters();
-        });
-
-        return container;
-      },
-    });
-
-    map.addControl(new FilterControl());
 
     toggles.on("change", applyFilters);
     updateLegendState();

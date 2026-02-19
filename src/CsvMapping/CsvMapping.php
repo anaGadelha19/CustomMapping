@@ -1,5 +1,5 @@
 <?php
-namespace Mapping\CsvMapping;
+namespace CustomMapping\CsvMapping;
 
 use CSVImport\Mapping\AbstractMapping;
 use Laminas\View\Renderer\PhpRenderer;

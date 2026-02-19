@@ -36,7 +36,7 @@ class MapBrowse implements LinkInterface
             $query['mapping_basemap_provider'] = $basemapProvider;
         }
         return [
-            'route' => 'site/mapping',
+            'route' => 'site/custom-mapping',
             'params' => [
                 'site-slug' => $site->slug(),
                 'controller' => 'index',

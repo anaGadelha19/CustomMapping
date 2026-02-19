@@ -56,6 +56,7 @@ abstract class AbstractMap extends AbstractBlockLayout
         $view->headScript()->appendFile($view->assetUrl('js/MappingModule.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/control.opacity.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('js/timeline-slider.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/mapping-block.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/mapping-show.js', 'CustomMapping'));
     }

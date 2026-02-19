@@ -10,11 +10,17 @@
 
 /* ---------- Markers Legend  ---------- */
 
-.mapping-map-legend {
+.mapping-map-controls {
   position: absolute;
   bottom: 12px;
   left: 12px;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mapping-map-legend {
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #e3e3e3;
   border-radius: 4px;
@@ -78,6 +84,82 @@
 
 .mapping-map-legend.filters-hidden .mapping-map-legend-toggle {
   display: none;
+}
+
+/* ---------- Timeline Toggle Button  ---------- */
+
+.mapping-timeline-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.mapping-timeline-toggle:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.mapping-timeline-toggle:active {
+  transform: scale(0.98);
+}
+
+.mapping-timeline-toggle-icon {
+  font-size: 1.1rem;
+}
+
+.mapping-timeline-toggle[aria-pressed="false"] {
+  opacity: 0.7;
+}
+
+/* ---------- Marker Filter Toggle Button  ---------- */
+
+.mapping-filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.mapping-filter-toggle:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.mapping-filter-toggle:active {
+  transform: scale(0.98);
+}
+
+.mapping-filter-toggle-icon {
+  width: 16px;
+  height: 16px;
+  fill: #333;
+}
+
+.mapping-filter-toggle[aria-pressed="false"] {
+  opacity: 0.7;
 }
 
 .mapping-legend-filter-control a.mapping-legend-filter-button {
@@ -739,8 +821,9 @@
   right: 0;
 
   width: 40%;
-  max-width: 80%;
+  max-width: 50%;
   height: 100%;
+  transition: width 2s;
 
   display: none;
   border-left: 1px solid #ddd;
@@ -797,6 +880,7 @@
 .leaflet-container.leaflet-fullscreen-on .sidebar {
   position: fixed !important;
   z-index: 1001 !important;
+  width: 30% !important;
 }
 
 body.mapping-fullscreen-active .mapping-map-legend,
