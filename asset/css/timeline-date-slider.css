@@ -1,0 +1,341 @@
+/* ---------- Timeline Toggle Control ---------- */
+.mapping-timeline-toggle-control.leaflet-bar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mapping-timeline-toggle-link {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  text-decoration: none;
+  color: #333;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.mapping-timeline-toggle-link:hover {
+  background-color: #f4f4f4;
+}
+
+.mapping-timeline-toggle-link svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.mapping-timeline-toggle-link:hover svg {
+  transform: scale(1.1);
+}
+
+/* ---------- Timeline Date Slider ---------- */
+
+.timeline-date-slider-container {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 5px 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  margin: 0;
+  min-width: 50%;
+  pointer-events: auto !important;
+}
+
+.timeline-slider-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  pointer-events: auto !important;
+}
+
+/* Date labels on sides */
+.timeline-slider-date-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 100px;
+  width: 120px;
+}
+
+.timeline-slider-date-left {
+  text-align: right;
+}
+
+.timeline-slider-date-right {
+  text-align: left;
+}
+
+.timeline-slider-date-label .date-label {
+  font-size: 0.75rem;
+  color: #999;
+  font-weight: 600;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timeline-slider-date-label .date-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+}
+
+.timeline-slider-main {
+  flex: 1;
+  min-width: 200px;
+  align-items: center;
+}
+
+
+.timeline-slider-labels .date-label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timeline-slider-labels .date-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  font-family: 'Courier New', monospace;
+}
+
+/* Main slider container */
+.timeline-slider-container {
+  position: relative;
+  padding: 30px 10px 50px 10px;
+  display: flex;
+  align-items: center;
+  pointer-events: auto !important;
+  touch-action: none;
+}
+
+/* Track background */
+.timeline-slider-track {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background: #e3e3e3;
+  border-radius: 3px;
+  pointer-events: auto !important;
+  touch-action: none;
+}
+
+/* Range fill */
+.timeline-slider-range {
+  position: absolute;
+  height: 100%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 3px;
+  pointer-events: none;
+  top: 0;
+}
+
+/* Steps container */
+.timeline-slider-steps {
+  position: relative;
+  width: 100%;
+  height: 30px;
+  margin-top: 15px;
+  pointer-events: none;
+}
+
+/* Individual step */
+.timeline-step {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+.timeline-step::before {
+  content: '';
+  display: block;
+  width: 2px;
+  height: 8px;
+  background: #999;
+  margin-bottom: 4px;
+}
+
+.timeline-step-label {
+  font-size: 0.75rem;
+  color: #666;
+  white-space: nowrap;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* Input range sliders */
+.timeline-slider-input {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  pointer-events: none;
+  touch-action: none;
+  border: none;
+  /* -webkit-appearance: none; */
+  appearance: none;
+  background: transparent;
+  z-index: 5;
+}
+
+
+.timeline-slider-input.timeline-slider-min {
+  z-index: 6;
+}
+
+.timeline-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.timeline-slider-input::-webkit-slider-thumb:hover {
+  background: #2563eb;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+  transform: scale(1.15);
+}
+
+.timeline-slider-input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.timeline-slider-input::-moz-range-thumb:hover {
+  background: #2563eb;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+  transform: scale(1.15);
+}
+
+/* Remove default input styling */
+.timeline-slider-input::-webkit-slider-runnable-track {
+  background: transparent;
+  border: none;
+}
+
+.timeline-slider-input::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+
+.timeline-slider-input::-moz-range-progress {
+  background: transparent;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 600px) {
+  .timeline-date-slider-container {
+    padding: 16px;
+  }
+
+  .timeline-slider-labels {
+    padding: 0;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .timeline-slider-label-min,
+  .timeline-slider-label-max {
+    flex: auto;
+  }
+
+  .timeline-slider-container {
+    padding: 24px 8px 60px 8px;
+  }
+
+  .timeline-step-label {
+    font-size: 0.65rem;
+  }
+
+  .timeline-slider-input {
+    top: 16px;
+  }
+
+  .timeline-slider-input::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+  }
+
+  .timeline-slider-input::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+
+input[type=range]{
+    padding: 10px 0px;
+    border: none;
+}
+
+/* ---------- Position Timeline Inside Map Container ---------- */
+
+/* Timeline positioned at top inside map container */
+.leaflet-container .timeline-date-slider-container {
+  position: absolute !important;
+  bottom: 12px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 1000 !important;
+  max-width: 90% !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+
+/* During fullscreen, keep timeline at top with fixed positioning */
+body.mapping-fullscreen-active .leaflet-container .timeline-date-slider-container {
+  position: fixed !important;
+  bottom: 12px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 999999 !important;
+}
+
+/* Ensure timeline has proper styling */
+.leaflet-container .timeline-date-slider-container {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Hide timeline when hidden class is applied */
+.leaflet-container .timeline-date-slider-container.hidden {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Ensure timeline toggle control is visible */
+.leaflet-container.leaflet-fullscreen-on .mapping-timeline-toggle-control,
+body.mapping-fullscreen-active .mapping-timeline-toggle-control {
+  z-index: 1000 !important;
+}
+

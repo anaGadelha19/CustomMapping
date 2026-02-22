@@ -392,56 +392,6 @@ $(document).ready(function () {
 
     if (mapDiv.length && mapDiv[0].mapping_map) {
       const map = mapDiv[0].mapping_map;
-
-      // Add timeline toggle control if timeline slider exists (only on public side)
-      const timelineSliderContainer = blockDiv.find(
-        "#timeline-slider-container",
-      );
-      if (timelineSliderContainer.length && !window.mappingIsAdmin) {
-        const TimelineToggleControl = L.Control.extend({
-          options: { position: "topleft" },
-          onAdd: function (map) {
-            const container = L.DomUtil.create(
-              "div",
-              "mapping-timeline-toggle-control leaflet-bar",
-            );
-            const link = L.DomUtil.create(
-              "a",
-              "mapping-timeline-toggle-link",
-              container,
-            );
-
-            link.innerHTML =
-              '<svg viewBox="0 0 20 20"  style="width: 18px; height: 18px;" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="#000000" d="M5.67326018,0 C6.0598595,0 6.37326018,0.31324366 6.37326018,0.699649298 L6.373,2.009 L13.89,2.009 L13.8901337,0.708141199 C13.8901337,0.321735562 14.2035343,0.00849190182 14.5901337,0.00849190182 C14.976733,0.00849190182 15.2901337,0.321735562 15.2901337,0.708141199 L15.29,2.009 L18,2.009 O C C C C C C C C C C C C C C C C C C C C " style="width: 4px; height: 4px;" xmlns="http://www.w3.org/2OoO/svg"><path fill="#FFFFFF" d="M5C5C5C5C5C5C5C5C5C5C5C5C5C5C"></path></svg>';
-            link.href = "#";
-            link.title = "Toggle timeline slider";
-            link.style.fontSize = "16px";
-            link.style.display = "flex";
-            link.style.alignItems = "center";
-            link.style.justifyContent = "center";
-
-            L.DomEvent.on(link, "mousedown", L.DomEvent.stopPropagation)
-              .on(link, "dblclick", L.DomEvent.stopPropagation)
-              .on(link, "click", L.DomEvent.stopPropagation)
-              .on(link, "click", L.DomEvent.preventDefault)
-              .on(link, "click", function () {
-                const isVisible = timelineSliderContainer.is(":visible");
-
-                if (isVisible) {
-                  timelineSliderContainer.hide();
-                  link.style.opacity = "0.4";
-                } else {
-                  timelineSliderContainer.show();
-                  link.style.opacity = "1";
-                }
-              });
-
-            return container;
-          },
-        });
-
-        map.addControl(new TimelineToggleControl());
-      }
     }
   });
 });

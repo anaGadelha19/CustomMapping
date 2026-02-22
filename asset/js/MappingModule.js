@@ -151,12 +151,6 @@ const MappingModule = {
         const featureTypeId = featureData[4] ? String(featureData[4]) : null;
         const itemDates = featureData[5] || [];
         
-        console.log('Processing feature:', {
-          featureId,
-          resourceId,
-          itemDates,
-          fullData: featureData
-        });
 
         L.geoJSON(featureGeography, {
           pointToLayer: function (feature, latlng) {
@@ -182,12 +176,6 @@ const MappingModule = {
             
             // Store dates directly on the layer as well
             layer._mappingDates = itemDates;
-            
-            console.log('Set dates on layer:', {
-              featureId,
-              itemDates,
-              layerDates: layer._mappingDates
-            });
             
             layer.on("click", function (e) {
               e.originalEvent.stopPropagation(); // prevent map click
@@ -230,6 +218,8 @@ const MappingModule = {
             );
 
             layer._mappingTypeId = featureTypeId;
+            layer._mappingFeatureId = featureId;
+            layer._mappingResourceId = resourceId;
             layer._mappingFeatureGroup =
               "Point" === feature.type ? featuresPoint : featuresPoly;
             if (!map._mappingAllLayers) {

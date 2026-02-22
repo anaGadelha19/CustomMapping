@@ -1,12 +1,9 @@
 $(document).ready(function () {
-  console.log("mapping-show.js loaded");
-  console.log("mappingIsAdmin:", window.mappingIsAdmin);
-
   let mappingSidebarOpen = false;
   let lastClickedLayer = null;
+  let allLoadedFeatures = []; // Store all features with their dates for timeline
 
   const mappingMap = $("#mapping-map");
-  console.log("mappingMap element:", mappingMap.length, mappingMap);
 
   const mappingData = mappingMap.data("mapping");
 
@@ -20,7 +17,6 @@ $(document).ready(function () {
 
   if (mappingMap[0].mapping_map) {
     // Map was already initialized by mapping-block.js
-    console.log("Using existing map initialized by mapping-block.js");
     map = mappingMap[0].mapping_map;
     features = map._mappingFeatures;
     featuresPoint = map._mappingFeaturesPoint;
@@ -46,68 +42,23 @@ $(document).ready(function () {
     featuresPoly,
   );
 
-  console.log("Map initialized:", map);
+  // Move timeline into map container immediately
+  const timelineContainer = $(".timeline-date-slider-container");
+  if (timelineContainer.length) {
+    timelineContainer.appendTo(map.getContainer());
+    timelineContainer.hide(); // Hide by default until we know if there are features with dates
 
-  // Initialize timeline slider
-  let timelineSlider = null;
-  let allFeatures = [];
-  let timelineVisible = true;
-
-  const initializeTimelineSlider = function () {
-    if (typeof TimelineSlider === "undefined") {
-      console.warn("TimelineSlider not loaded");
-      return;
-    }
-
-    timelineSlider = new TimelineSlider(mappingMap[0], {
-      onDateChange: function (selectedDate) {
-        filterFeaturesByDateRange(selectedDate);
-      },
-    });
-  };
-
-  const filterFeaturesByDateRange = function (selectedDate) {
-    // Show all features initially
-    featuresPoint.eachLayer(function (layer) {
-      layer.setOpacity(1);
-    });
-    featuresPoly.eachLayer(function (layer) {
-      layer.setOpacity(1);
+    // Stop map interaction when interacting with timeline
+    timelineContainer.on("mousedown touchstart", function (e) {
+      L.DomEvent.stopPropagation(e);
     });
 
-    // Hide features with dates before selected date
-    allFeatures.forEach((feature) => {
-      if (feature.geoJsonLayer) {
-        // Try to get dates from multiple sources
-        let featureDates = feature.dates || feature.properties?.dates || [];
-        if (!Array.isArray(featureDates)) {
-          featureDates = [featureDates];
-        }
-
-        if (featureDates.length > 0) {
-          let hasValidDate = false;
-          featureDates.forEach((dateStr) => {
-            const featureDate = window.parseCustomDate(dateStr);
-            if (
-              featureDate &&
-              !isNaN(featureDate.getTime()) &&
-              featureDate >= selectedDate
-            ) {
-              hasValidDate = true;
-            }
-          });
-
-          if (!hasValidDate) {
-            feature.geoJsonLayer.setOpacity(0.2);
-          }
-        }
-      }
-    });
-  };
-
-  // Only initialize timeline on public side
-  if (!window.mappingIsAdmin) {
-    initializeTimelineSlider();
+    // Stop propagation on slider inputs specifically
+    timelineContainer
+      .find(".timeline-slider-input")
+      .on("mousedown touchstart mouseup touchend", function (e) {
+        L.DomEvent.stopPropagation(e);
+      });
   }
 
   // Filter Toggle Control
@@ -160,15 +111,17 @@ $(document).ready(function () {
 
   map.addControl(new FilterToggleControl());
 
-  // Timeline Toggle Control (only on public side)
-  if (!window.mappingIsAdmin) {
-    const TimelineToggleControl = L.Control.extend({
+  // Timeline Toggle Control
+  let timelineToggleControlElement = null;
+  const TimelineToggleControl = L.Control.extend({
     options: { position: "topleft" },
     onAdd: function (map) {
       const container = L.DomUtil.create(
         "div",
         "mapping-timeline-toggle-control leaflet-bar",
       );
+      timelineToggleControlElement = container; // Store reference to the control
+      container.style.display = "none"; // Hide by default until we know if there are features with dates
       const link = L.DomUtil.create(
         "a",
         "mapping-timeline-toggle-link",
@@ -176,13 +129,16 @@ $(document).ready(function () {
       );
 
       link.innerHTML =
-        '<svg viewBox="0 0 20 20"  style="width: 18px; height: 18px;" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="#000000" d="M5.67326018,0 C6.0598595,0 6.37326018,0.31324366 6.37326018,0.699649298 L6.373,2.009 L13.89,2.009 L13.8901337,0.708141199 C13.8901337,0.321735562 14.2035343,0.00849190182 14.5901337,0.00849190182 C14.976733,0.00849190182 15.2901337,0.321735562 15.2901337,0.708141199 L15.29,2.009 L18,2.00901806 C19.1045695,2.00901806 20,2.90399995 20,4.00801605 L20,18.001002 C20,19.1050181 19.1045695,20 18,20 L2,20 C0.8954305,20 0,19.1050181 0,18.001002 L0,4.00801605 C0,2.90399995 0.8954305,2.00901806 2,2.00901806 L4.973,2.009 L4.97326018,0.699649298 C4.97326018,0.31324366 5.28666085,0 5.67326018,0 Z M1.4,7.742 L1.4,18.001002 C1.4,18.3322068 1.66862915,18.6007014 2,18.6007014 L18,18.6007014 C18.3313708,18.6007014 18.6,18.3322068 18.6,18.001002 L18.6,7.756 L1.4,7.742 Z M6.66666667,14.6186466 L6.66666667,16.284778 L5,16.284778 L5,14.6186466 L6.66666667,14.6186466 Z M10.8333333,14.6186466 L10.8333333,16.284778 L9.16666667,16.284778 L9.16666667,14.6186466 L10.8333333,14.6186466 Z M15,14.6186466 L15,16.284778 L13.3333333,16.284778 L13.3333333,14.6186466 L15,14.6186466 Z M6.66666667,10.6417617 L6.66666667,12.3078931 L5,12.3078931 L5,10.6417617 L6.66666667,10.6417617 Z M10.8333333,10.6417617 L10.8333333,12.3078931 L9.16666667,12.3078931 L9.16666667,10.6417617 L10.8333333,10.6417617 Z M15,10.6417617 L15,12.3078931 L13.3333333,12.3078931 L13.3333333,10.6417617 L15,10.6417617 Z M4.973,3.408 L2,3.40831666 C1.66862915,3.40831666 1.4,3.67681122 1.4,4.00801605 L1.4,6.343 L18.6,6.357 L18.6,4.00801605 C18.6,3.67681122 18.3313708,3.40831666 18,3.40831666 L15.29,3.408 L15.2901337,4.33697436 C15.2901337,4.72338 14.976733,5.03662366 14.5901337,5.03662366 C14.2035343,5.03662366 13.8901337,4.72338 13.8901337,4.33697436 L13.89,3.408 L6.373,3.408 L6.37326018,4.32848246 C6.37326018,4.7148881 6.0598595,5.02813176 5.67326018,5.02813176 C5.28666085,5.02813176 4.97326018,4.7148881 4.97326018,4.32848246 L4.973,3.408 Z"></path> </g></svg>';
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Calendar / Calendar_Days"> <path id="Vector" d="M8 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V8M8 4H16M8 4V2M16 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V8M16 4V2M4 8V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V8M4 8H20M16 16H16.002L16.002 16.002L16 16.002V16ZM12 16H12.002L12.002 16.002L12 16.002V16ZM8 16H8.002L8.00195 16.002L8 16.002V16ZM16.002 12V12.002L16 12.002V12H16.002ZM12 12H12.002L12.002 12.002L12 12.002V12ZM8 12H8.002L8.00195 12.002L8 12.002V12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>';
       link.href = "#";
-      link.title = "Toggle timeline slider";
-      link.style.fontSize = "16px";
+      link.title = "Toggle timeline";
       link.style.display = "flex";
       link.style.alignItems = "center";
       link.style.justifyContent = "center";
+      link.style.fontSize = "16px";
+
+      let timelineVisible = true;
+      const timelineContainer = $(".timeline-date-slider-container");
 
       L.DomEvent.on(link, "mousedown", L.DomEvent.stopPropagation)
         .on(link, "dblclick", L.DomEvent.stopPropagation)
@@ -192,14 +148,10 @@ $(document).ready(function () {
           timelineVisible = !timelineVisible;
 
           if (timelineVisible) {
-            if (timelineSlider) {
-              timelineSlider.show();
-            }
+            timelineContainer.removeClass("hidden");
             link.style.opacity = "1";
           } else {
-            if (timelineSlider) {
-              timelineSlider.hide();
-            }
+            timelineContainer.addClass("hidden");
             link.style.opacity = "0.4";
           }
         });
@@ -208,7 +160,121 @@ $(document).ready(function () {
     },
   });
 
-    map.addControl(new TimelineToggleControl());
+  map.addControl(new TimelineToggleControl());
+
+  // Clustering Toggle Control
+  map.clusteringEnabled = true;
+  map._layerVisibilityMap = new Map(); // Track which layers should be visible
+
+  const ClusteringToggleControl = L.Control.extend({
+    options: { position: "topleft" },
+    onAdd: function (map) {
+      const container = L.DomUtil.create(
+        "div",
+        "mapping-clustering-toggle-control leaflet-bar",
+      );
+      const link = L.DomUtil.create(
+        "a",
+        "mapping-clustering-toggle-link",
+        container,
+      );
+
+      link.innerHTML =
+        '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px;" xmlns="http://www.w3.org/2000/svg" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 16.016c1.245.529 2 1.223 2 1.984 0 1.657-3.582 3-8 3s-8-1.343-8-3c0-.76.755-1.456 2-1.984"></path><path stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8.444C17 11.537 12 17 12 17s-5-5.463-5-8.556C7 5.352 9.239 3 12 3s5 2.352 5 5.444z"></path><circle cx="12" cy="8" r="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></circle></g></svg>';
+      link.href = "#";
+      link.title = "Toggle clustering";
+      link.style.display = "flex";
+      link.style.alignItems = "center";
+      link.style.justifyContent = "center";
+      link.style.fontSize = "16px";
+
+      L.DomEvent.on(link, "mousedown", L.DomEvent.stopPropagation)
+        .on(link, "dblclick", L.DomEvent.stopPropagation)
+        .on(link, "click", L.DomEvent.stopPropagation)
+        .on(link, "click", L.DomEvent.preventDefault)
+        .on(link, "click", function () {
+          map.clusteringEnabled = !map.clusteringEnabled;
+
+          if (map.clusteringEnabled) {
+            // Re-enable clustering: show cluster groups
+            // Remove all direct layers from map
+            if (map._mappingAllLayers) {
+              map._mappingAllLayers.forEach((layer) => {
+                if (map.hasLayer(layer)) {
+                  map.removeLayer(layer);
+                }
+              });
+            }
+            // Show cluster groups
+            if (!map.hasLayer(featuresPoint)) {
+              map.addLayer(featuresPoint);
+            }
+            if (!map.hasLayer(featuresPoly)) {
+              map.addLayer(featuresPoly);
+            }
+            link.style.opacity = "1";
+          } else {
+            // Disable clustering: hide cluster groups, show individual layers
+            map.removeLayer(featuresPoint);
+            map.removeLayer(featuresPoly);
+
+            // Track current visibility state from cluster groups
+            map._layerVisibilityMap.clear();
+            if (featuresPoint) {
+              featuresPoint.eachLayer((layer) => {
+                map._layerVisibilityMap.set(layer, true);
+              });
+            }
+            if (featuresPoly) {
+              featuresPoly.eachLayer((layer) => {
+                map._layerVisibilityMap.set(layer, true);
+              });
+            }
+
+            // Add individual layers to map
+            if (map._mappingAllLayers) {
+              map._mappingAllLayers.forEach((layer) => {
+                if (!map.hasLayer(layer)) {
+                  map.addLayer(layer);
+                }
+              });
+            }
+
+            link.style.opacity = "0.4";
+          }
+        });
+
+      return container;
+    },
+  });
+
+  map.addControl(new ClusteringToggleControl());
+
+  // Sync cluster group changes to map when clustering is disabled
+  const syncLayerVisibility = function () {
+    if (!map.clusteringEnabled && map._mappingAllLayers) {
+      map._mappingAllLayers.forEach((layer) => {
+        const inPoint = featuresPoint && featuresPoint.hasLayer(layer);
+        const inPoly = featuresPoly && featuresPoly.hasLayer(layer);
+        const inClusterGroup = inPoint || inPoly;
+        const onMap = map.hasLayer(layer);
+
+        // Sync: if in cluster group but not on map, add it; if not in cluster group but on map, remove it
+        if (inClusterGroup && !onMap) {
+          map.addLayer(layer);
+        } else if (!inClusterGroup && onMap) {
+          map.removeLayer(layer);
+        }
+      });
+    }
+  };
+
+  // Monitor cluster groups for changes when clustering is disabled
+  if (featuresPoint) {
+    featuresPoint.on("layeradd layerremove", syncLayerVisibility);
+  }
+  if (featuresPoly) {
+    featuresPoly.on("layeradd layerremove", syncLayerVisibility);
   }
 
   let defaultBounds = null;
@@ -231,46 +297,6 @@ $(document).ready(function () {
   };
 
   const onFeaturesLoad = function () {
-    // Extract all features from the map for the timeline slider
-    const extractedFeatures = [];
-
-    featuresPoint.eachLayer(function (layer) {
-      if (layer.feature) {
-        extractedFeatures.push({
-          properties: layer.feature.properties || {},
-          dates: layer._mappingDates || [],
-          geoJsonLayer: layer,
-          geometry: layer.feature.geometry,
-        });
-      }
-    });
-
-    featuresPoly.eachLayer(function (layer) {
-      if (layer.feature) {
-        extractedFeatures.push({
-          properties: layer.feature.properties || {},
-          dates: layer._mappingDates || [],
-          geoJsonLayer: layer,
-          geometry: layer.feature.geometry,
-        });
-      }
-    });
-
-    allFeatures = extractedFeatures;
-
-    console.log("Extracted features for timeline slider:", {
-      totalFeatures: allFeatures.length,
-      firstFeature: allFeatures[0],
-      sampleDates: allFeatures
-        .map((f) => f.dates || f.properties.dates)
-        .slice(0, 3),
-    });
-
-    // Update timeline slider with the features
-    if (timelineSlider) {
-      timelineSlider.updateFeatures(allFeatures);
-    }
-
     if (!map.mapping_map_interaction) {
       // Call setView only when there was no map interaction. This prevents the
       // map view from changing after a change has already been done.
@@ -278,20 +304,222 @@ $(document).ready(function () {
     }
   };
 
-  MappingModule.loadFeaturesAsync(
-    map,
-    featuresPoint,
-    featuresPoly,
-    mappingMap.data("featuresUrl"),
-    mappingMap.data("featurePopupContentUrl"),
-    JSON.stringify(mappingMap.data("itemsQuery")),
-    JSON.stringify(mappingMap.data("featuresQuery")),
-    onFeaturesLoad,
-  );
+  /**
+   * Initialize the timeline date slider
+   */
+  const initializeTimelineSlider = function () {
+    if (window.timelineInitialized) {
+      console.log("Timeline already initialized");
+      return;
+    }
 
-  console.log("Features URL:", mappingMap.data("featuresUrl"));
-  console.log("Popup URL:", mappingMap.data("featurePopupContentUrl"));
-  console.log("Loading features...");
+    // First check if TimelineDateSlider is available
+    if (typeof TimelineDateSlider === "undefined") {
+      console.warn("TimelineDateSlider not yet available, will retry...");
+      return;
+    }
+
+    // Collect all features with their dates from the map layers
+    allLoadedFeatures = [];
+
+    if (map._mappingAllLayers) {
+      map._mappingAllLayers.forEach((layer) => {
+        const dates = layer._mappingDates || [];
+
+        allLoadedFeatures.push({
+          featureId: layer._mappingFeatureId,
+          resourceId: layer._mappingResourceId,
+          dates: dates,
+          layer: layer,
+          featureGroup: layer._mappingFeatureGroup,
+          typeId: layer._mappingTypeId,
+        });
+      });
+    } else {
+      console.log("No _mappingAllLayers found on map");
+      return;
+    }
+
+    // Only initialize timeline if there are features with dates
+    const featuresWithDates = allLoadedFeatures.filter(
+      (f) => f.dates && f.dates.length > 0,
+    );
+    console.log("Features with dates:", featuresWithDates.length);
+
+    // Count unique dates across all features
+    const uniqueDates = new Set();
+    featuresWithDates.forEach((f) => {
+      f.dates.forEach((date) => {
+        uniqueDates.add(date);
+      });
+    });
+    const uniqueDateCount = uniqueDates.size;
+    console.log("Unique dates:", uniqueDateCount);
+
+    if (featuresWithDates.length > 0 && uniqueDateCount > 1) {
+      const timelineData = allLoadedFeatures.map((f) => [
+        f.featureId,
+        f.resourceId,
+        null, // geography (not needed for filtering)
+        null, // markerColor (not needed for filtering)
+        f.typeId,
+        f.dates, // dates at index 5 (same as API response)
+      ]);
+
+      TimelineDateSlider.init({
+        features: timelineData,
+        containerSelector: ".timeline-date-slider-container",
+        onDateRangeChange: handleDateRangeChange,
+      });
+
+      window.timelineInitialized = true;
+      // Show timeline elements
+      timelineContainer.show();
+      if (timelineToggleControlElement) {
+        timelineToggleControlElement.style.display = "";
+      }
+    } else {
+      console.log("Not enough unique dates for timeline (need at least 2)");
+      // Hide the timeline container and toggle button if there are not enough unique dates
+      timelineContainer.hide();
+      if (timelineToggleControlElement) {
+        timelineToggleControlElement.style.display = "none";
+      }
+    }
+  };
+
+  /**
+   * Handle date range changes from the timeline slider
+   */
+  const handleDateRangeChange = function (result) {
+    const minDate = result.minDate;
+    const maxDate = result.maxDate;
+    const minDateMS = minDate.getTime();
+    const maxDateMS = maxDate.getTime();
+
+    // Show/hide layers based on date range
+    if (map._mappingAllLayers) {
+      map._mappingAllLayers.forEach((layer) => {
+        const dates = layer._mappingDates || [];
+
+        // Determine if layer should be visible
+        let shouldShow = true;
+
+        if (dates.length > 0) {
+          // Check if any date falls within the range
+          shouldShow = dates.some((dateStr) => {
+            const date = TimelineDateSlider.parseDate(dateStr);
+            if (!date) return false;
+
+            const dateMS = date.getTime();
+            return dateMS >= minDateMS && dateMS <= maxDateMS;
+          });
+        }
+
+        // Handle both clustered and non-clustered modes
+        if (map.clusteringEnabled) {
+          // Check both point and polygon cluster groups and remove/add accordingly
+          if (shouldShow) {
+            // Add layer back if not present
+            if (featuresPoint && !featuresPoint.hasLayer(layer)) {
+              featuresPoint.addLayer(layer);
+            }
+            if (featuresPoly && !featuresPoly.hasLayer(layer)) {
+              featuresPoly.addLayer(layer);
+            }
+            layer.setOpacity(1);
+          } else {
+            // Remove layer from cluster groups
+            if (featuresPoint && featuresPoint.hasLayer(layer)) {
+              featuresPoint.removeLayer(layer);
+            }
+            if (featuresPoly && featuresPoly.hasLayer(layer)) {
+              featuresPoly.removeLayer(layer);
+            }
+            layer.setOpacity(0);
+            // Close any open popups
+            if (layer.closePopup) {
+              layer.closePopup();
+            }
+          }
+        } else {
+          // Non-clustered mode: manage direct map visibility
+          if (shouldShow) {
+            if (!map.hasLayer(layer)) {
+              map.addLayer(layer);
+            }
+            layer.setOpacity(1);
+          } else {
+            if (map.hasLayer(layer)) {
+              map.removeLayer(layer);
+            }
+            layer.setOpacity(0);
+            // Close any open popups
+            if (layer.closePopup) {
+              layer.closePopup();
+            }
+          }
+        }
+      });
+    }
+  };
+
+  // Only load features if the map was just initialized (not reused from mapping-block.js)
+  if (!mappingMap[0].mapping_map) {
+    MappingModule.loadFeaturesAsync(
+      map,
+      featuresPoint,
+      featuresPoly,
+      mappingMap.data("featuresUrl"),
+      mappingMap.data("featurePopupContentUrl"),
+      JSON.stringify(mappingMap.data("itemsQuery")),
+      JSON.stringify(mappingMap.data("featuresQuery")),
+      onFeaturesLoad,
+    );
+  } else {
+    // Map was already initialized, just set the view and initialize timeline
+    console.log(
+      "Map already initialized with features, skipping feature loading",
+    );
+    onFeaturesLoad();
+  }
+
+  // Fallback: Try to initialize timeline after a delay to ensure features and TimelineDateSlider are loaded
+  let attemptCount = 0;
+  const timelineInitTimer = setInterval(function () {
+    attemptCount++;
+
+    const hasLayers = map._mappingAllLayers && map._mappingAllLayers.length > 0;
+    const hasSlider = typeof TimelineDateSlider !== "undefined";
+    const notInitialized = !window.timelineInitialized;
+
+    if (attemptCount === 1 || attemptCount % 5 === 0) {
+      console.log("Timeline check (attempt " + attemptCount + "):", {
+        TimelineDateSliderAvailable: hasSlider,
+        MapLayersCount: hasLayers ? map._mappingAllLayers.length : 0,
+        TimelineNotInitialized: notInitialized,
+      });
+    }
+
+    if (notInitialized && hasLayers && hasSlider) {
+      console.log("✓ All conditions met! Initializing timeline...");
+      clearInterval(timelineInitTimer);
+      initializeTimelineSlider();
+    }
+
+    if (attemptCount >= 20) {
+      // Stop trying after 20 seconds
+      clearInterval(timelineInitTimer);
+      console.log(
+        "Timeline initialization stopped after " + attemptCount + " attempts",
+      );
+      console.log("Final state:", {
+        TimelineDateSliderAvailable: hasSlider,
+        MapLayersCount: hasLayers ? map._mappingAllLayers.length : 0,
+        TimelineInitialized: window.timelineInitialized,
+      });
+    }
+  }, 1000);
 
   // Switching sections changes map dimensions, so make the necessary adjustments.
   $("#mapping-section").one("o:section-opened", function (e) {
@@ -317,18 +545,14 @@ $(document).ready(function () {
     }
   });
 
-  // Handle fullscreen mode - ensure sidebar and legend are visible
+  // Handle fullscreen mode - ensure legend stays visible and positioned correctly
   map.on("enterFullscreen", function () {
-    const mapContainer = map.getContainer();
     const sidebar = $("#mapping-view-sidebar");
-    const legend = $(".mapping-map-legend");
+    const mapContainer = map.getContainer();
 
-    // Move elements into fullscreen container
+    // Move sidebar into fullscreen container for better visibility
     if (sidebar.length) {
       sidebar.appendTo(mapContainer);
-    }
-    if (legend.length) {
-      legend.appendTo(mapContainer);
     }
 
     // Add fullscreen class to body for additional styling
@@ -337,16 +561,19 @@ $(document).ready(function () {
 
   map.on("exitFullscreen", function () {
     const sidebar = $("#mapping-view-sidebar");
-    const legend = $(".mapping-map-legend");
     const mapSection = $("#mapping-section");
     const mapContainer = $(".mapping-map-container");
 
-    // Move elements back to their original positions
+    // Move sidebar back to its original position
     if (sidebar.length && mapSection.length) {
       sidebar.appendTo(mapSection);
     }
-    if (legend.length && mapContainer.length) {
-      legend.appendTo(mapContainer);
+
+    // Move legend back to map container to ensure it stays inside
+    const legend = $(".mapping-map-legend");
+    const controls = $(".mapping-map-controls");
+    if (legend.length && legend.parent()[0] !== controls[0]) {
+      legend.appendTo(controls);
     }
 
     // Remove fullscreen class from body

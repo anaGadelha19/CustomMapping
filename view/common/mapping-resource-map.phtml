@@ -68,6 +68,7 @@ $this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet.marker
 $this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css', 'CustomMapping'));
 $this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.css', 'CustomMapping'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/mapping.css', 'CustomMapping'));
+$this->headLink()->appendStylesheet($this->assetUrl('css/timeline-date-slider.css', 'CustomMapping'));
 
 $this->headScript()->appendFile($this->assetUrl('node_modules/leaflet/dist/leaflet.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js', 'CustomMapping'));
@@ -77,7 +78,7 @@ $this->headScript()->appendFile($this->assetUrl('node_modules/Leaflet.Deflate/di
 
 $this->headScript()->appendFile($this->assetUrl('js/MappingModule.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
-$this->headScript()->appendFile($this->assetUrl('js/timeline-slider.js', 'CustomMapping'));
+$this->headScript()->appendFile($this->assetUrl('js/timeline-date-slider.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMapping'));
 ?>
 
@@ -91,6 +92,8 @@ $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMap
     </script>
 
     <div class="mapping-map-container">
+        <!-- Timeline Date Slider Container -->
+        <div class="timeline-date-slider-container"></div>
         <div id="mapping-map" style="height:900px;"
             data-mapping="<?php echo $this->escapeHtml(json_encode($mapping)); ?>"
             data-disable-clustering="<?php echo $disableClustering ? '1' : '0'; ?>"
@@ -99,6 +102,7 @@ $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMap
             data-feature-popup-content-url="<?php echo $this->escapeHtml($featurePopupContentUrl); ?>"
             data-items-query="<?php echo $this->escapeHtml(json_encode($itemsQuery)); ?>" data-features-query="[]">
         </div>
+
         <?php if (!empty($legendTypes)): ?>
             <div class="mapping-map-controls" aria-label="<?php echo $this->translate('Map controls'); ?>">
                 <div class="mapping-map-legend" aria-label="<?php echo $this->translate('Map legend'); ?>">

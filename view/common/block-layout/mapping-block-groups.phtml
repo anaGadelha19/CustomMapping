@@ -1,5 +1,7 @@
 <div class="mapping-block">
 
+    <!-- Timeline Date Slider Container -->
+    <div class="timeline-date-slider-container"></div>
     <div class="mapping-map" style="height:500px;"
         data-data="<?php echo $this->escapeHtml(json_encode($data)); ?>"
         data-disable-clustering="<?php echo $this->siteSetting('mapping_disable_clustering') ? '1' : '0'; ?>"
@@ -20,6 +22,8 @@
 
 <div class="mapping-block" style="display: none;">
 
+    <!-- Timeline Date Slider Container -->
+    <div class="timeline-date-slider-container"></div>
     <div class="mapping-map" style="height:500px;"
         data-data="<?php echo $this->escapeHtml(json_encode($dataItems)); ?>"
         data-disable-clustering="<?php echo $this->siteSetting('mapping_disable_clustering') ? '1' : '0'; ?>"

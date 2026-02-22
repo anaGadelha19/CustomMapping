@@ -606,9 +606,6 @@ $(document).ready(function () {
         ? data["o:marker_color"]
         : "#3498db");
 
-    console.log("FEATURE DATA", data);
-    console.log("DESCRIPTION", data["o:description"]);
-    console.log("COLOR", data["o:marker_color"]);
 
     const feature = L.geoJSON(geoJson, {
       pointToLayer: function (feature, latlng) {

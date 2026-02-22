@@ -44,6 +44,7 @@ abstract class AbstractMap extends AbstractBlockLayout
         $view->headLink()->appendStylesheet($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.css', 'CustomMapping'));
 
         $view->headLink()->appendStylesheet($view->assetUrl('css/mapping.css', 'CustomMapping'));
+        $view->headLink()->appendStylesheet($view->assetUrl('css/timeline-date-slider.css', 'CustomMapping'));
 
         $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet/dist/leaflet.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js', 'CustomMapping'));
@@ -56,8 +57,8 @@ abstract class AbstractMap extends AbstractBlockLayout
         $view->headScript()->appendFile($view->assetUrl('js/MappingModule.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/control.opacity.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
-        $view->headScript()->appendFile($view->assetUrl('js/timeline-slider.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/mapping-block.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('js/timeline-date-slider.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/mapping-show.js', 'CustomMapping'));
     }
 

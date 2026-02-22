@@ -27,6 +27,8 @@
   padding: 8px 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
   max-width: 220px;
+  position: relative;
+  z-index: auto;
 }
 
 .mapping-map-legend-title {
@@ -84,43 +86,6 @@
 
 .mapping-map-legend.filters-hidden .mapping-map-legend-toggle {
   display: none;
-}
-
-/* ---------- Timeline Toggle Button  ---------- */
-
-.mapping-timeline-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #e3e3e3;
-  border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  align-self: flex-start;
-}
-
-.mapping-timeline-toggle:hover {
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-}
-
-.mapping-timeline-toggle:active {
-  transform: scale(0.98);
-}
-
-.mapping-timeline-toggle-icon {
-  font-size: 1.1rem;
-}
-
-.mapping-timeline-toggle[aria-pressed="false"] {
-  opacity: 0.7;
 }
 
 /* ---------- Marker Filter Toggle Button  ---------- */
@@ -868,33 +833,14 @@
 
 /* ---------- Fullscreen Mode ---------- */
 
-/* Legend visible in fullscreen */
-.leaflet-container.leaflet-fullscreen-on .mapping-map-legend {
-  position: absolute !important;
-  z-index: 1000 !important;
-  bottom: 12px !important;
-  left: 12px !important;
-}
-
-/* Sidebar visible in fullscreen */
-.leaflet-container.leaflet-fullscreen-on .sidebar {
-  position: fixed !important;
-  z-index: 1001 !important;
-  width: 30% !important;
-}
 
 body.mapping-fullscreen-active .mapping-map-legend,
 body.mapping-fullscreen-active .sidebar {
   z-index: 999999 !important;
 }
 
-/* When map container is in fullscreen */
-.mapping-map-container:fullscreen .mapping-map-legend,
-.mapping-map-container:-webkit-full-screen .mapping-map-legend,
-.mapping-map-container:-moz-full-screen .mapping-map-legend,
-.mapping-map-container:-ms-fullscreen .mapping-map-legend {
+body.mapping-fullscreen-active .mapping-map-legend {
   position: fixed !important;
-  z-index: 999999 !important;
   bottom: 12px !important;
   left: 12px !important;
 }
