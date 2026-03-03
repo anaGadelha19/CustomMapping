@@ -257,14 +257,9 @@ const MappingModule = {
     pinContainer.html(MappingModule.getPinSvg(markerColor));
 
     // Title
-    console.log("Server response HTML:", content);
-    console.log("Looking for h2, h3, .resource-title elements...");
     const titleElement = $content.find("h2, h3, .resource-title").first();
-    console.log("Found element:", titleElement);
-    console.log("Element HTML:", titleElement.html());
     
     let titleText = titleElement.text();
-    console.log("Extracted title text:", titleText);
     
     if (!titleText.trim()) {
       console.warn("No title element found in server response");

@@ -46,10 +46,13 @@ $(document).ready(function () {
       // sidebar.data('featureMarkerColor', featureMarkerColor);
 
       // Populate sidebar inputs with current feature data
-      sidebar.find(".mapping-feature-label").val(featureLabel);
-      console.log("Feature label for sidebar:", featureLabel);
+      // Use the finalized values (auto-filled if empty) or fall back to parameters
+      const labelValue = feature._finalLabel || featureLabel;
+      const descriptionValue = feature._finalDescription || featureDescription;
+      
+      sidebar.find(".mapping-feature-label").val(labelValue);
       sidebar.find(".mapping-feature-type").val(featureTypeId || "");
-      sidebar.find(".mapping-feature-description").val(featureDescription);
+      sidebar.find(".mapping-feature-description").val(descriptionValue);
       sidebar.find(".color-swatch").removeClass("selected");
 
       if (markerColor) {
@@ -88,7 +91,6 @@ $(document).ready(function () {
     feature._mappingNamePrefix = featureNamePrefix;
     feature.markerColor = markerColor;
     feature.featureTypeId = featureTypeId || null;
-    feature.propertyIds = normalizePropertyIds(featurePropertyIds);
 
     // Auto-fill title and description from item fields if empty (creating new marker)
     let finalLabel = featureLabel;
@@ -119,6 +121,35 @@ $(document).ready(function () {
         }
       }
     }
+    
+    // Auto-select matching title and description fields in propertyIds
+    let autoSelectedPropertyIds = normalizePropertyIds(featurePropertyIds);
+    
+    // If title was auto-filled, find and add the matching title field
+    if (finalLabel && !featureLabel) {
+      itemFields.forEach((field) => {
+        if (isTitleField(field) && !autoSelectedPropertyIds.includes(String(field.id))) {
+          const fieldValue = getFirstFieldValue(field);
+          if (fieldValue && fieldValue.toLowerCase() === finalLabel.toLowerCase()) {
+            autoSelectedPropertyIds.push(String(field.id));
+          }
+        }
+      });
+    }
+    
+    // If description was auto-filled, find and add the matching description field
+    if (finalDescription && !featureDescription) {
+      itemFields.forEach((field) => {
+        if (isDescriptionField(field) && !autoSelectedPropertyIds.includes(String(field.id))) {
+          const fieldValue = getFirstFieldValue(field);
+          if (fieldValue && fieldValue.toLowerCase() === finalDescription.toLowerCase()) {
+            autoSelectedPropertyIds.push(String(field.id));
+          }
+        }
+      });
+    }
+
+    feature.propertyIds = autoSelectedPropertyIds;
     
     // Store the finalized values on the feature for use in click handler
     feature._finalLabel = finalLabel;
@@ -319,7 +350,6 @@ $(document).ready(function () {
 
   // Helper function to check if a field label or id indicates a title field
   const isTitleField = function (field) {
-    console.log("Checking if field is title field:", field);
     if (!field) return false;
     const label = String(field.label || '').toLowerCase();
     const id = String(field.id || '').toLowerCase();
@@ -392,13 +422,11 @@ $(document).ready(function () {
 
     // Use an available color for auto-created types
     const availableColor = findAvailableColor();
-    console.log("Creating type with label:", typeLabel, "URL:", addUrl, "color:", availableColor);
 
     const formData = new FormData();
     formData.append("label", typeLabel);
     formData.append("color", availableColor);
 
-    console.log("Creating type with label:", typeLabel, "URL:", addUrl);
 
     fetch(addUrl, {
       method: "POST",
