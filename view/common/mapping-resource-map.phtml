@@ -108,6 +108,12 @@ $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMap
                 <div class="mapping-map-legend" aria-label="<?php echo $this->translate('Map legend'); ?>">
                     <div class="mapping-map-legend-title"><?php echo $this->translate('Legend'); ?></div>
                     <ul class="mapping-map-legend-list">
+                        <li class="mapping-map-legend-item mapping-map-legend-all-item">
+                            <label class="mapping-map-legend-toggle">
+                                <input type="checkbox" class="mapping-legend-all-toggle" checked>
+                            </label>
+                            <span class="mapping-map-legend-label"><?php echo $this->translate('All'); ?></span>
+                        </li>
                         <?php foreach ($legendTypes as $featureType): ?>
                             <li class="mapping-map-legend-item">
                                 <label class="mapping-map-legend-toggle">
@@ -130,8 +136,10 @@ $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMap
             </div>
         <?php endif; ?>
     </div>
-    <!-- Sidebar -->
-    <div id="mapping-view-sidebar" class="sidebar">
+
+</div>
+<!-- Sidebar - moved outside section for proper z-index stacking -->
+<div id="mapping-view-sidebar" class="sidebar">
         <a href="#" class="sidebar-close o-icon-close">
             <span class="screen-reader-text">
                 <?php echo $this->translate('Close'); ?>
@@ -146,6 +154,9 @@ $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMap
                 <h2 class="sidebar-title"></h2>
             </div>
 
+            <!-- CREATOR AND DATE -->
+            <div class="sidebar-creator-date"></div>
+
             <!-- DESCRIPTION -->
             <div class="sidebar-description"></div>
 
@@ -159,4 +170,3 @@ $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMap
     </div>
 
 
-</div>

@@ -231,6 +231,7 @@ function MappingBlock(mapDiv, timelineDiv) {
                 getFeaturePopupContentUrl,
                 { feature_id: featureId },
                 function (popupContent) {
+                  console.log('Blhaaaa',popupContent);
                   popup.setContent(popupContent);
                 },
               );

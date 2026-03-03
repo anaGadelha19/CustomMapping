@@ -73,6 +73,12 @@ if ($legendItemIds) {
                 <div class="mapping-map-legend" aria-label="<?php echo $this->translate('Map legend'); ?>">
                     <div class="mapping-map-legend-title"><?php echo $this->translate('Legend'); ?></div>
                     <ul class="mapping-map-legend-list">
+                        <li class="mapping-map-legend-item mapping-map-legend-all-item">
+                            <label class="mapping-map-legend-toggle">
+                                <input type="checkbox" class="mapping-legend-all-toggle" checked>
+                            </label>
+                            <span class="mapping-map-legend-label"><?php echo $this->translate('All'); ?></span>
+                        </li>
                         <?php foreach ($legendTypes as $featureType): ?>
                             <li class="mapping-map-legend-item">
                                 <label class="mapping-map-legend-toggle">
@@ -106,6 +112,9 @@ if ($legendItemIds) {
                 <span class="sidebar-pin"></span>
                 <h2 class="sidebar-title"></h2>
             </div>
+
+            <!-- CREATOR AND DATE -->
+            <div class="sidebar-creator-date"></div>
 
             <!-- DESCRIPTION -->
             <div class="sidebar-description"></div>

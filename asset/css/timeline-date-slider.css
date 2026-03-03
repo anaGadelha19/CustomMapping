@@ -33,7 +33,7 @@
 .timeline-date-slider-container {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 8px;
-  padding: 5px 20px;
+  padding: 2px 15px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
   margin: 0;
   min-width: 50%;
@@ -44,7 +44,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
   pointer-events: auto !important;
 }
 
@@ -55,7 +55,7 @@
   align-items: center;
   flex-shrink: 0;
   min-width: 100px;
-  width: 120px;
+  width: 110px;
 }
 
 .timeline-slider-date-left {
@@ -144,6 +144,7 @@
   height: 30px;
   margin-top: 15px;
   pointer-events: none;
+  overflow: hidden;
 }
 
 /* Individual step */
@@ -153,15 +154,15 @@
   flex-direction: column;
   align-items: center;
   transform: translateX(-50%);
+  min-width: 0;
 }
 
 .timeline-step::before {
   content: '';
   display: block;
   width: 2px;
-  height: 8px;
+  height: 6px;
   background: #999;
-  margin-bottom: 4px;
 }
 
 .timeline-step-label {
@@ -170,6 +171,9 @@
   white-space: nowrap;
   margin-top: 2px;
   font-weight: 500;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Input range sliders */
@@ -292,7 +296,7 @@
 
 
 input[type=range]{
-    padding: 10px 0px;
+    padding: 12px 0px;
     border: none;
 }
 

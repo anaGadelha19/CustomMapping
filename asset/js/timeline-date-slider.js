@@ -34,6 +34,9 @@ window.TimelineDateSlider = {
 
     // Create the slider HTML (this will also setup handlers and generate labels after loading)
     this.createSliderHTML();
+    
+    // Initialize the range fill with the full span since sliders start at 0 and 100
+    this.updateSliderRange(0, 100);
   },
 
   /**
@@ -117,6 +120,10 @@ window.TimelineDateSlider = {
       // Less than a month: show daily steps
       this.stepInterval = 'daily';
       this.stepSize = 1000 * 60 * 60 * 24; // 1 day in ms
+    } else if (days <= 100) {
+      // 1-3 months: show weekly steps
+      this.stepInterval = 'weekly';
+      this.stepSize = 1000 * 60 * 60 * 24 * 7; // 1 week in ms
     } else if (days <= 365) {
       // Less than a year: show monthly steps
       this.stepInterval = 'monthly';
@@ -306,6 +313,8 @@ window.TimelineDateSlider = {
 
     if (this.stepInterval === 'daily') {
       this.generateDailySteps(stepsContainer);
+    } else if (this.stepInterval === 'weekly') {
+      this.generateWeeklySteps(stepsContainer);
     } else if (this.stepInterval === 'monthly') {
       this.generateMonthlySteps(stepsContainer);
     } else if (this.stepInterval === 'yearly') {
@@ -317,10 +326,10 @@ window.TimelineDateSlider = {
    * Generate daily step labels
    */
   generateDailySteps: function(container) {
-    const stepsCount = Math.min(10, Math.ceil(this.allDates.length / 5));
-    const step = Math.floor(this.allDates.length / stepsCount);
+    // Calculate label step based on slider width
+    const labelStep = this.calculateOptimalLabelStep(this.allDates.length);
 
-    for (let i = 0; i < this.allDates.length; i += step) {
+    for (let i = 0; i < this.allDates.length; i += labelStep) {
       const date = this.allDates[i];
       const percent = (i / (this.allDates.length - 1)) * 100;
 
@@ -338,39 +347,123 @@ window.TimelineDateSlider = {
   },
 
   /**
+   * Calculate optimal label step based on slider width
+   */
+  calculateOptimalLabelStep: function(totalItems) {
+    const container = document.querySelector(this.containerSelector);
+    if (!container) return Math.max(1, Math.ceil(totalItems / 10)); // Fallback
+
+    // Get the width of the slider track container
+    const sliderContainer = container.querySelector('.timeline-slider-container');
+    if (!sliderContainer) return Math.max(1, Math.ceil(totalItems / 10)); // Fallback
+
+    let sliderWidth = sliderContainer.offsetWidth;
+    
+    // If width is 0 or very small, use a fallback calculation
+    if (sliderWidth <= 0) {
+      // Fallback: show approximately 8-10 labels
+      return Math.max(1, Math.ceil(totalItems / 10));
+    }
+    
+    // Estimate space needed per label (approximately 70px per label for typical date labels)
+    const spacePerLabel = 70;
+    
+    // Calculate how many labels can fit in the slider
+    const maxLabelsCanFit = Math.max(1, Math.floor(sliderWidth / spacePerLabel));
+    
+    // Calculate step to fit labels within the slider width
+    const optimalStep = Math.max(1, Math.ceil(totalItems / maxLabelsCanFit));
+    
+    return optimalStep;
+  },
+
+  /**
+   * Generate weekly step labels
+   */
+  generateWeeklySteps: function(container) {
+    // Generate steps for each week between min and max date
+    const allWeeks = [];
+    const currentDate = new Date(this.minDate);
+    
+    // Find the start of the first week
+    const dayOfWeek = currentDate.getDay();
+    currentDate.setDate(currentDate.getDate() - dayOfWeek);
+    
+    // Generate all weeks
+    while (currentDate <= this.maxDate) {
+      allWeeks.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 7);
+    }
+
+    // Calculate label step based on slider width
+    const labelStep = this.calculateOptimalLabelStep(allWeeks.length);
+
+    // Generate visual step for each week with labels for every Nth week
+    allWeeks.forEach((date, idx) => {
+      // Calculate the position of this week in the overall date range
+      const daysSinceMin = Math.floor((date - this.minDate) / (1000 * 60 * 60 * 24));
+      const totalDays = Math.floor((this.maxDate - this.minDate) / (1000 * 60 * 60 * 24));
+      const percent = (daysSinceMin / totalDays) * 100;
+
+      const stepLabel = document.createElement('div');
+      stepLabel.className = 'timeline-step';
+      stepLabel.style.left = Math.min(100, percent) + '%';
+      
+      const label = document.createElement('span');
+      label.className = 'timeline-step-label';
+      
+      // Add text content for every Nth week (show first day of week only)
+      if (idx % labelStep === 0) {
+        label.textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+      
+      stepLabel.appendChild(label);
+      container.appendChild(stepLabel);
+    });
+  },
+
+  /**
    * Generate monthly step labels
    */
   generateMonthlySteps: function(container) {
-    const monthMap = new Map();
+    // Generate steps for ALL months between min and max date
+    const allMonths = [];
+    const currentDate = new Date(this.minDate.getFullYear(), this.minDate.getMonth(), 1);
     
-    // Group all dates by year-month
-    this.allDates.forEach((date, index) => {
-      const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthMap.has(yearMonth)) {
-        monthMap.set(yearMonth, { date, index });
+    while (currentDate <= this.maxDate) {
+      allMonths.push(new Date(currentDate));
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+
+    // Calculate label step based on slider width
+    const labelStep = this.calculateOptimalLabelStep(allMonths.length);
+
+    // Determine if we need to show year (only if spanning multiple years)
+    const sameYear = this.minDate.getFullYear() === this.maxDate.getFullYear();
+
+    // Generate visual step for each month with labels for every Nth month
+    allMonths.forEach((date, idx) => {
+      // Calculate the position of this month in the overall date range
+      const daysSinceMin = Math.floor((date - this.minDate) / (1000 * 60 * 60 * 24));
+      const totalDays = Math.floor((this.maxDate - this.minDate) / (1000 * 60 * 60 * 24));
+      const percent = (daysSinceMin / totalDays) * 100;
+
+      const stepLabel = document.createElement('div');
+      stepLabel.className = 'timeline-step';
+      stepLabel.style.left = Math.min(100, percent) + '%';
+      
+      const label = document.createElement('span');
+      label.className = 'timeline-step-label';
+      
+      // Add text content for every Nth month
+      if (idx % labelStep === 0) {
+        // Only show year if spanning multiple years
+        const formatOptions = sameYear ? { month: 'short' } : { month: 'short', year: '2-digit' };
+        label.textContent = date.toLocaleDateString('en-US', formatOptions);
       }
-    });
-
-    // Show every Nth month to avoid overcrowding
-    const months = Array.from(monthMap.values());
-    const maxLabels = 10;
-    const step = Math.max(1, Math.ceil(months.length / maxLabels));
-
-    months.forEach((entry, idx) => {
-      if (idx % step === 0) {
-        const percent = (entry.index / (this.allDates.length - 1)) * 100;
-
-        const stepLabel = document.createElement('div');
-        stepLabel.className = 'timeline-step';
-        stepLabel.style.left = percent + '%';
-        
-        const label = document.createElement('span');
-        label.className = 'timeline-step-label';
-        label.textContent = `${entry.date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}`;
-        
-        stepLabel.appendChild(label);
-        container.appendChild(stepLabel);
-      }
+      
+      stepLabel.appendChild(label);
+      container.appendChild(stepLabel);
     });
   },
 
@@ -378,36 +471,39 @@ window.TimelineDateSlider = {
    * Generate yearly step labels
    */
   generateYearlySteps: function(container) {
-    const yearMap = new Map();
+    // Generate steps for ALL years between min and max date
+    const allYears = [];
+    const minYear = this.minDate.getFullYear();
+    const maxYear = this.maxDate.getFullYear();
     
-    // Group all dates by year
-    this.allDates.forEach((date, index) => {
-      const year = date.getFullYear();
-      if (!yearMap.has(year)) {
-        yearMap.set(year, { date, index });
+    for (let year = minYear; year <= maxYear; year++) {
+      allYears.push(new Date(year, 0, 1)); // January 1st of each year
+    }
+
+    // Calculate label step based on slider width
+    const labelStep = this.calculateOptimalLabelStep(allYears.length);
+
+    // Generate visual step for each year with labels for every Nth year
+    allYears.forEach((date, idx) => {
+      // Calculate the position of this year in the overall date range
+      const daysSinceMin = Math.floor((date - this.minDate) / (1000 * 60 * 60 * 24));
+      const totalDays = Math.floor((this.maxDate - this.minDate) / (1000 * 60 * 60 * 24));
+      const percent = (daysSinceMin / totalDays) * 100;
+
+      const stepLabel = document.createElement('div');
+      stepLabel.className = 'timeline-step';
+      stepLabel.style.left = Math.min(100, percent) + '%';
+      
+      const label = document.createElement('span');
+      label.className = 'timeline-step-label';
+      
+      // Add text content for every Nth year
+      if (idx % labelStep === 0) {
+        label.textContent = date.getFullYear();
       }
-    });
-
-    // Show every Nth year to avoid overcrowding
-    const years = Array.from(yearMap.values());
-    const maxLabels = 8;
-    const step = Math.max(1, Math.ceil(years.length / maxLabels));
-
-    years.forEach((entry, idx) => {
-      if (idx % step === 0) {
-        const percent = (entry.index / (this.allDates.length - 1)) * 100;
-
-        const stepLabel = document.createElement('div');
-        stepLabel.className = 'timeline-step';
-        stepLabel.style.left = percent + '%';
-        
-        const label = document.createElement('span');
-        label.className = 'timeline-step-label';
-        label.textContent = entry.date.getFullYear();
-        
-        stepLabel.appendChild(label);
-        container.appendChild(stepLabel);
-      }
+      
+      stepLabel.appendChild(label);
+      container.appendChild(stepLabel);
     });
   },
 

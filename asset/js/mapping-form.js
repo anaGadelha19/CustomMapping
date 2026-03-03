@@ -1,4 +1,14 @@
 $(document).ready(function () {
+  // Build a mapping of media IDs to thumbnail URLs for use in both admin and client modes
+  const mediaUrlMap = {};
+  $(".mapping-feature-image-select").each(function () {
+    const mediaId = $(this).val();
+    const thumbnailUrl = $(this).data("mediaThumbnailUrl");
+    if (mediaId && thumbnailUrl) {
+      mediaUrlMap[mediaId] = thumbnailUrl;
+    }
+  });
+
   // Step 0
   /**
    * Add a feature to the map.
@@ -25,6 +35,7 @@ $(document).ready(function () {
     const markerColor = typeColor || featureMarkerColor || "#3498db";
 
     feature.on("click", function (e) {
+  
       // Get sidebar element
       const sidebar = $("#mapping-feature-editor");
 
@@ -36,6 +47,7 @@ $(document).ready(function () {
 
       // Populate sidebar inputs with current feature data
       sidebar.find(".mapping-feature-label").val(featureLabel);
+      console.log("Feature label for sidebar:", featureLabel);
       sidebar.find(".mapping-feature-type").val(featureTypeId || "");
       sidebar.find(".mapping-feature-description").val(featureDescription);
       sidebar.find(".color-swatch").removeClass("selected");
@@ -78,6 +90,40 @@ $(document).ready(function () {
     feature.featureTypeId = featureTypeId || null;
     feature.propertyIds = normalizePropertyIds(featurePropertyIds);
 
+    // Auto-fill title and description from item fields if empty (creating new marker)
+    let finalLabel = featureLabel;
+    let finalDescription = featureDescription;
+    
+    if (!finalLabel) {
+      // Look for a title field in the available item fields
+      for (let field of itemFields) {
+        if (isTitleField(field)) {
+          const fieldValue = getFirstFieldValue(field);
+          if (fieldValue) {
+            finalLabel = fieldValue;
+            break;
+          }
+        }
+      }
+    }
+    
+    if (!finalDescription) {
+      // Look for a description field in the available item fields
+      for (let field of itemFields) {
+        if (isDescriptionField(field)) {
+          const fieldValue = getFirstFieldValue(field);
+          if (fieldValue) {
+            finalDescription = fieldValue;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Store the finalized values on the feature for use in click handler
+    feature._finalLabel = finalLabel;
+    feature._finalDescription = finalDescription;
+
     // Step: 1
 
     // Add the corresponding feature inputs to the form.
@@ -101,14 +147,14 @@ $(document).ready(function () {
       $("<input>", {
         type: "hidden",
         name: featureNamePrefix + "[o:label]",
-        value: featureLabel,
+        value: finalLabel,
       }),
     );
     mappingForm.append(
       $("<input>", {
         type: "hidden",
         name: featureNamePrefix + "[o:description]",
-        value: featureDescription,
+        value: finalDescription,
       }),
     );
 
@@ -271,6 +317,148 @@ $(document).ready(function () {
     return [];
   };
 
+  // Helper function to check if a field label or id indicates a title field
+  const isTitleField = function (field) {
+    console.log("Checking if field is title field:", field);
+    if (!field) return false;
+    const label = String(field.label || '').toLowerCase();
+    const id = String(field.id || '').toLowerCase();
+    // Check label for "title", check id for dcterms:title or similar
+    return /\btitle\b/.test(label) || /\btitle\b/.test(id);
+  };
+
+  // Helper function to check if a field label or id indicates a description field
+  const isDescriptionField = function (field) {
+    if (!field) return false;
+    const label = String(field.label || '').toLowerCase();
+    const id = String(field.id || '').toLowerCase();
+    // Check for description or abstract in label/id
+    return /\b(description|abstract)\b/.test(label) || /\b(description|abstract)\b/.test(id);
+  };
+
+  // Helper function to check if a field label or id indicates a type field
+  const isTypeField = function (field) {
+    if (!field) return false;
+    const label = String(field.label || '').toLowerCase();
+    const id = String(field.id || '').toLowerCase();
+    // Check for type in label/id, specifically dcterms:type or similar
+    return /\btype\b/.test(label) || /\btype\b/.test(id) || /dcterms:?type/.test(id);
+  };
+
+  // Helper function to get the first value from a field's values array
+  const getFirstFieldValue = function (field) {
+    if (!field || !field.values) {
+      return '';
+    }
+    if (Array.isArray(field.values) && field.values.length > 0) {
+      // Make sure we have a valid value
+      const firstVal = field.values[0];
+      return firstVal ? String(firstVal).trim() : '';
+    }
+    return '';
+  };
+
+  // Helper function to find or create a type with the given label
+  const findOrCreateType = function (typeLabel, callback) {
+    if (!typeLabel) {
+      callback(null);
+      return;
+    }
+
+    // First, check if a type with this label already exists
+    let existingTypeId = null;
+    typeList.find(".mapping-type-item").each(function () {
+      const item = $(this);
+      const label = item.find(".mapping-type-label-text").text();
+      if (label.toLowerCase() === typeLabel.toLowerCase()) {
+        existingTypeId = item.data("typeId");
+        return false; // Break loop
+      }
+    });
+
+    // If type exists, use it
+    if (existingTypeId) {
+      callback(existingTypeId);
+      return;
+    }
+
+    // If type doesn't exist, create it
+    const addUrl = getTypeAddUrl();
+    if (!addUrl) {
+      console.warn("Type add URL is missing, cannot create type.");
+      callback(null);
+      return;
+    }
+
+    // Use an available color for auto-created types
+    const availableColor = findAvailableColor();
+    console.log("Creating type with label:", typeLabel, "URL:", addUrl, "color:", availableColor);
+
+    const formData = new FormData();
+    formData.append("label", typeLabel);
+    formData.append("color", availableColor);
+
+    console.log("Creating type with label:", typeLabel, "URL:", addUrl);
+
+    fetch(addUrl, {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        Accept: "application/json",
+      },
+      body: formData,
+      credentials: "same-origin",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Type creation response:", data);
+        
+        // Check for error responses from the API
+        if (data.error) {
+          console.error("API error from type creation:", data.error);
+          if (data.error === "duplicate_color") {
+            showToast("This color is already in use. Please choose another.");
+          } else {
+            showToast("Could not create type: " + data.error);
+          }
+          callback(null);
+          return;
+        }
+        
+        if (!data || !data.id) {
+          console.error("Invalid response from type creation - missing id:", data);
+          throw new Error("Invalid response - no ID returned");
+        }
+        
+        // Ensure we have a default color if none was returned
+        if (!data.color) {
+          data.color = "#3498db";
+        }
+        
+        console.log("Type created successfully:", data);
+        
+        // Add the new type to the UI
+        addTypeOption(data);
+        addTypeListItem(data);
+        
+        // Give the DOM a moment to update before calling the callback
+        setTimeout(() => {
+          console.log("Type callback executing with ID:", data.id);
+          callback(data.id);
+        }, 100);
+      })
+      .catch((error) => {
+        console.error("Could not create type:", error);
+        showToast("Could not create type. Please try again.");
+        callback(null);
+      });
+  };
+
   const renderItemFieldsList = function (sidebar, propertyIds) {
     const list = sidebar.find(".mapping-feature-item-fields-list");
     list.empty();
@@ -289,7 +477,24 @@ $(document).ready(function () {
       if (!field) {
         return;
       }
-      const values = Array.isArray(field.values) ? field.values.join("; ") : "";
+      
+      // Build values HTML, creating links for linked resources
+      let valuesHtml = "";
+      const values = Array.isArray(field.values) ? field.values : [];
+      const resourceUrls = Array.isArray(field.resourceUrls) ? field.resourceUrls : [];
+      
+      values.forEach((value, index) => {
+        if (index > 0) {
+          valuesHtml += "; ";
+        }
+        const resourceUrl = resourceUrls[index];
+        if (resourceUrl) {
+          valuesHtml += `<a href="${$("<div>").text(resourceUrl).html()}" target="_blank">${$("<div>").text(value).html()}</a>`;
+        } else {
+          valuesHtml += $("<div>").text(value).html();
+        }
+      });
+      
       const row = $("<div>", {
         class: "mapping-feature-item-field",
         "data-field-id": id,
@@ -303,7 +508,7 @@ $(document).ready(function () {
       row.append(
         $("<div>", {
           class: "mapping-feature-item-field-values",
-          text: values,
+          html: valuesHtml,
         }),
       );
       row.append(
@@ -343,7 +548,41 @@ $(document).ready(function () {
   };
 
   const renderItemFieldsForFeature = function (sidebar, feature) {
-    const ids = normalizePropertyIds(feature.propertyIds);
+    let ids = normalizePropertyIds(feature.propertyIds);
+    
+    // Auto-select title and description fields if they match current values
+    const featureLabel = sidebar.find(".mapping-feature-label").val() || '';
+    const featureDescription = sidebar.find(".mapping-feature-description").val() || '';
+    
+    // Find and auto-select matching title fields
+    if (featureLabel) {
+      itemFields.forEach((field) => {
+        if (isTitleField(field) && !ids.includes(String(field.id))) {
+          const fieldValue = getFirstFieldValue(field);
+          if (fieldValue && fieldValue.toLowerCase() === featureLabel.toLowerCase()) {
+            ids.push(String(field.id));
+          }
+        }
+      });
+    }
+    
+    // Find and auto-select matching description fields
+    if (featureDescription) {
+      itemFields.forEach((field) => {
+        if (isDescriptionField(field) && !ids.includes(String(field.id))) {
+          const fieldValue = getFirstFieldValue(field);
+          if (fieldValue && fieldValue.toLowerCase() === featureDescription.toLowerCase()) {
+            ids.push(String(field.id));
+          }
+        }
+      });
+    }
+    
+    // Update the feature's property IDs if we auto-selected any fields
+    if (ids.length > (feature.propertyIds ? normalizePropertyIds(feature.propertyIds).length : 0)) {
+      updateFeaturePropertyIds(feature, ids);
+    }
+    
     renderItemFieldsList(sidebar, ids);
     buildItemFieldsSelect(sidebar, ids);
   };
@@ -367,15 +606,37 @@ $(document).ready(function () {
   };
 
   const addTypeOption = function (type) {
+    if (!type || !type.id) {
+      console.error("Cannot add type option - invalid type object:", type);
+      return;
+    }
+    
+    const select = $("#mapping-feature-editor .mapping-feature-type");
+    if (!select.length) {
+      console.error("Type select element not found");
+      return;
+    }
+    
     const option = $("<option>", {
       value: type.id,
-      text: type.label,
+      text: type.label || "(no label)",
       "data-color": type.color,
     });
-    $("#mapping-feature-editor .mapping-feature-type").append(option);
+    select.append(option);
+    console.log("Added type option:", type.id, type.label);
   };
 
   const addTypeListItem = function (type) {
+    if (!type || !type.id) {
+      console.error("Cannot add type list item - invalid type object:", type);
+      return;
+    }
+    
+    if (!typeList.length) {
+      console.error("Type list element not found");
+      return;
+    }
+    
     const item = $("<div>", {
       class: "mapping-type-item",
       role: "listitem",
@@ -384,11 +645,11 @@ $(document).ready(function () {
     });
     const color = $("<span>", {
       class: "mapping-type-color",
-      css: { backgroundColor: type.color },
+      css: { backgroundColor: type.color || "#ccc" },
     });
     const label = $("<span>", {
       class: "mapping-type-label-text",
-      text: type.label,
+      text: type.label || "(no label)",
     });
     const edit = $("<button>", {
       type: "button",
@@ -413,6 +674,7 @@ $(document).ready(function () {
 
     item.append(color, label, edit, del);
     typeList.append(item);
+    console.log("Added type list item:", type.id, type.label);
   };
 
   const showToast = function (message) {
@@ -444,6 +706,32 @@ $(document).ready(function () {
       }
     });
     return duplicate;
+  };
+
+  // Find an available color that's not already used by other types
+  const findAvailableColor = function () {
+    const colors = [
+      "#3498db", // blue
+      "#e74c3c", // red
+      "#2ecc71", // green
+      "#f39c12", // orange
+      "#9b59b6", // purple
+      "#1abc9c", // turquoise
+      "#34495e", // dark gray
+      "#e67e22", // dark orange
+      "#c0392b", // dark red
+      "#27ae60", // dark green
+    ];
+    
+    // Find the first color that isn't already in use
+    for (let i = 0; i < colors.length; i++) {
+      if (!isDuplicateTypeColor(colors[i])) {
+        return colors[i];
+      }
+    }
+    
+    // If all predefined colors are taken, generate a random one
+    return "#" + Math.floor(Math.random() * 16777215).toString(16);
   };
 
   const setTypeColorSelection = function (container, color) {
@@ -767,10 +1055,42 @@ $(document).ready(function () {
       const selectedId = select.val();
       if (!selectedId) return;
 
+      const selectedField = itemFieldsById[String(selectedId)];
+      if (!selectedField) return;
+
       const ids = normalizePropertyIds(feature.propertyIds);
       if (!ids.includes(String(selectedId))) {
         ids.push(String(selectedId));
         updateFeaturePropertyIds(feature, ids);
+        
+        // Auto-fill title, description, or type fields if the selected field is one of those types
+        const featureNamePrefix = getFeatureNamePrefix(feature);
+        
+        if (isTitleField(selectedField)) {
+          const titleValue = getFirstFieldValue(selectedField);
+          if (titleValue) {
+            sidebar.find(".mapping-feature-label").val(titleValue);
+            $(`input[name="${featureNamePrefix}[o:label]"]`).val(titleValue);
+          }
+        } else if (isDescriptionField(selectedField)) {
+          const descValue = getFirstFieldValue(selectedField);
+          if (descValue) {
+            sidebar.find(".mapping-feature-description").val(descValue);
+            $(`input[name="${featureNamePrefix}[o:description]"]`).val(descValue);
+          }
+        } else if (isTypeField(selectedField)) {
+          const typeValue = getFirstFieldValue(selectedField);
+          if (typeValue) {
+            // Find or create the type, then set it
+            findOrCreateType(typeValue, function (typeId) {
+              if (typeId) {
+                sidebar.find(".mapping-feature-type").val(typeId).trigger("change");
+                $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val(typeId);
+                feature.featureTypeId = typeId;
+              }
+            });
+          }
+        }
       }
       renderItemFieldsList(sidebar, ids);
       buildItemFieldsSelect(sidebar, ids);
@@ -790,10 +1110,29 @@ $(document).ready(function () {
       const fieldId = $(this)
         .closest(".mapping-feature-item-field")
         .data("fieldId");
+      const removedField = itemFieldsById[String(fieldId)];
+      
       const ids = normalizePropertyIds(feature.propertyIds).filter(
         (id) => String(id) !== String(fieldId),
       );
       updateFeaturePropertyIds(feature, ids);
+      
+      // Clear title, description, or type fields if the corresponding field is removed
+      if (removedField) {
+        const featureNamePrefix = getFeatureNamePrefix(feature);
+        if (isTitleField(removedField)) {
+          sidebar.find(".mapping-feature-label").val("");
+          $(`input[name="${featureNamePrefix}[o:label]"]`).val("");
+        } else if (isDescriptionField(removedField)) {
+          sidebar.find(".mapping-feature-description").val("");
+          $(`input[name="${featureNamePrefix}[o:description]"]`).val("");
+        } else if (isTypeField(removedField)) {
+          sidebar.find(".mapping-feature-type").val("").trigger("change");
+          $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val("");
+          feature.featureTypeId = null;
+        }
+      }
+      
       renderItemFieldsList(sidebar, ids);
       buildItemFieldsSelect(sidebar, ids);
     },
@@ -869,6 +1208,23 @@ $(document).ready(function () {
 
       const featureNamePrefix = feature._mappingNamePrefix;
       const typeId = $(this).val();
+
+      // Remove type fields from item fields if user manually selects a type
+      const ids = normalizePropertyIds(feature.propertyIds);
+      const typeFieldIds = ids.filter((id) => {
+        const field = itemFieldsById[String(id)];
+        return field && isTypeField(field);
+      });
+
+      // Remove all type fields from the item fields list
+      if (typeFieldIds.length > 0) {
+        const filteredIds = ids.filter(
+          (id) => !typeFieldIds.includes(id)
+        );
+        updateFeaturePropertyIds(feature, filteredIds);
+        renderItemFieldsList(sidebar, filteredIds);
+        buildItemFieldsSelect(sidebar, filteredIds);
+      }
 
       $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val(typeId);
       feature.featureTypeId = typeId || null;
@@ -1007,13 +1363,23 @@ $(document).ready(function () {
     const typeId = $(this).data("typeId");
     if (!typeId) return;
 
+    const panel = $("#mapping-type-manager .mapping-type-edit-panel");
+    const isOpen = panel.hasClass("is-open");
+    const currentTypeId = panel.data("typeId");
+
+    // If panel is open and the same type is clicked, toggle it closed
+    if (isOpen && currentTypeId === typeId) {
+      panel.removeClass("is-open");
+      return;
+    }
+
+    // Otherwise, open or switch to the new type
     const item = typeList.find(`.mapping-type-item[data-type-id="${typeId}"]`);
     const label = item.find(".mapping-type-label-text").text();
     const color =
       item.data("color") ||
       item.find(".mapping-type-color").css("background-color");
 
-    const panel = $("#mapping-type-manager .mapping-type-edit-panel");
     panel.data("typeId", typeId);
     panel.addClass("is-open");
     panel.find(".mapping-type-edit-current").text(label);

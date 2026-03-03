@@ -67,6 +67,12 @@ if ($legendItemIds) {
             <div class="mapping-map-legend" aria-label="<?php echo $this->translate('Map legend'); ?>">
                 <div class="mapping-map-legend-title"><?php echo $this->translate('Legend'); ?></div>
                 <ul class="mapping-map-legend-list">
+                    <li class="mapping-map-legend-item mapping-map-legend-all-item">
+                        <label class="mapping-map-legend-toggle">
+                            <input type="checkbox" class="mapping-legend-all-toggle" checked>
+                        </label>
+                        <span class="mapping-map-legend-label"><?php echo $this->translate('All'); ?></span>
+                    </li>
                     <?php foreach ($legendTypes as $featureType): ?>
                         <li class="mapping-map-legend-item">
                             <label class="mapping-map-legend-toggle">
@@ -100,6 +106,9 @@ if ($legendItemIds) {
                 <h2 class="sidebar-title"></h2>
             </div>
 
+            <!-- CREATOR AND DATE -->
+            <div class="sidebar-creator-date"></div>
+
             <!-- DESCRIPTION -->
             <div class="sidebar-description"></div>
 
@@ -126,13 +135,13 @@ $(document).ready(function() {
     // Close sidebar when close button is clicked
     sidebar.find('.sidebar-close').on('click', function(e) {
         e.preventDefault();
-        sidebar.hide();
+        sidebar.removeClass('active');
     });
     
     // Close sidebar when clicking outside of it
     $(document).on('click', function(e) {
-        if (!sidebar.is(':hidden') && !sidebar.is(e.target) && sidebar.has(e.target).length === 0) {
-            sidebar.hide();
+        if (sidebar.hasClass('active') && !sidebar.is(e.target) && sidebar.has(e.target).length === 0) {
+            sidebar.removeClass('active');
         }
     });
 });

@@ -242,7 +242,7 @@
 
 /* ---------- Admin Sidebar ---------- */
 
-.sidebar {
+#mapping-feature-editor.sidebar {
   padding: 16px;
   gap: 16px;
   height: 100vh;
@@ -268,8 +268,7 @@
 .mapping-feature-item-fields-picker {
   display: flex;
   margin-bottom: 8px;
-  /* gap: 8px; */
-  /* align-items: center; */
+  
 }
 
 .mapping-feature-item-fields-list {
@@ -346,7 +345,7 @@
 }
 
 .mapping-feature-item-values {
-  margin: 12px 0 0;
+  margin: 1.5rem 0 0;
 }
 
 .mapping-feature-item-values-row {
@@ -506,7 +505,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 12px 16px 0px 12px;
 }
 #mapping-type-manager-title {
   font-size: 1.25rem;
@@ -515,7 +514,7 @@
 }
 
 .mapping-type-modal-body {
-  padding: 16px;
+  padding: 0px 16px 16px 16px;
   overflow-y: auto;
 }
 
@@ -526,9 +525,9 @@
   margin-bottom: 16px;
 }
 
-.mapping-type-add-toggle {
-  margin-bottom: 12px;
-}
+/* .mapping-type-add-toggle {
+  /* margin-bottom: 12px;
+} */
 
 .mapping-type-item {
   display: flex;
@@ -754,23 +753,7 @@
 
 /* ----------- Client Side Sidebar ----------- */
 
-/* Option 1 In the whole page */
-/* .client-sidebar {
-  position: fixed;
-  top: 0;
-  right: 0;
 
-  width: 40%;
-  max-width: 80%;
-  height: 100vh;
-
-  display: none;
-  border-left: 1px solid #ddd;
-  overflow-y: auto;
-  background: rgba(255, 255, 255, 0.95);
-  z-index: 2000;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
-} */
 
 /* Option 2 In the map  */
 #mapping-container {
@@ -781,29 +764,46 @@
 }
 
 .client-sidebar {
-  position: absolute;
+  position: fixed !important;
   top: 0;
-  right: 0;
+  right: 0 !important;
 
-  width: 40%;
-  max-width: 50%;
-  height: 100%;
-  transition: width 2s;
+  width: 30%;
+  height: 100vh;
+  transition: top 0.3s ease, height 0.3s ease, width 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
 
-  display: none;
   border-left: 1px solid #ddd;
   overflow-y: auto;
-  background: rgba(255, 255, 255, 0.95);
-  z-index: 1000;
+  overflow-x: hidden;
+  background: rgba(255, 255, 255, 0.98);
+  z-index: 999999 !important;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  box-sizing: border-box;
+  
+  /* Hidden state */
+  opacity: 0;
+  transform: translateX(100%);
+  pointer-events: none;
+  will-change: opacity, transform;
 }
+
+
+/* Show sidebar when active */
+.client-sidebar.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+
 
 .sidebar-header {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 1rem;
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .sidebar-title {
@@ -816,6 +816,36 @@
   width: 24px;
   height: 24px;
   flex-shrink: 0;
+}
+
+.sidebar-creator-date {
+  display: flex;
+  width: 100%;
+
+  /* gap: 1.5rem; */
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.sidebar-creator,
+.sidebar-date {
+  display: flex;
+  margin-inline: 0.5rem;
+}
+
+.sidebar-creator dt,
+.sidebar-date dt {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.sidebar-creator dd,
+.sidebar-date dd {
+  margin: 0;
+  color: #555;
+  line-height: 1.4;
 }
 
 .sidebar-description {
@@ -835,7 +865,8 @@
 
 
 body.mapping-fullscreen-active .mapping-map-legend,
-body.mapping-fullscreen-active .sidebar {
+body.mapping-fullscreen-active #mapping-feature-editor.sidebar,
+body.mapping-fullscreen-active #mapping-view-sidebar {
   z-index: 999999 !important;
 }
 
