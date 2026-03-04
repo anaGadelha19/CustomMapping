@@ -824,6 +824,15 @@
   margin: 0;
 }
 
+.sidebar-title a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.sidebar-title a:hover {
+  opacity: 0.8;
+}
+
 .sidebar-pin svg {
   width: 24px;
   height: 24px;

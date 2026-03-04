@@ -219,14 +219,11 @@ window.TimelineDateSlider = {
 
     // Handle min slider change
     minInput.addEventListener('input', (e) => {
-      let minVal = parseFloat(e.target.value);
+      const minVal = parseFloat(e.target.value);
       const maxVal = parseFloat(maxInput.value);
 
-      // Prevent crossing
-      if (minVal > maxVal) {
-        minVal = maxVal;
-        e.target.value = minVal;
-      }
+      // Update dynamic step based on current range
+      this.updateDynamicStep(minVal, maxVal);
 
       this.updateSliderRange(minVal, maxVal);
       this.updateDateDisplay();
@@ -235,19 +232,19 @@ window.TimelineDateSlider = {
 
     // Handle max slider change
     maxInput.addEventListener('input', (e) => {
-      let maxVal = parseFloat(e.target.value);
       const minVal = parseFloat(minInput.value);
+      const maxVal = parseFloat(e.target.value);
 
-      // Prevent crossing
-      if (maxVal < minVal) {
-        maxVal = minVal;
-        e.target.value = maxVal;
-      }
+      // Update dynamic step based on current range
+      this.updateDynamicStep(minVal, maxVal);
 
       this.updateSliderRange(minVal, maxVal);
       this.updateDateDisplay();
       this.applyDateFilter();
     });
+
+    // Initialize step on load
+    this.updateDynamicStep(0, 100);
   },
 
   /**
@@ -290,6 +287,50 @@ window.TimelineDateSlider = {
     const dateRange = this.maxDate - this.minDate;
     const offset = (percent / 100) * dateRange;
     return new Date(this.minDate.getTime() + offset);
+  },
+
+  /**
+   * Update slider step based on the current selected range
+   * - Year+ range: step by months
+   * - Month range: step by weeks
+   * - Day range: step by days
+   */
+  updateDynamicStep: function(minVal, maxVal) {
+    const minInput = document.getElementById('timeline-slider-min');
+    const maxInput = document.getElementById('timeline-slider-max');
+    
+    if (!minInput || !maxInput) return;
+
+    // Get the dates at the current slider positions
+    const minDate = this.getDateAtPercent(minVal);
+    const maxDate = this.getDateAtPercent(maxVal);
+    
+    // Calculate the difference in days
+    const diffMs = Math.abs(maxDate - minDate);
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+    let stepPercent;
+
+    if (diffDays >= 365) {
+      // Year+ range: step by months (~30 days)
+      const stepMs = 1000 * 60 * 60 * 24 * 30; // 30 days
+      const totalRangeMs = this.maxDate - this.minDate;
+      stepPercent = (stepMs / totalRangeMs) * 100;
+    } else if (diffDays >= 30) {
+      // Month+ range: step by weeks (7 days)
+      const stepMs = 1000 * 60 * 60 * 24 * 7; // 7 days
+      const totalRangeMs = this.maxDate - this.minDate;
+      stepPercent = (stepMs / totalRangeMs) * 100;
+    } else {
+      // Day range: step by days (1 day)
+      const stepMs = 1000 * 60 * 60 * 24; // 1 day
+      const totalRangeMs = this.maxDate - this.minDate;
+      stepPercent = (stepMs / totalRangeMs) * 100;
+    }
+
+    // Set the step attribute on both sliders
+    minInput.step = stepPercent;
+    maxInput.step = stepPercent;
   },
 
   /**

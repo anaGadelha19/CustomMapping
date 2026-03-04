@@ -259,12 +259,12 @@ const MappingModule = {
     // Title
     const titleElement = $content.find("h2, h3, .resource-title").first();
     
-    let titleText = titleElement.text();
+    let titleHtml = titleElement.html();
     
-    if (!titleText.trim()) {
+    if (!titleHtml || !titleHtml.trim()) {
       console.warn("No title element found in server response");
     }
-    sidebar.find(".sidebar-title").text(titleText);
+    sidebar.find(".sidebar-title").html(titleHtml);
 
     // Creator and Date (side by side)
     const creatorDateDiv = $content.find(".sidebar-creator-date").first();
@@ -455,195 +455,11 @@ const MappingModule = {
     applyFilters();
   },
 
-  /**
-   * Add filter toggle control to map
-   */
-  addFilterToggleControl: function (map) {
-    const FilterToggleControl = L.Control.extend({
-      options: { position: "topleft" },
-      onAdd: function (map) {
-        const container = L.DomUtil.create(
-          "div",
-          "mapping-filter-toggle-control leaflet-bar",
-        );
-        const link = L.DomUtil.create(
-          "a",
-          "mapping-filter-toggle-link",
-          container,
-        );
 
-        link.innerHTML =
-          '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px;" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 11.1707L6 4C6 3.44771 5.55228 3 5 3C4.44771 3 4 3.44771 4 4L4 11.1707C2.83481 11.5825 2 12.6938 2 14C2 15.3062 2.83481 16.4175 4 16.8293L4 20C4 20.5523 4.44772 21 5 21C5.55228 21 6 20.5523 6 20L6 16.8293C7.16519 16.4175 8 15.3062 8 14C8 12.6938 7.16519 11.5825 6 11.1707ZM5 13C4.44772 13 4 13.4477 4 14C4 14.5523 4.44772 15 5 15C5.55228 15 6 14.5523 6 14C6 13.4477 5.55228 13 5 13Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M19 21C18.4477 21 18 20.5523 18 20L18 18C18 17.9435 18.0047 17.8881 18.0137 17.8341C16.8414 17.4262 16 16.3113 16 15C16 13.6887 16.8414 12.5738 18.0137 12.1659C18.0047 12.1119 18 12.0565 18 12L18 4C18 3.44771 18.4477 3 19 3C19.5523 3 20 3.44771 20 4L20 12C20 12.0565 19.9953 12.1119 19.9863 12.1659C21.1586 12.5738 22 13.6887 22 15C22 16.3113 21.1586 17.4262 19.9863 17.8341C19.9953 17.8881 20 17.9435 20 18V20C20 20.5523 19.5523 21 19 21ZM18 15C18 14.4477 18.4477 14 19 14C19.5523 14 20 14.4477 20 15C20 15.5523 19.5523 16 19 16C18.4477 16 18 15.5523 18 15Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M9 9C9 7.69378 9.83481 6.58254 11 6.17071V4C11 3.44772 11.4477 3 12 3C12.5523 3 13 3.44772 13 4V6.17071C14.1652 6.58254 15 7.69378 15 9C15 10.3113 14.1586 11.4262 12.9863 11.8341C12.9953 11.8881 13 11.9435 13 12L13 20C13 20.5523 12.5523 21 12 21C11.4477 21 11 20.5523 11 20L11 12C11 11.9435 11.0047 11.8881 11.0137 11.8341C9.84135 11.4262 9 10.3113 9 9ZM11 9C11 8.44772 11.4477 8 12 8C12.5523 8 13 8.44772 13 9C13 9.55229 12.5523 10 12 10C11.4477 10 11 9.55229 11 9Z"/></svg>';
-        link.href = "#";
-        link.title = "Toggle marker type filter";
-        link.style.display = "flex";
-        link.style.alignItems = "center";
-        link.style.justifyContent = "center";
-        link.style.fontSize = "16px";
 
-        let filterVisible = true;
-        const legendContainer = $(".mapping-map-legend");
 
-        L.DomEvent.on(link, "mousedown", L.DomEvent.stopPropagation)
-          .on(link, "dblclick", L.DomEvent.stopPropagation)
-          .on(link, "click", L.DomEvent.stopPropagation)
-          .on(link, "click", L.DomEvent.preventDefault)
-          .on(link, "click", function () {
-            filterVisible = !filterVisible;
 
-            if (filterVisible) {
-              legendContainer.removeClass("filters-hidden");
-              link.style.opacity = "1";
-            } else {
-              legendContainer.addClass("filters-hidden");
-              link.style.opacity = "0.4";
-            }
-          });
 
-        return container;
-      },
-    });
-    map.addControl(new FilterToggleControl());
-  },
-
-  /**
-   * Add timeline toggle control to map
-   */
-  addTimelineToggleControl: function (map) {
-    let timelineToggleControlElement = null;
-    const TimelineToggleControl = L.Control.extend({
-      options: { position: "topleft" },
-      onAdd: function (map) {
-        const container = L.DomUtil.create(
-          "div",
-          "mapping-timeline-toggle-control leaflet-bar",
-        );
-        timelineToggleControlElement = container;
-        container.style.display = "none";
-        const link = L.DomUtil.create(
-          "a",
-          "mapping-timeline-toggle-link",
-          container,
-        );
-
-        link.innerHTML =
-          '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Calendar / Calendar_Days"> <path id="Vector" d="M8 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V8M8 4H16M8 4V2M16 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V8M16 4V2M4 8V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V8M4 8H20M16 16H16.002L16.002 16.002L16 16.002V16ZM12 16H12.002L12.002 16.002L12 16.002V16ZM8 16H8.002L8.00195 16.002L8 16.002V16ZM16.002 12V12.002L16 12.002V12H16.002ZM12 12H12.002L12.002 12.002L12 12.002V12ZM8 12H8.002L8.00195 12.002L8 12.002V12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>';
-        link.href = "#";
-        link.title = "Toggle timeline";
-        link.style.display = "flex";
-        link.style.alignItems = "center";
-        link.style.justifyContent = "center";
-        link.style.fontSize = "16px";
-
-        let timelineVisible = true;
-        const timelineContainer = $(".timeline-date-slider-container");
-
-        L.DomEvent.on(link, "mousedown", L.DomEvent.stopPropagation)
-          .on(link, "dblclick", L.DomEvent.stopPropagation)
-          .on(link, "click", L.DomEvent.stopPropagation)
-          .on(link, "click", L.DomEvent.preventDefault)
-          .on(link, "click", function () {
-            timelineVisible = !timelineVisible;
-
-            if (timelineVisible) {
-              timelineContainer.removeClass("hidden");
-              link.style.opacity = "1";
-            } else {
-              timelineContainer.addClass("hidden");
-              link.style.opacity = "0.4";
-            }
-          });
-
-        return container;
-      },
-    });
-
-    map.addControl(new TimelineToggleControl());
-    return timelineToggleControlElement;
-  },
-
-  /**
-   * Add clustering toggle control to map
-   */
-  addClusteringToggleControl: function (map, featuresPoint, featuresPoly) {
-    const ClusteringToggleControl = L.Control.extend({
-      options: { position: "topleft" },
-      onAdd: function (map) {
-        const container = L.DomUtil.create(
-          "div",
-          "mapping-clustering-toggle-control leaflet-bar",
-        );
-        const link = L.DomUtil.create(
-          "a",
-          "mapping-clustering-toggle-link",
-          container,
-        );
-
-        link.innerHTML =
-          '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px;" xmlns="http://www.w3.org/2000/svg" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 16.016c1.245.529 2 1.223 2 1.984 0 1.657-3.582 3-8 3s-8-1.343-8-3c0-.76.755-1.456 2-1.984"></path><path stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8.444C17 11.537 12 17 12 17s-5-5.463-5-8.556C7 5.352 9.239 3 12 3s5 2.352 5 5.444z"></path><circle cx="12" cy="8" r="1" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></circle></g></svg>';
-        link.href = "#";
-        link.title = "Toggle clustering";
-        link.style.display = "flex";
-        link.style.alignItems = "center";
-        link.style.justifyContent = "center";
-        link.style.fontSize = "16px";
-
-        L.DomEvent.on(link, "mousedown", L.DomEvent.stopPropagation)
-          .on(link, "dblclick", L.DomEvent.stopPropagation)
-          .on(link, "click", L.DomEvent.stopPropagation)
-          .on(link, "click", L.DomEvent.preventDefault)
-          .on(link, "click", function () {
-            map.clusteringEnabled = !map.clusteringEnabled;
-
-            if (map.clusteringEnabled) {
-              if (map._mappingAllLayers) {
-                map._mappingAllLayers.forEach((layer) => {
-                  if (map.hasLayer(layer)) {
-                    map.removeLayer(layer);
-                  }
-                });
-              }
-              if (!map.hasLayer(featuresPoint)) {
-                map.addLayer(featuresPoint);
-              }
-              if (!map.hasLayer(featuresPoly)) {
-                map.addLayer(featuresPoly);
-              }
-              link.style.opacity = "1";
-            } else {
-              map.removeLayer(featuresPoint);
-              map.removeLayer(featuresPoly);
-
-              map._layerVisibilityMap.clear();
-              if (featuresPoint) {
-                featuresPoint.eachLayer((layer) => {
-                  map._layerVisibilityMap.set(layer, true);
-                });
-              }
-              if (featuresPoly) {
-                featuresPoly.eachLayer((layer) => {
-                  map._layerVisibilityMap.set(layer, true);
-                });
-              }
-
-              if (map._mappingAllLayers) {
-                map._mappingAllLayers.forEach((layer) => {
-                  if (!map.hasLayer(layer)) {
-                    map.addLayer(layer);
-                  }
-                });
-              }
-
-              link.style.opacity = "0.4";
-            }
-          });
-
-        return container;
-      },
-    });
-
-    map.addControl(new ClusteringToggleControl());
-  },
 
   /**
    * Initialize description truncation and toggle functionality

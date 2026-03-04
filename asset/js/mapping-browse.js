@@ -65,16 +65,9 @@ $(document).ready(function () {
         L.DomEvent.stopPropagation(e);
       });
   }
-  // Add controls to map
-  MappingModule.addFilterToggleControl(map);
-  
-  let timelineToggleControlElement = MappingModule.addTimelineToggleControl(map);
-
-  // Clustering Toggle Control
+  // Initialize clustering state
   map.clusteringEnabled = true;
   map._layerVisibilityMap = new Map(); // Track which layers should be visible
-
-  MappingModule.addClusteringToggleControl(map, featuresPoint, featuresPoly);
 
   // Add the filters menu control
   if (typeof L.Control.FiltersMenu !== 'undefined') {
@@ -253,9 +246,6 @@ $(document).ready(function () {
       if (timelineContainer.length) {
         timelineContainer.show();
       }
-      if (timelineToggleControlElement) {
-        timelineToggleControlElement.style.display = "";
-      }
       // Enable timeline toggle in filters menu
       if (map._filtersMenuControl) {
         map._filtersMenuControl.enableTimelineToggle();
@@ -265,9 +255,6 @@ $(document).ready(function () {
       const timelineContainer = $(".timeline-date-slider-container");
       if (timelineContainer.length) {
         timelineContainer.hide();
-      }
-      if (timelineToggleControlElement) {
-        timelineToggleControlElement.style.display = "none";
       }
       // Disable timeline toggle in filters menu
       if (map._filtersMenuControl) {

@@ -169,7 +169,7 @@ if ($selectedPropertyIds) {
 <span class="group-type" style="<?php echo $color ? 'color:' . $this->escapeHtmlAttr($color) : ''; ?>">
 
     <h2 class="sidebar-title">
-        <?php echo $this->escapeHtml($item->displayTitle(null, $this->lang())) ?: $this->translate('Item'); ?>
+        <?php echo $item->link($item->displayTitle(null, $this->lang()) ?: $this->translate('Item'), null, ['target' => '_blank']); ?>
     </h2>
 
 </span>
