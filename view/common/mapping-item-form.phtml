@@ -333,8 +333,9 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
 
  <?php endif; ?>
 </fieldset>
+
 <!-- Sidebar - Display Feature Information (used for both admin and client viewing) -->
-<!-- <div id="mapping-view-sidebar" class="sidebar ">
+<div id="mapping-view-sidebar" class="sidebar">
     <a href="#" class="sidebar-close o-icon-close">
         <span class="screen-reader-text">
             <?php echo $this->translate('Close'); ?>
@@ -351,10 +352,32 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
         <div class="sidebar-creator-date"></div>
 
         <div class="sidebar-description"></div>
+        <button class="sidebar-description-toggle" type="button">
+            <span class="toggle-text">See more</span>
+        </button>
 
         <div class="sidebar-item-fields"></div>
 
         <div class="sidebar-media"></div>
 
     </div>
-</div> -->
+</div>
+
+<script>
+$(document).ready(function() {
+    const sidebar = $('#mapping-view-sidebar');
+    
+    // Close sidebar when close button is clicked
+    sidebar.find('.sidebar-close').on('click', function(e) {
+        e.preventDefault();
+        sidebar.removeClass('active');
+    });
+    
+    // Close sidebar when clicking outside of it
+    $(document).on('click', function(e) {
+        if (sidebar.hasClass('active') && !sidebar.is(e.target) && sidebar.has(e.target).length === 0) {
+            sidebar.removeClass('active');
+        }
+    });
+});
+</script>

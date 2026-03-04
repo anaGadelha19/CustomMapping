@@ -537,6 +537,7 @@ $(document).ready(function () {
         $("<div>", {
           class: "mapping-feature-item-field-values",
           html: valuesHtml,
+          title: values.join("; "),
         }),
       );
       row.append(

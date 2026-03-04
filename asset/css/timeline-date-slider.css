@@ -32,9 +32,9 @@
 
 /* CSS variables for theming - can be overridden by site themes */
 :root {
-  --timeline-slider-color-primary: #f97316;
-  --timeline-slider-color-primary-dark: #d47024;
-  --timeline-slider-color-accent: #2563eb;
+  --timeline-slider-color-primary: #f9832f;
+  --timeline-slider-color-primary-dark: #f86c00;
+  --timeline-slider-color-accent: #f86c00;
 }
 
 .timeline-date-slider-container {

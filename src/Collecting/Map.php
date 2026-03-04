@@ -25,6 +25,7 @@ class Map implements MediaTypeInterface
         $view->headScript()->appendFile($view->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.js', 'CustomMapping'));
 
         $view->headScript()->appendFile($view->assetUrl('js/mapping-collecting-form.js', 'CustomMapping'));
+        // Control.FiltersMenu is only needed for site views with map display
 
         $view->formElement()->addType('promptMap', 'formPromptMap');
     }

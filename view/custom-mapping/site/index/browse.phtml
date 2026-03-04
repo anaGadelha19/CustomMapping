@@ -14,6 +14,7 @@ $this->headScript()->appendFile($this->assetUrl('node_modules/Leaflet.Deflate/di
 
 $this->headScript()->appendFile($this->assetUrl('js/MappingModule.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
+$this->headScript()->appendFile($this->assetUrl('js/control.filters-menu.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('js/timeline-date-slider.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('js/mapping-browse.js', 'CustomMapping'));
 $this->headScript()->appendFile($this->assetUrl('js/advanced-search.js', 'Omeka'));
@@ -111,6 +112,9 @@ if ($legendItemIds) {
 
             <!-- DESCRIPTION -->
             <div class="sidebar-description"></div>
+            <button class="sidebar-description-toggle" type="button">
+                <span class="toggle-text">See more</span>
+            </button>
 
             <!-- ITEM FIELDS -->
             <div class="sidebar-item-fields"></div>

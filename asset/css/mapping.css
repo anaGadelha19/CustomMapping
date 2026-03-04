@@ -35,7 +35,6 @@
   font-weight: 600;
   margin-bottom: 6px;
   font-size: 0.95rem;
-  
 }
 
 .mapping-map-legend-list {
@@ -69,7 +68,7 @@
 }
 
 .mapping-map-legend-pin {
-   width: 18px;
+  width: 18px;
   height: 26px;
   display: inline-flex;
   align-items: center;
@@ -77,7 +76,7 @@
 }
 
 .mapping-map-legend-pin svg {
- width: 18px;
+  width: 18px;
   height: 26px;
 }
 
@@ -86,6 +85,10 @@
 }
 
 .mapping-map-legend.filters-hidden .mapping-map-legend-toggle {
+  display: none;
+}
+
+.mapping-map-legend.filters-hidden .mapping-map-legend-all-item {
   display: none;
 }
 
@@ -246,8 +249,8 @@
 #mapping-feature-editor.sidebar {
   padding: 16px;
   gap: 16px;
-  height: 100vh;
-  overflow-y: auto;
+  /* height: 100vh; */
+  overflow-y: auto !important;
 }
 
 .gap {
@@ -269,7 +272,6 @@
 .mapping-feature-item-fields-picker {
   display: flex;
   margin-bottom: 8px;
-  
 }
 
 .mapping-feature-item-fields-list {
@@ -288,6 +290,7 @@
   border: 1px solid #dedede;
   border-radius: 10px;
   background: #d8d8d8;
+  min-width: 0;
   /* width: 100%; */
 }
 
@@ -297,9 +300,13 @@
 }
 
 .mapping-feature-item-field-values {
-  grid-column: 1 / -1;
   font-size: 0.95rem;
   color: #444;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mapping-feature-item-fields-empty {
@@ -309,7 +316,7 @@
 
 .mapping-feature-item-fields-add {
   background-color: transparent !important;
-  color:  rgb(103, 103, 103) !important;
+  color: rgb(103, 103, 103) !important;
   border: none !important;
   box-shadow: none;
   margin: 0;
@@ -328,7 +335,7 @@
   box-shadow: none !important;
 }
 
-.mapping-feature-item-field-remove.o-icon-close{
+.mapping-feature-item-field-remove.o-icon-close {
   background-color: transparent;
   color: rgb(103, 103, 103);
   border: none;
@@ -338,7 +345,7 @@
   padding: 0;
   margin: 0;
 }
-.mapping-feature-item-field-remove.o-icon-close:hover{
+.mapping-feature-item-field-remove.o-icon-close:hover {
   background-color: transparent;
   color: #333;
   border: none;
@@ -640,8 +647,13 @@
 
 .mapping-type-add-custom-color,
 .mapping-type-edit-add-custom-color {
-  cursor: pointer;
-  color: #afafaf;
+  background: none !important;
+  cursor: pointer !important;
+  color: #afafaf !important;
+}
+
+.mapping-type-add-custom-color,
+.mapping-type-edit-add-custom-color {
   border-radius: 50%;
   width: 22px;
   height: 22px;
@@ -653,7 +665,6 @@
   min-width: 0px;
   min-height: auto;
 }
-
 
 .mapping-type-add-custom-color:hover,
 .mapping-type-edit-add-custom-color:hover {
@@ -754,8 +765,6 @@
 
 /* ----------- Client Side Sidebar ----------- */
 
-
-
 /* Option 2 In the map  */
 #mapping-container {
   position: relative;
@@ -771,7 +780,12 @@
 
   width: 30%;
   height: 100vh;
-  transition: top 0.3s ease, height 0.3s ease, width 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    top 0.3s ease,
+    height 0.3s ease,
+    width 0.3s ease,
+    opacity 0.3s ease,
+    transform 0.3s ease;
 
   border-left: 1px solid #ddd;
   overflow-y: auto;
@@ -781,7 +795,7 @@
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
   padding: 16px;
   box-sizing: border-box;
-  
+
   /* Hidden state */
   opacity: 0;
   transform: translateX(100%);
@@ -789,15 +803,12 @@
   will-change: opacity, transform;
 }
 
-
 /* Show sidebar when active */
 .client-sidebar.active {
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
 }
-
-
 
 .sidebar-header {
   display: flex;
@@ -850,9 +861,74 @@
 }
 
 .sidebar-description {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   line-height: 1.6;
   color: #444;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease;
+}
+
+/* Truncate description by default (show ~5-6 lines) */
+.sidebar-description.truncated {
+  max-height: 10rem;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Fade effect at the bottom of truncated descriptions */
+.sidebar-description.truncated::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1.2rem;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.9));
+}
+
+/* Expanded state */
+.sidebar-description.expanded {
+  max-height: none;
+}
+
+.sidebar-description.expanded::after {
+  display: none;
+}
+
+/* See more/less button styling */
+.sidebar-description-toggle {
+  display: none !important;
+  margin-bottom: 1.5rem;
+  background: none !important;
+  border: none !important;
+  appearance: none !important;
+  -moz-appearance: none !important;
+  -webkit-appearance: none !important;
+  color: #0066cc !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  transition: color 0.2s ease;
+  box-shadow: none !important;
+  text-transform: none !important;
+  text-decoration: none !important;
+}
+
+.sidebar-description-toggle:hover,
+.sidebar-description-toggle:focus {
+  color: #033b74 !important;
+  text-decoration: underline !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Show button only when needed */
+.sidebar-description.needs-toggle ~ .sidebar-description-toggle {
+  display: inline-block !important;
 }
 
 .sidebar-media img {
@@ -864,7 +940,6 @@
 
 /* ---------- Fullscreen Mode ---------- */
 
-
 body.mapping-fullscreen-active .mapping-map-legend,
 body.mapping-fullscreen-active #mapping-feature-editor.sidebar,
 body.mapping-fullscreen-active #mapping-view-sidebar {
@@ -875,4 +950,139 @@ body.mapping-fullscreen-active .mapping-map-legend {
   position: fixed !important;
   bottom: 12px !important;
   left: 12px !important;
+}
+
+/* Fullscreen sidebar positioning - but keep hidden until active */
+body.mapping-fullscreen-active #mapping-view-sidebar.client-sidebar {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  height: 100vh !important;
+  width: 30% !important;
+  transition: none !important;
+}
+
+/* Show sidebar only when active in fullscreen mode */
+body.mapping-fullscreen-active #mapping-view-sidebar.client-sidebar.active {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+  pointer-events: auto !important;
+}
+
+/* ---------- Filters Menu Control ---------- */
+
+.mapping-control-filters-menu {
+  position: relative;
+}
+
+.mapping-control-filters-menu-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: white;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: 4px;
+  color: #333;
+  font-size: 20px;
+  transition: background-color 0.2s ease;
+}
+
+.mapping-control-filters-menu-button:hover {
+  background-color: #f4f4f4;
+}
+
+.mapping-control-filters-menu-button:active {
+  background-color: #e8e8e8;
+}
+
+.mapping-filters-menu-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  z-index: 1001;
+  min-width: 150px;
+  padding: 10px;
+  pointer-events: auto;
+}
+
+.mapping-filters-menu-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+  color: #333;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mapping-filters-menu-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.mapping-filters-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  gap: 8px;
+}
+
+.mapping-filters-menu-label {
+  flex: 1;
+  font-size: 0.85rem;
+  color: #333;
+  user-select: none;
+  cursor: pointer;
+}
+
+.mapping-filters-menu-toggle {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  background-color: #d1d1d1;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.mapping-filters-menu-toggle::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: left 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mapping-filters-menu-toggle-active {
+  background-color: #f38e47;
+}
+
+.mapping-filters-menu-toggle-active::after {
+  left: 22px;
+}
+
+.mapping-filters-menu-toggle-disabled {
+  background-color: #cccccc;
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+.mapping-filters-menu-toggle-disabled::after {
+  opacity: 0.5;
 }

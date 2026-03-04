@@ -48,6 +48,11 @@ $(document).ready(function () {
             { noInitialDefaultView: !defaultBounds }
         ));
 
+        // Add filters menu control if available (commented out for admin form)
+        // if (typeof L.Control.FiltersMenu !== 'undefined') {
+        //     map.addControl(new L.Control.FiltersMenu());
+        // }
+
         // Expanding changes map dimensions, so make the necessary adjustments.
         block.on('o:expanded', '.mapping-map-expander', function (e) {
             map.invalidateSize();

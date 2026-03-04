@@ -350,6 +350,12 @@ function MappingBlock(mapDiv, timelineDiv) {
     // Move elements into fullscreen container
     if (sidebar.length) {
       sidebar.appendTo(mapContainer);
+      // Force sidebar to be visible in fullscreen
+      sidebar.css("position", "fixed");
+      sidebar.css("top", "0");
+      sidebar.css("right", "0");
+      sidebar.css("height", "100vh");
+      sidebar.css("width", "30%");
     }
     if (legend.length) {
       legend.appendTo(mapContainer);
@@ -368,6 +374,12 @@ function MappingBlock(mapDiv, timelineDiv) {
     // Move elements back to their original positions
     if (sidebar.length && mappingBlock.length) {
       sidebar.appendTo(mappingBlock);
+      // Clear inline styles to let CSS take over
+      sidebar.css("position", "");
+      sidebar.css("top", "");
+      sidebar.css("right", "");
+      sidebar.css("height", "");
+      sidebar.css("width", "");
     }
     if (legend.length && mapContainer.length) {
       legend.appendTo(mapContainer);

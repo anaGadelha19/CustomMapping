@@ -278,6 +278,13 @@ const MappingModule = {
     const description = $content.find("p.sidebar-description").html() || "";
     sidebar.find(".sidebar-description").html(description);
 
+    // Description toggle button
+    const toggleButton = $content.find(".sidebar-description-toggle").first();
+    const toggleButtonContainer = sidebar.find(".sidebar-description-toggle");
+    if (toggleButton.length && toggleButtonContainer.length) {
+      toggleButtonContainer.replaceWith(toggleButton.clone());
+    }
+
     // Item fields
     const itemFieldsContainer = sidebar.find(".sidebar-item-fields");
     itemFieldsContainer.empty();
@@ -637,5 +644,83 @@ const MappingModule = {
 
     map.addControl(new ClusteringToggleControl());
   },
+
+  /**
+   * Initialize description truncation and toggle functionality
+   * Automatically truncates descriptions longer than ~2 paragraphs and shows a toggle button
+   * @param {string} sidebarSelector - The jQuery selector for the sidebar (defaults to #mapping-view-sidebar)
+   */
+  initializeDescriptionToggle: function (sidebarSelector) {
+    const selector = sidebarSelector || "#mapping-view-sidebar";
+    const description = $(selector + " .sidebar-description");
+    const toggleBtn = $(selector + " .sidebar-description-toggle");
+
+    if (!description.length || !toggleBtn.length) {
+      return;
+    }
+
+    // Check if description content exceeds ~2 paragraphs (4.8rem)
+    const checkTruncation = function () {
+      // Get the natural height of the description
+      description.removeClass("truncated expanded");
+      
+      // Force reflow to get accurate height measurements
+      const element = description[0];
+      // Trigger reflow by accessing offsetHeight
+      const _ = element.offsetHeight;
+      
+      const scrollHeight = element.scrollHeight;
+      const maxHeight = 10 * 16; // 4.8rem in pixels
+
+      if (scrollHeight > maxHeight) {
+        // Description is too long, add truncated class
+        description.addClass("truncated needs-toggle");
+        toggleBtn.show();
+      } else {
+        // Description fits, hide button
+        description.removeClass("truncated needs-toggle");
+        toggleBtn.hide();
+      }
+    };
+
+    // Initialize on load with staggered delays to ensure DOM is fully rendered
+    setTimeout(checkTruncation, 0);
+    setTimeout(checkTruncation, 100);
+
+    // Handle toggle button click
+    toggleBtn.off("click").on("click", function (e) {
+      e.preventDefault();
+
+      if (description.hasClass("expanded")) {
+        // Collapse
+        description.removeClass("expanded");
+        toggleBtn.find(".toggle-text").text("See more");
+      } else {
+        // Expand
+        description.addClass("expanded");
+        toggleBtn.find(".toggle-text").text("See less");
+      }
+    });
+
+    // Re-check on window resize - debounced
+    let resizeTimeout;
+    $(window).off("resize.descriptionToggle").on("resize.descriptionToggle", function () {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(checkTruncation, 100);
+    });
+  },
 };
 
+/**
+ * Global hook to initialize description toggle whenever sidebar content is rendered
+ * This ensures the "see more" button shows up in all views (browse, show, blocks)
+ */
+MappingModule.originalRenderSidebarContent = MappingModule.renderSidebarContent;
+MappingModule.renderSidebarContent = function (sidebarElement, content, markerColor) {
+  // Call the original function
+  MappingModule.originalRenderSidebarContent(sidebarElement, content, markerColor);
+  // Then initialize the toggle - use longer timeout to ensure DOM is fully updated
+  window.setTimeout(() => {
+    MappingModule.initializeDescriptionToggle("#mapping-view-sidebar");
+  }, 150);
+};

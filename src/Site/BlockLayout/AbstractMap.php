@@ -33,6 +33,7 @@ abstract class AbstractMap extends AbstractBlockLayout
 
         $view->headScript()->appendFile($view->assetUrl('js/mapping-block-form.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/control.default-view.js', 'CustomMapping'));
+        // Control.FiltersMenu is only needed for site views, not admin form
     }
 
     public function prepareRender(PhpRenderer $view)
@@ -57,6 +58,7 @@ abstract class AbstractMap extends AbstractBlockLayout
         $view->headScript()->appendFile($view->assetUrl('js/MappingModule.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/control.opacity.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
+        $view->headScript()->appendFile($view->assetUrl('js/control.filters-menu.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/mapping-block.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/timeline-date-slider.js', 'CustomMapping'));
         $view->headScript()->appendFile($view->assetUrl('js/mapping-show.js', 'CustomMapping'));

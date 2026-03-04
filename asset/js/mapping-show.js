@@ -104,6 +104,13 @@ $(document).ready(function () {
 
   MappingModule.addClusteringToggleControl(map, featuresPoint, featuresPoly);
 
+  // Add the filters menu control
+  if (typeof L.Control.FiltersMenu !== 'undefined') {
+    map.addControl(new L.Control.FiltersMenu());
+  } else {
+    console.error('L.Control.FiltersMenu is not available');
+  }
+
   // Sync cluster group changes to map when clustering is disabled
   const syncLayerVisibility = function () {
     if (!map.clusteringEnabled && map._mappingAllLayers) {
@@ -232,12 +239,20 @@ $(document).ready(function () {
       if (timelineToggleControlElement) {
         timelineToggleControlElement.style.display = "";
       }
+      // Enable timeline toggle in filters menu
+      if (map._filtersMenuControl) {
+        map._filtersMenuControl.enableTimelineToggle();
+      }
     } else {
       console.log("Not enough unique dates for timeline (need at least 2)");
       // Hide the timeline container and toggle button if there are not enough unique dates
       timelineContainer.hide();
       if (timelineToggleControlElement) {
         timelineToggleControlElement.style.display = "none";
+      }
+      // Disable timeline toggle in filters menu
+      if (map._filtersMenuControl) {
+        map._filtersMenuControl.disableTimelineToggle();
       }
     }
   };
@@ -415,16 +430,42 @@ $(document).ready(function () {
 
   // Handle fullscreen mode - ensure legend stays visible and positioned correctly
   map.on("enterFullscreen", function () {
+    const mapContainer = map.getContainer();
+    const sidebar = $("#mapping-view-sidebar");
+
+    // Move sidebar into fullscreen container
+    if (sidebar.length) {
+      sidebar.appendTo(mapContainer);
+      // Force sidebar to be visible in fullscreen
+      sidebar.css("position", "fixed");
+      sidebar.css("top", "0");
+      sidebar.css("right", "0");
+      sidebar.css("height", "100vh");
+      sidebar.css("width", "30%");
+    }
+
     // Add fullscreen class to body for additional styling
     $("body").addClass("mapping-fullscreen-active");
   });
 
   map.on("exitFullscreen", function () {
-    // Move legend back to map container to ensure it stays inside
     const legend = $(".mapping-map-legend");
     const controls = $(".mapping-map-controls");
+    const sidebar = $("#mapping-view-sidebar");
+    const mapContainer = $(".mapping-map-container");
+
     if (legend.length && legend.parent()[0] !== controls[0]) {
       legend.appendTo(controls);
+    }
+
+    // Move sidebar back to map container and clear inline styles
+    if (sidebar.length && mapContainer.length) {
+      sidebar.appendTo(mapContainer);
+      sidebar.css("position", "");
+      sidebar.css("top", "");
+      sidebar.css("right", "");
+      sidebar.css("height", "");
+      sidebar.css("width", "");
     }
 
     // Remove fullscreen class from body
@@ -460,6 +501,12 @@ function openFeatureSidebar(feature) {
     img.alt = feature["o:label"] || "";
     mediaContainer.appendChild(img);
   }
+
+  // Initialize description toggle using shared function from MappingModule
+  // Use setTimeout to ensure DOM is fully updated before initializing toggle
+  window.setTimeout(() => {
+    MappingModule.initializeDescriptionToggle("#mapping-view-sidebar");
+  }, 150);
 
   $("#mapping-view-sidebar").addClass("active");
 }
