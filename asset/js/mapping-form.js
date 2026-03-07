@@ -364,8 +364,8 @@ $(document).ready(function () {
     if (!field) return false;
     const label = String(field.label || '').toLowerCase();
     const id = String(field.id || '').toLowerCase();
-    // Check label for "title", check id for dcterms:title or similar
-    return /\btitle\b/.test(label) || /\btitle\b/.test(id);
+    // Check label for "title", check id for dcterms:title, vsec:idTitle or similar namespaced fields
+    return /\btitle\b/.test(label) || /\btitle\b/.test(id) || /:\w*title/i.test(id);
   };
 
   // Helper function to check if a field label or id indicates a description field
@@ -373,8 +373,8 @@ $(document).ready(function () {
     if (!field) return false;
     const label = String(field.label || '').toLowerCase();
     const id = String(field.id || '').toLowerCase();
-    // Check for description or abstract in label/id
-    return /\b(description|abstract)\b/.test(label) || /\b(description|abstract)\b/.test(id);
+    // Check for description or abstract in label/id, or namespaced fields like vsec:idDescription
+    return /\b(description|abstract)\b/.test(label) || /\b(description|abstract)\b/.test(id) || /:\w*(description|abstract)/i.test(id);
   };
 
   // Helper function to check if a field label or id indicates a type field
@@ -382,8 +382,7 @@ $(document).ready(function () {
     if (!field) return false;
     const label = String(field.label || '').toLowerCase();
     const id = String(field.id || '').toLowerCase();
-    // Check for type in label/id, specifically dcterms:type or similar
-    return /\btype\b/.test(label) || /\btype\b/.test(id) || /dcterms:?type/.test(id);
+    return /\btype\b/.test(label) || /\btype\b/.test(id) || /:\w*type/i.test(id);
   };
 
   // Helper function to get the first value from a field's values array
@@ -455,8 +454,6 @@ $(document).ready(function () {
         return response.json();
       })
       .then((data) => {
-        console.log("Type creation response:", data);
-        
         // Check for error responses from the API
         if (data.error) {
           console.error("API error from type creation:", data.error);
@@ -479,15 +476,12 @@ $(document).ready(function () {
           data.color = "#3498db";
         }
         
-        console.log("Type created successfully:", data);
-        
         // Add the new type to the UI
         addTypeOption(data);
         addTypeListItem(data);
         
         // Give the DOM a moment to update before calling the callback
         setTimeout(() => {
-          console.log("Type callback executing with ID:", data.id);
           callback(data.id);
         }, 100);
       })
@@ -663,7 +657,6 @@ $(document).ready(function () {
       "data-color": type.color,
     });
     select.append(option);
-    console.log("Added type option:", type.id, type.label);
   };
 
   const addTypeListItem = function (type) {
@@ -714,7 +707,6 @@ $(document).ready(function () {
 
     item.append(color, label, edit, del);
     typeList.append(item);
-    console.log("Added type list item:", type.id, type.label);
   };
 
   const showToast = function (message) {

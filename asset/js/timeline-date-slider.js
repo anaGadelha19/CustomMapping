@@ -89,6 +89,15 @@ window.TimelineDateSlider = {
       }
     }
 
+    // Try DD-MM-YYYY format (common in Portugal, Brazil)
+    if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+      const [day, month, year] = dateStr.split('-');
+      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+
     // Try YYYY format (year only)
     if (/^\d{4}$/.test(dateStr)) {
       date = new Date(parseInt(dateStr), 0, 1);
@@ -225,7 +234,6 @@ window.TimelineDateSlider = {
       // Update dynamic step based on current range
       this.updateDynamicStep(minVal, maxVal);
 
-      this.updateSliderRange(minVal, maxVal);
       this.updateDateDisplay();
       this.applyDateFilter();
     });
@@ -238,7 +246,6 @@ window.TimelineDateSlider = {
       // Update dynamic step based on current range
       this.updateDynamicStep(minVal, maxVal);
 
-      this.updateSliderRange(minVal, maxVal);
       this.updateDateDisplay();
       this.applyDateFilter();
     });
@@ -268,16 +275,37 @@ window.TimelineDateSlider = {
     const maxDisplay = document.getElementById('timeline-max-date-display');
 
     if (minInput && minDisplay) {
-      const minPercent = parseFloat(minInput.value);
-      this.currentMinDate = this.getDateAtPercent(minPercent);
+      let minPercent = parseFloat(minInput.value);
+      
+      // Snap to exact min date when very close to 0 (lowered threshold to account for step size)
+      if (minPercent < 5) {
+        minPercent = 0;
+        minInput.value = 0;
+        this.currentMinDate = new Date(this.minDate);
+      } else {
+        this.currentMinDate = this.getDateAtPercent(minPercent);
+      }
       minDisplay.textContent = this.formatDateDisplay(this.currentMinDate);
     }
 
     if (maxInput && maxDisplay) {
-      const maxPercent = parseFloat(maxInput.value);
-      this.currentMaxDate = this.getDateAtPercent(maxPercent);
+      let maxPercent = parseFloat(maxInput.value);
+      
+      // Snap to exact max date when very close to 100 (use 95% threshold to account for large step sizes)
+      if (maxPercent > 95) {
+        maxPercent = 100;
+        maxInput.value = 100;
+        this.currentMaxDate = new Date(this.maxDate);
+      } else {
+        this.currentMaxDate = this.getDateAtPercent(maxPercent);
+      }
       maxDisplay.textContent = this.formatDateDisplay(this.currentMaxDate);
     }
+
+    // Update the visual range bar after snapping has been applied
+    const finalMinPercent = parseFloat(minInput.value);
+    const finalMaxPercent = parseFloat(maxInput.value);
+    this.updateSliderRange(finalMinPercent, finalMaxPercent);
   },
 
   /**
@@ -290,10 +318,8 @@ window.TimelineDateSlider = {
   },
 
   /**
-   * Update slider step based on the current selected range
-   * - Year+ range: step by months
-   * - Month range: step by weeks
-   * - Day range: step by days
+   * Update slider step based on the total date range (not the selected range)
+   * This ensures the step size stays consistent and doesn't change when user selects different dates
    */
   updateDynamicStep: function(minVal, maxVal) {
     const minInput = document.getElementById('timeline-slider-min');
@@ -301,32 +327,40 @@ window.TimelineDateSlider = {
     
     if (!minInput || !maxInput) return;
 
-    // Get the dates at the current slider positions
-    const minDate = this.getDateAtPercent(minVal);
-    const maxDate = this.getDateAtPercent(maxVal);
-    
-    // Calculate the difference in days
-    const diffMs = Math.abs(maxDate - minDate);
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    // Calculate based on the TOTAL initial date range, not the selected range
+    const totalDiffMs = this.maxDate - this.minDate;
+    const totalDiffDays = totalDiffMs / (1000 * 60 * 60 * 24);
 
-    let stepPercent;
+    let stepMs;
 
-    if (diffDays >= 365) {
-      // Year+ range: step by months (~30 days)
-      const stepMs = 1000 * 60 * 60 * 24 * 30; // 30 days
-      const totalRangeMs = this.maxDate - this.minDate;
-      stepPercent = (stepMs / totalRangeMs) * 100;
-    } else if (diffDays >= 30) {
-      // Month+ range: step by weeks (7 days)
-      const stepMs = 1000 * 60 * 60 * 24 * 7; // 7 days
-      const totalRangeMs = this.maxDate - this.minDate;
-      stepPercent = (stepMs / totalRangeMs) * 100;
+    if (totalDiffDays <= 31) {
+      // Less than a month: step by days
+      stepMs = 1000 * 60 * 60 * 24; // 1 day
+    } else if (totalDiffDays <= 100) {
+      // 1-3 months: step by weeks
+      stepMs = 1000 * 60 * 60 * 24 * 7; // 7 days
+    } else if (totalDiffDays <= 365) {
+      // Less than a year: step by months
+      stepMs = 1000 * 60 * 60 * 24 * 30; // 30 days
+    } else if (totalDiffDays <= 365 * 10) {
+      // Less than 10 years: step by years
+      stepMs = 1000 * 60 * 60 * 24 * 365; // 365 days
     } else {
-      // Day range: step by days (1 day)
-      const stepMs = 1000 * 60 * 60 * 24; // 1 day
-      const totalRangeMs = this.maxDate - this.minDate;
-      stepPercent = (stepMs / totalRangeMs) * 100;
+      // More than 10 years: step by years
+      stepMs = 1000 * 60 * 60 * 24 * 365; // 365 days
     }
+
+    // Convert step to percentage
+    let stepPercent = (stepMs / totalDiffMs) * 100;
+    
+    // If the step is too large and prevents reaching 100%, reduce it in half until we can reach at least 95%
+    // This maintains visible stepping while ensuring we can reach the end
+    while ((Math.floor(100 / stepPercent) * stepPercent) < 95) {
+      stepPercent = stepPercent / 2;
+    }
+    
+    // Ensure a minimum step of 0.1% for smooth interaction
+    stepPercent = Math.max(0.1, stepPercent);
 
     // Set the step attribute on both sliders
     minInput.step = stepPercent;
@@ -373,10 +407,13 @@ window.TimelineDateSlider = {
     for (let i = 0; i < this.allDates.length; i += labelStep) {
       const date = this.allDates[i];
       const percent = (i / (this.allDates.length - 1)) * 100;
+      // Clamp to [0, 100] to ensure it stays within bounds
+      const clampedPercent = Math.max(0, Math.min(100, percent));
 
       const stepLabel = document.createElement('div');
       stepLabel.className = 'timeline-step';
-      stepLabel.style.left = percent + '%';
+      stepLabel.style.left = clampedPercent + '%';
+      stepLabel.style.transform = 'translateX(-50%)';
       
       const label = document.createElement('span');
       label.className = 'timeline-step-label';
@@ -406,14 +443,14 @@ window.TimelineDateSlider = {
       return Math.max(1, Math.ceil(totalItems / 10));
     }
     
-    // Estimate space needed per label (approximately 70px per label for typical date labels)
-    const spacePerLabel = 70;
+    // Estimate space needed per label (conservative 60px per label for typical date labels)
+    const spacePerLabel = 60;
     
     // Calculate how many labels can fit in the slider
     const maxLabelsCanFit = Math.max(1, Math.floor(sliderWidth / spacePerLabel));
     
-    // Calculate step to fit labels within the slider width
-    const optimalStep = Math.max(1, Math.ceil(totalItems / maxLabelsCanFit));
+    // Calculate step to fit labels within the slider width, minimum 5-10 labels
+    const optimalStep = Math.max(1, Math.ceil(totalItems / Math.max(maxLabelsCanFit, 5)));
     
     return optimalStep;
   },
@@ -445,10 +482,13 @@ window.TimelineDateSlider = {
       const daysSinceMin = Math.floor((date - this.minDate) / (1000 * 60 * 60 * 24));
       const totalDays = Math.floor((this.maxDate - this.minDate) / (1000 * 60 * 60 * 24));
       const percent = (daysSinceMin / totalDays) * 100;
+      // Clamp to [0, 100] to ensure it stays within bounds
+      const clampedPercent = Math.max(0, Math.min(100, percent));
 
       const stepLabel = document.createElement('div');
       stepLabel.className = 'timeline-step';
-      stepLabel.style.left = Math.min(100, percent) + '%';
+      stepLabel.style.left = clampedPercent + '%';
+      stepLabel.style.transform = 'translateX(-50%)';
       
       const label = document.createElement('span');
       label.className = 'timeline-step-label';
@@ -488,10 +528,13 @@ window.TimelineDateSlider = {
       const daysSinceMin = Math.floor((date - this.minDate) / (1000 * 60 * 60 * 24));
       const totalDays = Math.floor((this.maxDate - this.minDate) / (1000 * 60 * 60 * 24));
       const percent = (daysSinceMin / totalDays) * 100;
+      // Clamp to [0, 100] to ensure it stays within bounds
+      const clampedPercent = Math.max(0, Math.min(100, percent));
 
       const stepLabel = document.createElement('div');
       stepLabel.className = 'timeline-step';
-      stepLabel.style.left = Math.min(100, percent) + '%';
+      stepLabel.style.left = clampedPercent + '%';
+      stepLabel.style.transform = 'translateX(-50%)';
       
       const label = document.createElement('span');
       label.className = 'timeline-step-label';
@@ -530,10 +573,13 @@ window.TimelineDateSlider = {
       const daysSinceMin = Math.floor((date - this.minDate) / (1000 * 60 * 60 * 24));
       const totalDays = Math.floor((this.maxDate - this.minDate) / (1000 * 60 * 60 * 24));
       const percent = (daysSinceMin / totalDays) * 100;
+      // Clamp to [0, 100] to ensure it stays within bounds
+      const clampedPercent = Math.max(0, Math.min(100, percent));
 
       const stepLabel = document.createElement('div');
       stepLabel.className = 'timeline-step';
-      stepLabel.style.left = Math.min(100, percent) + '%';
+      stepLabel.style.left = clampedPercent + '%';
+      stepLabel.style.transform = 'translateX(-50%)';
       
       const label = document.createElement('span');
       label.className = 'timeline-step-label';
