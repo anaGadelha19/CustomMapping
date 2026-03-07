@@ -25,8 +25,8 @@ if ($resourceTemplate) {
 // Helper function to check if a field is a title or type field
 $isTitleOrTypeField = function ($fieldLabel) {
     $label = strtolower($fieldLabel);
-    return preg_match('/\btitle\b/', $label)
-        || preg_match('/\btype\b/', $label);
+    return preg_match('/title/', $label)
+        || preg_match('/type/', $label);
 };
 
 // Helper function to check if a field is a creator field
@@ -40,8 +40,8 @@ $isCreatorField = function ($fieldLabel) {
 // Helper function to check if a field is a date field
 $isDateField = function ($fieldLabel) {
     $label = strtolower($fieldLabel);
-    return preg_match('/\bdate\b/', $label)
-        || preg_match('/\byear\b/', $label);
+    return preg_match('/date/', $label)
+        || preg_match('/year/', $label);
 };
 
 // Helper function to extract value texts and resources
