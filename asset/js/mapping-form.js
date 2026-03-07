@@ -46,13 +46,23 @@ $(document).ready(function () {
       // sidebar.data('featureMarkerColor', featureMarkerColor);
 
       // Populate sidebar inputs with current feature data
-      // Use the finalized values (auto-filled if empty) or fall back to parameters
-      const labelValue = feature._finalLabel || featureLabel;
-      const descriptionValue = feature._finalDescription || featureDescription;
+      // Use the feature object's stored values as the primary source
+      // These contain the database values and any user edits from this session
+      const labelValue = feature._finalLabel || featureLabel || '';
+      const descriptionValue = feature._finalDescription || featureDescription || '';
       
       sidebar.find(".mapping-feature-label").val(labelValue);
       sidebar.find(".mapping-feature-type").val(featureTypeId || "");
       sidebar.find(".mapping-feature-description").val(descriptionValue);
+      
+      // Update the sidebar title element to show the marker's edited title, not the item title
+      sidebar.find(".sidebar-title").text(labelValue);
+      
+      // Ensure form inputs have the correct values for submission
+      const featureNamePrefix = getFeatureNamePrefix(feature);
+      $(`input[name="${featureNamePrefix}[o:label]"]`).val(labelValue);
+      $(`input[name="${featureNamePrefix}[o:description]"]`).val(descriptionValue);
+      
       sidebar.find(".color-swatch").removeClass("selected");
 
       if (markerColor) {
@@ -92,7 +102,7 @@ $(document).ready(function () {
     feature.markerColor = markerColor;
     feature.featureTypeId = featureTypeId || null;
 
-    // Auto-fill title and description from item fields if empty (creating new marker)
+    // Auto-fill title and description from item fields only if empty (creating new marker)
     let finalLabel = featureLabel;
     let finalDescription = featureDescription;
     
@@ -151,7 +161,8 @@ $(document).ready(function () {
 
     feature.propertyIds = autoSelectedPropertyIds;
     
-    // Store the finalized values on the feature for use in click handler
+    // Store the initial database values on the feature object
+    // These will be used as the source of truth throughout the session
     feature._finalLabel = finalLabel;
     feature._finalDescription = finalDescription;
 
@@ -1044,8 +1055,14 @@ $(document).ready(function () {
       const featureNamePrefix = getFeatureNamePrefix(feature);
       const labelValue = $(this).val();
 
-      // Update the hidden input
+      // Update the hidden form input
       $(`input[name="${featureNamePrefix}[o:label]"]`).val(labelValue);
+      
+      // Update the feature object so changes persist
+      feature._finalLabel = labelValue;
+      
+      // Update the sidebar title element in real-time
+      sidebar.find(".sidebar-title").text(labelValue);
     },
   );
 
@@ -1062,10 +1079,13 @@ $(document).ready(function () {
       const featureNamePrefix = getFeatureNamePrefix(feature);
       const descriptionValue = $(this).val();
 
-      // Update the hidden input
+      // Update the hidden form input
       $(`input[name="${featureNamePrefix}[o:description]"]`).val(
         descriptionValue,
       );
+      
+      // Update the feature object so changes persist
+      feature._finalDescription = descriptionValue;
     },
   );
 

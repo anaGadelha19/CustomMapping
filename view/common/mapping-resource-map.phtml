@@ -141,7 +141,7 @@ $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMap
 
 </div>
 <!-- Sidebar - moved outside section for proper z-index stacking -->
-<div id="mapping-view-sidebar" class="sidebar">
+<div id="mapping-view-sidebar" class="sidebar<?php echo $this->status()->isSiteRequest() ? ' client-sidebar' : ''; ?>">
         <a href="#" class="sidebar-close o-icon-close">
             <span class="screen-reader-text">
                 <?php echo $this->translate('Close'); ?>
