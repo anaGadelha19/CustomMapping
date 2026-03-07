@@ -48,13 +48,15 @@
   gap: 6px;
   max-height: 190px;
   overflow-y: auto;
+  scrollbar-gutter: auto;
 }
 
 .mapping-map-legend-item {
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 1.5rem;
+  /* height: 1.5rem; */
+  margin-right: 2px;
 }
 
 .mapping-map-legend-toggle {
