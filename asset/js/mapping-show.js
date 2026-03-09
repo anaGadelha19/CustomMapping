@@ -36,8 +36,6 @@
     },
   );
 
-  let mappingSidebarOpen = false;
-  let lastClickedLayer = null;
   let allLoadedFeatures = []; // Store all features with their dates for timeline
 
   const mappingMap = $("#custom-mapping-map").length
@@ -211,13 +209,11 @@
    */
   const initializeTimelineSlider = function () {
     if (window.timelineInitialized) {
-      console.log("Timeline already initialized");
       return;
     }
 
     // First check if TimelineDateSlider is available
     if (typeof TimelineDateSlider === "undefined") {
-      console.warn("TimelineDateSlider not yet available, will retry...");
       return;
     }
 
@@ -238,7 +234,6 @@
         });
       });
     } else {
-      console.log("No _mappingAllLayers found on map");
       return;
     }
 
@@ -246,8 +241,6 @@
     const featuresWithDates = allLoadedFeatures.filter(
       (f) => f.dates && f.dates.length > 0,
     );
-    console.log("Features with dates:", featuresWithDates.length);
-
     // Count unique dates across all features
     const uniqueDates = new Set();
     featuresWithDates.forEach((f) => {
@@ -256,7 +249,6 @@
       });
     });
     const uniqueDateCount = uniqueDates.size;
-    console.log("Unique dates:", uniqueDateCount);
 
     if (featuresWithDates.length > 0 && uniqueDateCount > 1) {
       const timelineData = allLoadedFeatures.map((f) => [
@@ -282,7 +274,6 @@
         map._filtersMenuControl.enableTimelineToggle();
       }
     } else {
-      console.log("Not enough unique dates for timeline (need at least 2)");
       // Hide the timeline container and toggle button if there are not enough unique dates
       timelineContainer.hide();
       // Disable timeline toggle in filters menu
@@ -382,9 +373,6 @@
     );
   } else {
     // Map was already initialized, just set the view and initialize timeline
-    console.log(
-      "Map already initialized with features, skipping feature loading",
-    );
     onFeaturesLoad();
   }
 
@@ -397,16 +385,7 @@
     const hasSlider = typeof TimelineDateSlider !== "undefined";
     const notInitialized = !window.timelineInitialized;
 
-    if (attemptCount === 1 || attemptCount % 5 === 0) {
-      console.log("Timeline check (attempt " + attemptCount + "):", {
-        TimelineDateSliderAvailable: hasSlider,
-        MapLayersCount: hasLayers ? map._mappingAllLayers.length : 0,
-        TimelineNotInitialized: notInitialized,
-      });
-    }
-
     if (notInitialized && hasLayers && hasSlider) {
-      console.log("âœ“ All conditions met! Initializing timeline...");
       clearInterval(timelineInitTimer);
       initializeTimelineSlider();
     }
@@ -414,14 +393,6 @@
     if (attemptCount >= 20) {
       // Stop trying after 20 seconds
       clearInterval(timelineInitTimer);
-      console.log(
-        "Timeline initialization stopped after " + attemptCount + " attempts",
-      );
-      console.log("Final state:", {
-        TimelineDateSliderAvailable: hasSlider,
-        MapLayersCount: hasLayers ? map._mappingAllLayers.length : 0,
-        TimelineInitialized: window.timelineInitialized,
-      });
     }
   }, 1000);
 
