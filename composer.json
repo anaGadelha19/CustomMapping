@@ -1,4 +1,7 @@
 {
+    "config": {
+        "autoloader-suffix": "CustomMapping"
+    },
     "require": {
         "longitude-one/doctrine-spatial": "^3.0"
     },

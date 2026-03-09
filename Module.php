@@ -150,10 +150,10 @@ class Module extends AbstractModule
         $conn->exec("CREATE TABLE custom_mapping (id INT AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, bounds VARCHAR(255) DEFAULT NULL, UNIQUE INDEX UNIQ_49E62C8A126F525E (item_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD feature_type_id INT UNSIGNED DEFAULT NULL;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD INDEX IDX_CUSTOM_MAPPING_FEATURE_TYPE (feature_type_id);");
-        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
-        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46EA9FDD75 FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
+        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_CUSTOM_MAPPING_FEATURE_ITEM FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
+        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_CUSTOM_MAPPING_FEATURE_MEDIA FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
         $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_CUSTOM_MAPPING_FEATURE_TYPE FOREIGN KEY (feature_type_id) REFERENCES custom_mapping_feature_type (id) ON DELETE SET NULL;");
-        $conn->exec("ALTER TABLE custom_mapping ADD CONSTRAINT FK_49E62C8A126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
+        $conn->exec("ALTER TABLE custom_mapping ADD CONSTRAINT FK_CUSTOM_MAPPING_ITEM FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
     }
 
     public function uninstall(ServiceLocatorInterface $serviceLocator)
@@ -210,8 +210,8 @@ class Module extends AbstractModule
 
         // Create the custom_mapping_feature table.
         $conn->exec("CREATE TABLE custom_mapping_feature (id INT UNSIGNED AUTO_INCREMENT NOT NULL, item_id INT NOT NULL, media_id INT DEFAULT NULL, `label` VARCHAR(255) DEFAULT NULL, `description` LONGTEXT DEFAULT NULL, geography GEOMETRY NOT NULL COMMENT '(DC2Type:geography)', INDEX IDX_34879C46126F525E (item_id), INDEX IDX_34879C46EA9FDD75 (media_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;");
-        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46126F525E FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
-        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_34879C46EA9FDD75 FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
+        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_CUSTOM_MAPPING_FEATURE_ITEM FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;");
+        $conn->exec("ALTER TABLE custom_mapping_feature ADD CONSTRAINT FK_CUSTOM_MAPPING_FEATURE_MEDIA FOREIGN KEY (media_id) REFERENCES media (id) ON DELETE SET NULL;");
 
         // Prepare the insert statement.
         $insertSql = 'INSERT INTO custom_mapping_feature (id, item_id, media_id, `label`, `description`, marker_color, geography) VALUES (:id, :item_id, :media_id, :label, :description, :marker_color, ST_PointFromText(:point))';
@@ -720,18 +720,18 @@ class Module extends AbstractModule
             }
         }
         $sectionNav = $event->getParam('section_nav');
-        $sectionNav['mapping-section'] = $view->translate('Detailed Mapping');
+        $sectionNav['custom-mapping-section'] = $view->translate('Detailed Mapping');
         $event->setParam('section_nav', $sectionNav);
     }
 
     public function addItemForm(Event $event)
     {
-        echo $event->getTarget()->partial('common/mapping-item-form');
+        echo $event->getTarget()->partial('custom-mapping/common/mapping-item-form');
     }
 
     public function addResourceMap(Event $event)
     {
-        echo $event->getTarget()->partial('common/mapping-resource-map');
+        echo $event->getTarget()->partial('custom-mapping/common/mapping-resource-map');
     }
 
     public function filterMapBrowseAdvancedSearch(Event $event)
@@ -862,12 +862,12 @@ class Module extends AbstractModule
         $request = $event->getParam('request');
         $item = $event->getParam('entity');
 
-        if (!$itemAdapter->shouldHydrate($request, 'o-module-mapping:mapping')) {
+        if (!$itemAdapter->shouldHydrate($request, 'o-module-custom-mapping:mapping')) {
             return;
         }
 
         $mappingsAdapter = $itemAdapter->getAdapter('custom_mappings');
-        $mappingData = $request->getValue('o-module-mapping:mapping', []);
+        $mappingData = $request->getValue('o-module-custom-mapping:mapping', []);
 
         $bounds = null;
 
@@ -926,7 +926,7 @@ class Module extends AbstractModule
         $itemAdapter = $event->getTarget();
         $request = $event->getParam('request');
 
-        if (!$itemAdapter->shouldHydrate($request, 'o-module-mapping:feature')) {
+        if (!$itemAdapter->shouldHydrate($request, 'o-module-custom-mapping:feature')) {
             return;
         }
 
@@ -943,7 +943,7 @@ class Module extends AbstractModule
         }
 
         // Create/update features passed in the request.
-        foreach ($request->getValue('o-module-mapping:feature', []) as $featureData) {
+        foreach ($request->getValue('o-module-custom-mapping:feature', []) as $featureData) {
             if (isset($featureData['o:id'])) {
                 if (!isset($existingFeatures[$featureData['o:id']])) {
                     // This feature belongs to another item. Ignore it.

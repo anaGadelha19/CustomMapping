@@ -1,14 +1,62 @@
-$(document).ready(function () {
+﻿$(document).ready(function () {
+  const repairDetailedMappingTabLink = function () {
+    const section = $("#custom-mapping-section, #mapping-section").first();
+    if (!section.length) {
+      return;
+    }
+    const sectionId = section.attr("id") || "custom-mapping-section";
+    $(
+      '.section-nav a[href="#undefined"], .section-nav a[href="undefined"], .section-nav a[data-target="undefined"]',
+    ).each(function () {
+      $(this).attr("href", `#${sectionId}`);
+      $(this).attr("data-target", sectionId);
+      $(this).attr("aria-controls", sectionId);
+    });
+  };
+
+  repairDetailedMappingTabLink();
+  setTimeout(repairDetailedMappingTabLink, 0);
+  setTimeout(repairDetailedMappingTabLink, 150);
+
+  $(document).on(
+    "click",
+    '.section-nav a[href="#undefined"], .section-nav a[href="undefined"], .section-nav a[data-target="undefined"]',
+    function (e) {
+      const section = $("#custom-mapping-section, #mapping-section").first();
+      if (!section.length) {
+        return;
+      }
+      const sectionId = section.attr("id") || "custom-mapping-section";
+      $(this).attr("href", `#${sectionId}`);
+      $(this).attr("data-target", sectionId);
+      $(this).attr("aria-controls", sectionId);
+      e.preventDefault();
+      window.location.hash = sectionId;
+      section.trigger("o:section-opened");
+    },
+  );
+
   let mappingSidebarOpen = false;
   let lastClickedLayer = null;
   let allLoadedFeatures = []; // Store all features with their dates for timeline
 
-  const mappingMap = $("#mapping-map");
+  const mappingMap = $("#custom-mapping-map").length
+    ? $("#custom-mapping-map").first()
+    : $("#mapping-map").first();
+  const mapSection = $("#custom-mapping-section").length
+    ? $("#custom-mapping-section").first()
+    : $("#mapping-section").first();
+  const ActiveMappingModule = window.CustomMappingModule || window.MappingModule;
 
   const mappingData = mappingMap.data("mapping");
 
   if (!mappingMap.length) {
-    console.error("No #mapping-map element found!");
+    console.error("No map element found (#custom-mapping-map or #mapping-map)!");
+    return;
+  }
+
+  if (!ActiveMappingModule) {
+    console.error("No mapping module object found (CustomMappingModule/MappingModule)");
     return;
   }
 
@@ -57,7 +105,7 @@ $(document).ready(function () {
   } else {
     // Initialize new map
     [map, features, featuresPoint, featuresPoly, baseMaps] =
-      MappingModule.initializeMap(
+      ActiveMappingModule.initializeMap(
         mappingMap[0],
         {},
         {
@@ -67,7 +115,7 @@ $(document).ready(function () {
       );
   }
 
-  MappingModule.bindLegendFilters(
+  ActiveMappingModule.bindLegendFilters(
     map,
     mappingMap[0],
     featuresPoint,
@@ -322,7 +370,7 @@ $(document).ready(function () {
 
   // Only load features if the map was just initialized (not reused from mapping-block.js)
   if (!mappingMap[0].mapping_map) {
-    MappingModule.loadFeaturesAsync(
+    ActiveMappingModule.loadFeaturesAsync(
       map,
       featuresPoint,
       featuresPoly,
@@ -358,7 +406,7 @@ $(document).ready(function () {
     }
 
     if (notInitialized && hasLayers && hasSlider) {
-      console.log("✓ All conditions met! Initializing timeline...");
+      console.log("âœ“ All conditions met! Initializing timeline...");
       clearInterval(timelineInitTimer);
       initializeTimelineSlider();
     }
@@ -377,11 +425,58 @@ $(document).ready(function () {
     }
   }, 1000);
 
-  // Switching sections changes map dimensions, so make the necessary adjustments.
-  $("#mapping-section").one("o:section-opened", function (e) {
+  // Switching sections changes map dimensions. In mixed-module pages this
+  // event may not fire reliably, so include additional redraw fallbacks.
+  const refreshMapAfterSectionOpen = function () {
+    const mapElement = $("#custom-mapping-map").length
+      ? $("#custom-mapping-map").first()
+      : $("#mapping-map").first();
+    if (mapElement.length) {
+      if (!mapElement.height()) {
+        mapElement.css("height", "900px");
+      }
+      if (!mapElement.width()) {
+        mapElement.css("width", "100%");
+      }
+    }
     map.invalidateSize();
     setView();
+    setTimeout(function () {
+      map.invalidateSize();
+      setView();
+    }, 60);
+    setTimeout(function () {
+      map.invalidateSize();
+      setView();
+    }, 220);
+  };
+
+  mapSection.on("o:section-opened", function () {
+    refreshMapAfterSectionOpen();
   });
+
+  $(document).on("click", 'a[href="#custom-mapping-section"], a[href="#mapping-section"]', function () {
+    setTimeout(refreshMapAfterSectionOpen, 0);
+    setTimeout(refreshMapAfterSectionOpen, 80);
+    setTimeout(refreshMapAfterSectionOpen, 250);
+  });
+
+  let sectionVisibilityChecks = 0;
+  const sectionVisibilityTimer = setInterval(function () {
+    sectionVisibilityChecks += 1;
+    if (mapSection.is(":visible")) {
+      refreshMapAfterSectionOpen();
+      clearInterval(sectionVisibilityTimer);
+      return;
+    }
+    if (sectionVisibilityChecks >= 30) {
+      clearInterval(sectionVisibilityTimer);
+    }
+  }, 200);
+
+  if (mapSection.is(":visible")) {
+    setTimeout(refreshMapAfterSectionOpen, 0);
+  }
 
   $("#mapping-view-sidebar .sidebar-close").on("click", function (e) {
     e.preventDefault();
@@ -489,11 +584,15 @@ function openFeatureSidebar(feature) {
     mediaContainer.appendChild(img);
   }
 
-  // Initialize description toggle using shared function from MappingModule
+  // Initialize description toggle using shared function from CustomMappingModule
   // Use setTimeout to ensure DOM is fully updated before initializing toggle
   window.setTimeout(() => {
-    MappingModule.initializeDescriptionToggle("#mapping-view-sidebar");
+    const activeModule = window.CustomMappingModule || window.MappingModule;
+    if (activeModule && activeModule.initializeDescriptionToggle) {
+      activeModule.initializeDescriptionToggle("#mapping-view-sidebar");
+    }
   }, 150);
 
   $("#mapping-view-sidebar").addClass("active");
 }
+

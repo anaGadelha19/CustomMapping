@@ -1,0 +1,7 @@
+<?php
+// Bridge template to ensure item-page mapping renders even when a shared
+// "common/resource-page-block-layout/mapping" template is resolved.
+$resourceForMap = $resource ?? $item ?? null;
+if ($resourceForMap) {
+	echo $this->partial('custom-mapping/common/mapping-resource-map', ['resource' => $resourceForMap]);
+}

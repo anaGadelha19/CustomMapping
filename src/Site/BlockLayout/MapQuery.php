@@ -13,7 +13,7 @@ class MapQuery extends AbstractMap
 {
     public function getLabel()
     {
-        return 'Map by query'; // @translate
+        return 'Custom map by query'; // @translate
     }
 
     public function onHydrate(SitePageBlock $block, ErrorStore $errorStore)
@@ -30,21 +30,21 @@ class MapQuery extends AbstractMap
         $data = $form->prepareBlockData($block ? $block->data() : []);
 
         $formHtml = [];
-        $formHtml[] = $view->partial('common/block-layout/mapping-block-form/default-view', [
+        $formHtml[] = $view->partial('custom-mapping/common/block-layout/mapping-block-form/default-view', [
             'data' => $data,
             'form' => $form,
         ]);
-        $formHtml[] = $view->partial('common/block-layout/mapping-block-form/overlays', [
+        $formHtml[] = $view->partial('custom-mapping/common/block-layout/mapping-block-form/overlays', [
             'data' => $data,
             'form' => $form,
         ]);
         if ($this->timelineIsAvailable()) {
-            $formHtml[] = $view->partial('common/block-layout/mapping-block-form/timeline', [
+            $formHtml[] = $view->partial('custom-mapping/common/block-layout/mapping-block-form/timeline', [
                 'data' => $data,
                 'form' => $form,
             ]);
         }
-        $formHtml[] = $view->partial('common/block-layout/mapping-block-form/query', [
+        $formHtml[] = $view->partial('custom-mapping/common/block-layout/mapping-block-form/query', [
             'data' => $data,
             'form' => $form,
         ]);
@@ -78,7 +78,7 @@ class MapQuery extends AbstractMap
             }
         }
 
-        return $view->partial('common/block-layout/mapping-block', [
+        return $view->partial('custom-mapping/common/block-layout/mapping-block', [
             'data' => $data,
             'itemsQuery' => $itemsQuery,
             'featuresQuery' => $featuresQuery,

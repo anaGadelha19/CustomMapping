@@ -16,17 +16,17 @@ use Omeka\Stdlib\ErrorStore;
 class MapGroups extends AbstractMap
 {
     protected $popupPartials = [
-        'item_sets' => 'common/mapping-popup/item-set-group',
-        'resource_classes' => 'common/mapping-popup/resource-class-group',
-        'property_values_eq' => 'common/mapping-popup/property-value-eq-group',
-        'property_values_in' => 'common/mapping-popup/property-value-in-group',
-        'property_values_res' => 'common/mapping-popup/property-value-res-group',
-        'properties_ex' => 'common/mapping-popup/property-ex-group',
+        'item_sets' => 'custom-mapping/common/mapping-popup/item-set-group',
+        'resource_classes' => 'custom-mapping/common/mapping-popup/resource-class-group',
+        'property_values_eq' => 'custom-mapping/common/mapping-popup/property-value-eq-group',
+        'property_values_in' => 'custom-mapping/common/mapping-popup/property-value-in-group',
+        'property_values_res' => 'custom-mapping/common/mapping-popup/property-value-res-group',
+        'properties_ex' => 'custom-mapping/common/mapping-popup/property-ex-group',
     ];
 
     public function getLabel()
     {
-        return 'Map by groups'; // @translate
+        return 'Custom map by groups'; // @translate
     }
 
     public function onHydrate(SitePageBlock $block, ErrorStore $errorStore)
@@ -51,11 +51,11 @@ class MapGroups extends AbstractMap
         $data = $form->prepareBlockData($block ? $block->data() : []);
 
         $formHtml = [];
-        $formHtml[] = $view->partial('common/block-layout/mapping-block-form/default-view', [
+        $formHtml[] = $view->partial('custom-mapping/common/block-layout/mapping-block-form/default-view', [
             'data' => $data,
             'form' => $form,
         ]);
-        $formHtml[] = $view->partial('common/block-layout/mapping-block-form/groups', [
+        $formHtml[] = $view->partial('custom-mapping/common/block-layout/mapping-block-form/groups', [
             'data' => $data,
             'form' => $form,
         ]);
@@ -103,7 +103,7 @@ class MapGroups extends AbstractMap
                 $groupsData = [];
         }
 
-        return $view->partial('common/block-layout/mapping-block-groups', [
+        return $view->partial('custom-mapping/common/block-layout/mapping-block-groups', [
             'data' => $data,
             'dataItems' => $dataItems,
             'groupsData' => $groupsData,

@@ -19,6 +19,6 @@ class Mapping implements ResourcePageBlockLayoutInterface
 
     public function render(PhpRenderer $view, AbstractResourceEntityRepresentation $resource): string
     {
-        return $view->partial('common/mapping-resource-map', ['resource' => $resource]);
+        return $view->partial('custom-mapping/common/mapping-resource-map', ['resource' => $resource]);
     }
 }

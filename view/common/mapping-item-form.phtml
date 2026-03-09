@@ -118,7 +118,7 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
 ?>
 
 <!-- ADMIN SIDE -->
-<fieldset id="mapping-section" class="section">
+<fieldset id="custom-mapping-section" class="section">
 
  <!-- Check if it is admin or client side -->
     <script>
@@ -129,13 +129,13 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
 
     <legend id="mapping-legend"><?php echo $this->translate('Mapping'); ?></legend>
     <div class="mapping-map-container">
-        <div id="mapping-map" style="height:900px !important;"
+        <div id="custom-mapping-map" style="height:900px !important;"
             data-mapping="<?php echo $this->escapeHtml(json_encode($mapping)); ?>"
             data-features="<?php echo $this->escapeHtml(json_encode($features)); ?>"></div>
     </div>
 
 
-    <div id="mapping-feature-editor" class="sidebar"
+    <div id="custom-mapping-feature-editor" class="sidebar"
         data-type-add-url="<?php echo $this->url('admin/custom-mapping', ['controller' => 'type', 'action' => 'add']); ?>"
         data-type-delete-url="<?php echo $this->url('admin/custom-mapping', ['controller' => 'type', 'action' => 'delete']); ?>"
         data-type-update-url="<?php echo $this->url('admin/custom-mapping', ['controller' => 'type', 'action' => 'update']); ?>">
@@ -218,8 +218,8 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
                 class="mapping-feature-popup-image-select"><?php echo $this->translate('Select feature image'); ?></button>
         </div>
         <div id="mapping-form">
-            <input type="hidden" name="o-module-mapping:mapping[o:id]">
-            <input type="hidden" name="o-module-mapping:mapping[o-module-mapping:bounds]" value="">
+            <input type="hidden" name="o-module-custom-mapping:mapping[o:id]">
+            <input type="hidden" name="o-module-custom-mapping:mapping[o-module-mapping:bounds]" value="">
         </div>
 
         <div id="mapping-type-manager" class="mapping-type-modal" aria-hidden="true">

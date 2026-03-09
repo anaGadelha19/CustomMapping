@@ -31,7 +31,7 @@ $(document).ready(function () {
   }
 
   const [map, features, featuresPoint, featuresPoly, baseMaps] =
-    MappingModule.initializeMap(
+    CustomMappingModule.initializeMap(
       mappingMap[0],
       {},
       {
@@ -40,7 +40,7 @@ $(document).ready(function () {
       },
     );
 
-  MappingModule.bindLegendFilters(
+  CustomMappingModule.bindLegendFilters(
     map,
     mappingMap[0],
     featuresPoint,
@@ -269,11 +269,14 @@ $(document).ready(function () {
     if (!map.mapping_map_interaction) {
       // Call fitBounds only when there was no map interaction. This prevents
       // the map view from changing after a change has already been done.
-      map.fitBounds(features.getBounds());
+      const bounds = features.getBounds();
+      if (bounds && bounds.isValid()) {
+        map.fitBounds(bounds);
+      }
     }
   };
 
-  MappingModule.loadFeaturesAsync(
+  CustomMappingModule.loadFeaturesAsync(
     map,
     featuresPoint,
     featuresPoly,

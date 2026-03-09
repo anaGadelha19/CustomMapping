@@ -9,15 +9,29 @@ class IndexController extends AbstractActionController
     public function getFeaturesAction()
     {
         $itemsQuery = json_decode($this->params()->fromQuery('items_query'), true);
-        $itemsQuery['has_features'] = true;
-        $itemsQuery['limit'] = 100000;
-        $itemIds = $this->api()->search('items', $itemsQuery, ['returnScalar' => 'id'])->getContent();
+        $itemsQuery = is_array($itemsQuery) ? $itemsQuery : [];
 
         $featuresQuery = json_decode($this->params()->fromQuery('features_query'), true);
-        $featuresQuery['page'] = $this->params()->fromQuery('features_page');
+        $featuresQuery = is_array($featuresQuery) ? $featuresQuery : [];
+        $featuresQuery['page'] = max(1, (int) $this->params()->fromQuery('features_page', 1));
         $featuresQuery['per_page'] = 10000;
-        // An empty string would get all features, so set 0 if there are no items.
-        $featuresQuery['item_id'] = $itemIds ? $itemIds : 0;
+
+        // Prefer direct filters when available to avoid cross-module query hooks.
+        if (!empty($itemsQuery['id'])) {
+            $itemIds = $itemsQuery['id'];
+            if (is_string($itemIds) && strpos($itemIds, ',') !== false) {
+                $itemIds = array_values(array_filter(array_map('trim', explode(',', $itemIds)), 'strlen'));
+            }
+            $featuresQuery['item_id'] = $itemIds;
+        } elseif (!empty($itemsQuery['item_set_id'])) {
+            $featuresQuery['item_set_id'] = $itemsQuery['item_set_id'];
+        } else {
+            $itemsQuery['limit'] = 100000;
+            $itemIds = $this->api()->search('items', $itemsQuery, ['returnScalar' => 'id'])->getContent();
+            // An empty string would get all features, so set 0 if there are no items.
+            $featuresQuery['item_id'] = $itemIds ? $itemIds : 0;
+        }
+
         $featureResponse = $this->api()->search('custom_mapping_features', $featuresQuery);
 
         $features = [];
@@ -65,6 +79,7 @@ class IndexController extends AbstractActionController
 
         $view = new ViewModel;
         $view->setTerminal(true);
+        $view->setTemplate('custom-mapping/admin/index/get-feature-popup-content');
         $view->setVariable('feature', $feature);
         return $view;
     }

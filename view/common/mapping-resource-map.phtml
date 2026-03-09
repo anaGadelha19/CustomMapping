@@ -86,7 +86,7 @@ $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMap
 
 
 <!-- CLIENT SIDE -->
-<div id="mapping-section" class="section">
+<div id="custom-mapping-section" class="section">
 
     <!-- Check if it is admin or client side -->
     <script>
@@ -96,7 +96,7 @@ $this->headScript()->appendFile($this->assetUrl('js/mapping-show.js', 'CustomMap
     <div class="mapping-map-container">
         <!-- Timeline Date Slider Container -->
         <div class="timeline-date-slider-container"></div>
-        <div id="mapping-map" style="height:900px;"
+        <div id="custom-mapping-map" style="height:900px;"
             data-mapping="<?php echo $this->escapeHtml(json_encode($mapping)); ?>"
             data-disable-clustering="<?php echo $disableClustering ? '1' : '0'; ?>"
             data-basemap-provider="<?php echo $basemapProvider ?? ''; ?>"

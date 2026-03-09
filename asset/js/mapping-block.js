@@ -25,7 +25,7 @@ function MappingBlock(mapDiv, timelineDiv) {
   }
 
   const [map, features, featuresPoint, featuresPoly, baseMaps] =
-    MappingModule.initializeMap(
+    CustomMappingModule.initializeMap(
       mapDiv[0],
       {
         minZoom: mapData.min_zoom ? mapData.min_zoom : 0,
@@ -39,7 +39,19 @@ function MappingBlock(mapDiv, timelineDiv) {
       },
     );
 
-  MappingModule.bindLegendFilters(map, mapDiv[0], featuresPoint, featuresPoly);
+  const normalizeCustomMappingUrl = function (url) {
+    if (!url || typeof url !== "string") {
+      return url;
+    }
+    return url
+      .replace(/\/mapping\/index\/get-features(\b|$)/, "/custom-mapping/index/get-features$1")
+      .replace(
+        /\/mapping\/index\/get-feature-popup-content(\b|$)/,
+        "/custom-mapping/index/get-feature-popup-content$1",
+      );
+  };
+
+  CustomMappingModule.bindLegendFilters(map, mapDiv[0], featuresPoint, featuresPoly);
 
   // For easy reference, assign the Leaflet map object directly to the map element.
   mapDiv[0].mapping_map = map;
@@ -210,8 +222,10 @@ function MappingBlock(mapDiv, timelineDiv) {
     }
   };
 
-  const getFeaturesUrl = mapDiv.data("featuresUrl");
-  const getFeaturePopupContentUrl = mapDiv.data("featurePopupContentUrl");
+  const getFeaturesUrl = normalizeCustomMappingUrl(mapDiv.data("featuresUrl"));
+  const getFeaturePopupContentUrl = normalizeCustomMappingUrl(
+    mapDiv.data("featurePopupContentUrl"),
+  );
 
   // Load features synchronously.
   mapDiv
@@ -238,7 +252,7 @@ function MappingBlock(mapDiv, timelineDiv) {
           } else {
             popup.setContent(popupContent[0]);
           }
-          MappingModule.addFeature(
+          CustomMappingModule.addFeature(
             map,
             featuresPoint,
             featuresPoly,
@@ -259,7 +273,7 @@ function MappingBlock(mapDiv, timelineDiv) {
         setDefaultView();
       }
     };
-    MappingModule.loadFeaturesAsync(
+    CustomMappingModule.loadFeaturesAsync(
       map,
       featuresPoint,
       featuresPoly,

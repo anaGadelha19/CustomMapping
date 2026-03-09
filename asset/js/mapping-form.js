@@ -1,4 +1,43 @@
-$(document).ready(function () {
+﻿$(document).ready(function () {
+  const repairDetailedMappingTabLink = function () {
+    const section = $("#custom-mapping-section, #mapping-section").first();
+    if (!section.length) {
+      return;
+    }
+    const sectionId = section.attr("id") || "custom-mapping-section";
+    $(
+      '.section-nav a[href="#undefined"], .section-nav a[href="undefined"], .section-nav a[data-target="undefined"]',
+    ).each(function () {
+      $(this).attr("href", `#${sectionId}`);
+      $(this).attr("data-target", sectionId);
+      $(this).attr("aria-controls", sectionId);
+    });
+  };
+
+  repairDetailedMappingTabLink();
+  setTimeout(repairDetailedMappingTabLink, 0);
+  setTimeout(repairDetailedMappingTabLink, 150);
+
+  // Last-resort guard: if another module still leaves an undefined tab target,
+  // force navigation to this module's section.
+  $(document).on(
+    "click",
+    '.section-nav a[href="#undefined"], .section-nav a[href="undefined"], .section-nav a[data-target="undefined"]',
+    function (e) {
+      const section = $("#custom-mapping-section, #mapping-section").first();
+      if (!section.length) {
+        return;
+      }
+      const sectionId = section.attr("id") || "custom-mapping-section";
+      $(this).attr("href", `#${sectionId}`);
+      $(this).attr("data-target", sectionId);
+      $(this).attr("aria-controls", sectionId);
+      e.preventDefault();
+      window.location.hash = sectionId;
+      section.trigger("o:section-opened");
+    },
+  );
+
   // Build a mapping of media IDs to thumbnail URLs for use in both admin and client modes
   const mediaUrlMap = {};
   $(".mapping-feature-image-select").each(function () {
@@ -37,7 +76,7 @@ $(document).ready(function () {
     feature.on("click", function (e) {
   
       // Get sidebar element
-      const sidebar = $("#mapping-feature-editor");
+      const sidebar = $("#custom-mapping-feature-editor");
 
       // Attach the feature data to the sidebar for use
       sidebar.data("feature", feature);
@@ -288,7 +327,7 @@ $(document).ready(function () {
 
   // Auxiliar Functions
   const getFeatureNamePrefix = function (feature) {
-    return `o-module-mapping:feature[${drawnFeatures.getLayerId(feature)}]`;
+    return `o-module-custom-mapping:feature[${drawnFeatures.getLayerId(feature)}]`;
   };
 
   const getTypeColorById = function (typeId) {
@@ -296,14 +335,14 @@ $(document).ready(function () {
       return null;
     }
     const option = $(
-      `#mapping-feature-editor .mapping-feature-type option[value="${typeId}"]`,
+      `#custom-mapping-feature-editor .mapping-feature-type option[value="${typeId}"]`,
     );
     return option.length ? option.data("color") : null;
   };
   // Lock color picker when type is selected
   const setColorPickerLocked = function (isLocked) {
     const colorPicker = $(
-      "#mapping-feature-editor .mapping-feature-color-picker",
+      "#custom-mapping-feature-editor .mapping-feature-color-picker",
     );
     colorPicker.toggleClass("is-locked", isLocked);
     colorPicker
@@ -312,26 +351,26 @@ $(document).ready(function () {
   };
   // Checks if color picker is locked
   const isColorPickerLocked = function () {
-    return $("#mapping-feature-editor .mapping-feature-color-picker").hasClass(
+    return $("#custom-mapping-feature-editor .mapping-feature-color-picker").hasClass(
       "is-locked",
     );
   };
 // Type management functions
   const getTypeAddUrl = function () {
-    return $("#mapping-feature-editor").data("typeAddUrl");
+    return $("#custom-mapping-feature-editor").data("typeAddUrl");
   };
 
   const getTypeDeleteUrl = function () {
-    return $("#mapping-feature-editor").data("typeDeleteUrl");
+    return $("#custom-mapping-feature-editor").data("typeDeleteUrl");
   };
 
   const getTypeUpdateUrl = function () {
-    return $("#mapping-feature-editor").data("typeUpdateUrl");
+    return $("#custom-mapping-feature-editor").data("typeUpdateUrl");
   };
 
   // 
   const itemFieldsContainer = $(
-    "#mapping-feature-editor .mapping-feature-item-fields",
+    "#custom-mapping-feature-editor .mapping-feature-item-fields",
   );
   const rawItemFields = itemFieldsContainer.length
     ? itemFieldsContainer.data("itemFields")
@@ -645,7 +684,7 @@ $(document).ready(function () {
       return;
     }
     
-    const select = $("#mapping-feature-editor .mapping-feature-type");
+    const select = $("#custom-mapping-feature-editor .mapping-feature-type");
     if (!select.length) {
       console.error("Type select element not found");
       return;
@@ -806,13 +845,18 @@ $(document).ready(function () {
   setTypeEditColorSelection(typeManager, "#3498db");
 
   // Get map data.
-  const mappingMap = $("#mapping-map");
+  const mappingMap = $("#custom-mapping-map").length
+    ? $("#custom-mapping-map").first()
+    : $("#mapping-map").first();
+  const mapSection = $("#custom-mapping-section").length
+    ? $("#custom-mapping-section").first()
+    : $("#mapping-section").first();
   const mappingForm = $("#mapping-form");
   const mappingData = mappingMap.data("mapping");
   const featuresData = mappingMap.data("features");
 
   // Initialize the map and set default view.
-  const map = L.map("mapping-map", {
+  const map = L.map(mappingMap[0], {
     fullscreenControl: true,
     worldCopyJump: true,
   });
@@ -876,7 +920,7 @@ $(document).ready(function () {
       function (e) {
         defaultBounds = map.getBounds();
         $(
-          'input[name="o-module-mapping:mapping[o-module-mapping:bounds]"]',
+          'input[name="o-module-custom-mapping:mapping[o-module-mapping:bounds]"]',
         ).val(defaultBounds.toBBoxString());
       },
       // Go to default view callback
@@ -888,7 +932,7 @@ $(document).ready(function () {
       function (e) {
         defaultBounds = null;
         $(
-          'input[name="o-module-mapping:mapping[o-module-mapping:bounds]"]',
+          'input[name="o-module-custom-mapping:mapping[o-module-mapping:bounds]"]',
         ).val("");
         map.setView([20, 0], 2);
       },
@@ -959,8 +1003,8 @@ $(document).ready(function () {
 
   // Set saved mapping data to the map (default view).
   if (mappingData) {
-    $('input[name="o-module-mapping:mapping[o:id]"]').val(mappingData["o:id"]);
-    $('input[name="o-module-mapping:mapping[o-module-mapping:bounds]"]').val(
+    $('input[name="o-module-custom-mapping:mapping[o:id]"]').val(mappingData["o:id"]);
+    $('input[name="o-module-custom-mapping:mapping[o-module-mapping:bounds]"]').val(
       mappingData["o-module-mapping:bounds"],
     );
   }
@@ -1008,13 +1052,67 @@ $(document).ready(function () {
     );
   });
 
-  // Switching sections changes map dimensions, so make the necessary adjustments.
-  $("#mapping-section").on("o:section-opened", function (e) {
-    $("#content").one("transitionend", function (e) {
+  // Switching sections changes map dimensions. Some setups do not emit
+  // transitionend reliably, so resize immediately and with short fallbacks.
+  const refreshMapAfterSectionOpen = function () {
+    const mapElement = $("#custom-mapping-map").length
+      ? $("#custom-mapping-map").first()
+      : $("#mapping-map").first();
+    if (mapElement.length) {
+      if (!mapElement.height()) {
+        mapElement.css("height", "900px");
+      }
+      if (!mapElement.width()) {
+        mapElement.css("width", "100%");
+      }
+    }
+    map.invalidateSize();
+    setView();
+    setTimeout(function () {
       map.invalidateSize();
       setView();
-    });
+    }, 60);
+    setTimeout(function () {
+      map.invalidateSize();
+      setView();
+    }, 220);
+  };
+
+  mapSection.on("o:section-opened", function () {
+    refreshMapAfterSectionOpen();
   });
+
+  // Some tab implementations do not dispatch o:section-opened consistently.
+  // Refresh on tab click and while waiting for the section to become visible.
+  $(document).on("click", 'a[href="#custom-mapping-section"], a[href="#mapping-section"]', function () {
+    setTimeout(refreshMapAfterSectionOpen, 0);
+    setTimeout(refreshMapAfterSectionOpen, 80);
+    setTimeout(refreshMapAfterSectionOpen, 250);
+  });
+
+  let sectionVisibilityChecks = 0;
+  const sectionVisibilityTimer = setInterval(function () {
+    sectionVisibilityChecks += 1;
+    if (mapSection.is(":visible")) {
+      refreshMapAfterSectionOpen();
+      clearInterval(sectionVisibilityTimer);
+      return;
+    }
+    if (sectionVisibilityChecks >= 30) {
+      clearInterval(sectionVisibilityTimer);
+    }
+  }, 200);
+
+  $(window).on("resize", function () {
+    if (mapSection.is(":visible")) {
+      refreshMapAfterSectionOpen();
+    }
+  });
+
+  // If the section is already open when the script runs, ensure map is sized.
+  if (mapSection.is(":visible")) {
+    setTimeout(refreshMapAfterSectionOpen, 0);
+  }
 
   // Helper function to update feature marker color
   function updateFeatureStyle(feature, color) {
@@ -1036,11 +1134,11 @@ $(document).ready(function () {
 
   // --------------------- Title ---------------------
   // Handle title input
-  $("#mapping-section").on(
+  $("#custom-mapping-section").on(
     "keyup",
-    "#mapping-feature-editor .mapping-feature-label",
+    "#custom-mapping-feature-editor .mapping-feature-label",
     function (e) {
-      const sidebar = $("#mapping-feature-editor");
+      const sidebar = $("#custom-mapping-feature-editor");
       const feature = sidebar.data("feature");
       if (!feature) return;
 
@@ -1060,11 +1158,11 @@ $(document).ready(function () {
 
   // --------------------- Description ---------------------
   // Handle description text area
-  $("#mapping-section").on(
+  $("#custom-mapping-section").on(
     "keyup",
-    "#mapping-feature-editor .mapping-feature-description",
+    "#custom-mapping-feature-editor .mapping-feature-description",
     function (e) {
-      const sidebar = $("#mapping-feature-editor");
+      const sidebar = $("#custom-mapping-feature-editor");
       const feature = sidebar.data("feature");
       if (!feature) return;
 
@@ -1083,11 +1181,11 @@ $(document).ready(function () {
 
   // --------------------- Fields ---------------------
   // Add selected item field
-  $("#mapping-feature-editor").on(
+  $("#custom-mapping-feature-editor").on(
     "click",
     ".mapping-feature-item-fields-add",
     function () {
-      const sidebar = $("#mapping-feature-editor");
+      const sidebar = $("#custom-mapping-feature-editor");
       const feature = sidebar.data("feature");
       if (!feature) return;
 
@@ -1140,11 +1238,11 @@ $(document).ready(function () {
   );
 
   // Remove item field
-  $("#mapping-feature-editor").on(
+  $("#custom-mapping-feature-editor").on(
     "click",
     ".mapping-feature-item-field-remove",
     function () {
-      const sidebar = $("#mapping-feature-editor");
+      const sidebar = $("#custom-mapping-feature-editor");
       const feature = sidebar.data("feature");
       if (!feature) return;
 
@@ -1181,8 +1279,8 @@ $(document).ready(function () {
 
   // --------------------- Marker Color Selection ---------------------
   // Selecting a marker color
-  $("#mapping-feature-editor").on("click", ".color-swatch", function () {
-    const sidebar = $("#mapping-feature-editor");
+  $("#custom-mapping-feature-editor").on("click", ".color-swatch", function () {
+    const sidebar = $("#custom-mapping-feature-editor");
     const feature = sidebar.data("feature");
     if (!feature) return;
     if (isColorPickerLocked()) return;
@@ -1199,15 +1297,15 @@ $(document).ready(function () {
   });
 
   // Open native color picker
-  $("#mapping-feature-editor").on("click", "#add-custom-color", function () {
+  $("#custom-mapping-feature-editor").on("click", "#add-custom-color", function () {
     if (isColorPickerLocked()) return;
     $("#custom-color-input").click();
   });
 
   // When user picks a color
-  $("#mapping-feature-editor").on("change", "#custom-color-input", function () {
+  $("#custom-mapping-feature-editor").on("change", "#custom-color-input", function () {
     const color = $(this).val();
-    const sidebar = $("#mapping-feature-editor");
+    const sidebar = $("#custom-mapping-feature-editor");
     const feature = sidebar.data("feature");
     if (!feature) return;
     if (isColorPickerLocked()) return;
@@ -1230,7 +1328,7 @@ $(document).ready(function () {
 
     // Unselect others, add & select new one
     $(".color-swatch").removeClass("selected");
-    $("#mapping-feature-editor .color-swatches").append(swatch);
+    $("#custom-mapping-feature-editor .color-swatches").append(swatch);
 
     const featureNamePrefix = feature._mappingNamePrefix;
     $(`input[name="${featureNamePrefix}[o:marker_color]"]`).val(color);
@@ -1239,11 +1337,11 @@ $(document).ready(function () {
 
   // --------------------- Types ---------------------
   // Selecting a type locks color picker and applies type color
-  $("#mapping-feature-editor").on(
+  $("#custom-mapping-feature-editor").on(
     "change",
     ".mapping-feature-type",
     function () {
-      const sidebar = $("#mapping-feature-editor");
+      const sidebar = $("#custom-mapping-feature-editor");
       const feature = sidebar.data("feature");
       if (!feature) return;
 
@@ -1287,7 +1385,7 @@ $(document).ready(function () {
   );
 
   // Open/close type modal
-  $("#mapping-feature-editor").on(
+  $("#custom-mapping-feature-editor").on(
     "click",
     ".mapping-type-manager-button",
     function () {
@@ -1387,7 +1485,7 @@ $(document).ready(function () {
           }
           addTypeOption(data);
           addTypeListItem(data);
-          $("#mapping-feature-editor .mapping-feature-type")
+          $("#custom-mapping-feature-editor .mapping-feature-type")
             .val(data.id)
             .trigger("change");
           wrapper.find(".mapping-type-label").val("");
@@ -1522,10 +1620,10 @@ $(document).ready(function () {
           item.data("color", color);
           item.find(".mapping-type-color").css("background-color", color);
 
-          const select = $("#mapping-feature-editor .mapping-feature-type");
+          const select = $("#custom-mapping-feature-editor .mapping-feature-type");
           select.find(`option[value="${typeId}"]`).data("color", color);
 
-          const sidebar = $("#mapping-feature-editor");
+          const sidebar = $("#custom-mapping-feature-editor");
           const feature = sidebar.data("feature");
           if (
             feature &&
@@ -1602,7 +1700,7 @@ $(document).ready(function () {
         }
 
         typeList.find(`.mapping-type-item[data-type-id="${typeId}"]`).remove();
-        const select = $("#mapping-feature-editor .mapping-feature-type");
+        const select = $("#custom-mapping-feature-editor .mapping-feature-type");
         select.find(`option[value="${typeId}"]`).remove();
 
         if (select.val() === String(typeId)) {
@@ -1615,7 +1713,7 @@ $(document).ready(function () {
   });
 
   // Handle select popup image button.
-  $("#mapping-section").on(
+  $("#custom-mapping-section").on(
     "click",
     ".mapping-feature-popup-image-select",
     function (e) {
@@ -1624,11 +1722,11 @@ $(document).ready(function () {
     },
   );
 
-  $("#mapping-section").on(
+  $("#custom-mapping-section").on(
     "change",
     "input.mapping-feature-image-select",
     function (e) {
-      const sidebar = $("#mapping-feature-editor");
+      const sidebar = $("#custom-mapping-feature-editor");
       const feature = sidebar.data("feature");
       if (!feature) return;
 
@@ -1654,7 +1752,7 @@ $(document).ready(function () {
   // Handle fullscreen mode - ensure sidebar and legend are visible
   map.on('enterFullscreen', function() {
     const mapContainer = map.getContainer();
-    const sidebar = $('#mapping-feature-editor');
+    const sidebar = $('#custom-mapping-feature-editor');
     const legend = $('.mapping-map-legend');
     
     // Move elements into fullscreen container
@@ -1670,9 +1768,11 @@ $(document).ready(function () {
   });
 
   map.on('exitFullscreen', function() {
-    const sidebar = $('#mapping-feature-editor');
+    const sidebar = $('#custom-mapping-feature-editor');
     const legend = $('.mapping-map-legend');
-    const mapSection = $('#mapping-section');
+    const mapSection = $('#custom-mapping-section').length
+      ? $('#custom-mapping-section').first()
+      : $('#mapping-section').first();
     const mapContainer = $('.mapping-map-container');
     
     // Move elements back to their original positions
@@ -1687,3 +1787,4 @@ $(document).ready(function () {
     $('body').removeClass('mapping-fullscreen-active');
   });
 });
+

@@ -1,4 +1,5 @@
-.mapping-block,
+﻿.mapping-block,
+#custom-mapping-map,
 #mapping-map {
   position: relative;
   z-index: 0;
@@ -159,6 +160,7 @@
 
 /* ---------------------------------------- */
 
+#custom-mapping-map + .pagination,
 #mapping-map + .pagination {
   margin: 1rem auto;
   width: 100%;
@@ -252,7 +254,7 @@
 
 /* ---------- Admin Sidebar ---------- */
 
-#mapping-feature-editor.sidebar {
+#custom-mapping-feature-editor.sidebar {
   padding: 16px;
   gap: 16px;
   /* height: 100vh; */
@@ -979,7 +981,7 @@
 /* ---------- Fullscreen Mode ---------- */
 
 body.mapping-fullscreen-active .mapping-map-legend,
-body.mapping-fullscreen-active #mapping-feature-editor.sidebar,
+body.mapping-fullscreen-active #custom-mapping-feature-editor.sidebar,
 body.mapping-fullscreen-active #mapping-view-sidebar {
   z-index: 999999 !important;
 }
@@ -1124,3 +1126,4 @@ body.mapping-fullscreen-active #mapping-view-sidebar.client-sidebar.active {
 .mapping-filters-menu-toggle-disabled::after {
   opacity: 0.5;
 }
+

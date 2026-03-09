@@ -1,4 +1,4 @@
-const MappingModule = {
+const CustomMappingModule = {
   /**
    *
    * @param {DOM object} mapDiv The map div DOM object
@@ -76,7 +76,7 @@ const MappingModule = {
   },
 
   createPinIcon: function (color) {
-    const svg = MappingModule.getPinSvg(color);
+    const svg = CustomMappingModule.getPinSvg(color);
     return L.icon({
       iconUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
       iconSize: [42, 70],
@@ -155,7 +155,7 @@ const MappingModule = {
         L.geoJSON(featureGeography, {
           pointToLayer: function (feature, latlng) {
             return L.marker(latlng, {
-              icon: MappingModule.createPinIcon(markerColor),
+              icon: CustomMappingModule.createPinIcon(markerColor),
             });
           },
 
@@ -191,7 +191,7 @@ const MappingModule = {
                 function (content) {
                   const sidebar = $("#mapping-view-sidebar");
 
-                  MappingModule.renderSidebarContent(
+                  CustomMappingModule.renderSidebarContent(
                     sidebar,
                     content,
                     markerColor,
@@ -209,7 +209,7 @@ const MappingModule = {
               });
             });
 
-            MappingModule.addFeature(
+            CustomMappingModule.addFeature(
               map,
               featuresPoint,
               featuresPoly,
@@ -235,7 +235,7 @@ const MappingModule = {
         });
       });
       // Load more features recursively.
-      MappingModule.loadFeaturesAsync(
+      CustomMappingModule.loadFeaturesAsync(
         map,
         featuresPoint,
         featuresPoly,
@@ -254,15 +254,28 @@ const MappingModule = {
     const $content = $("<div>").html(content);
 
     const pinContainer = sidebar.find(".sidebar-pin");
-    pinContainer.html(MappingModule.getPinSvg(markerColor));
+    pinContainer.html(CustomMappingModule.getPinSvg(markerColor));
 
     // Title
-    const titleElement = $content.find("h2, h3, .resource-title").first();
+    const titleElement = $content
+      .find("h2, h3, .resource-title, .sidebar-title, .group-type a, .group-type")
+      .first();
     
     let titleHtml = titleElement.html();
     
     if (!titleHtml || !titleHtml.trim()) {
-      console.warn("No title element found in server response");
+      const linkTitle = $content.find("a").first().text();
+      if (linkTitle && linkTitle.trim()) {
+        titleHtml = $("<div>").text(linkTitle).html();
+      }
+    }
+
+    if (!titleHtml || !titleHtml.trim()) {
+      console.warn(
+        "No title element found in server response",
+        String(content).slice(0, 240),
+      );
+      titleHtml = "Untitled";
     }
     sidebar.find(".sidebar-title").html(titleHtml);
 
@@ -531,12 +544,16 @@ const MappingModule = {
  * Global hook to initialize description toggle whenever sidebar content is rendered
  * This ensures the "see more" button shows up in all views (browse, show, blocks)
  */
-MappingModule.originalRenderSidebarContent = MappingModule.renderSidebarContent;
-MappingModule.renderSidebarContent = function (sidebarElement, content, markerColor) {
+CustomMappingModule.originalRenderSidebarContent = CustomMappingModule.renderSidebarContent;
+CustomMappingModule.renderSidebarContent = function (sidebarElement, content, markerColor) {
   // Call the original function
-  MappingModule.originalRenderSidebarContent(sidebarElement, content, markerColor);
+  CustomMappingModule.originalRenderSidebarContent(sidebarElement, content, markerColor);
   // Then initialize the toggle - use longer timeout to ensure DOM is fully updated
   window.setTimeout(() => {
-    MappingModule.initializeDescriptionToggle("#mapping-view-sidebar");
+    CustomMappingModule.initializeDescriptionToggle("#mapping-view-sidebar");
   }, 150);
 };
+  
+  if (typeof window !== "undefined") {
+    window.CustomMappingModule = CustomMappingModule;
+  }

@@ -23,7 +23,6 @@ $legendTypes = [];
 $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' => 'label'])->getContent();
 $legendItemsQuery = $itemsQuery;
 $legendItemsQuery['site_id'] = $this->currentSite()->id();
-$legendItemsQuery['has_features'] = true;
 $legendItemsQuery['limit'] = 100000;
 $legendItemIds = $this->api()->search('items', $legendItemsQuery, ['returnScalar' => 'id'])->getContent();
 if ($legendItemIds) {

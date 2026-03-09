@@ -13,7 +13,7 @@ class Map extends AbstractMap
 {
     public function getLabel()
     {
-        return 'Map by attachments'; // @translate
+        return 'Custom map by attachments'; // @translate
     }
 
     public function onHydrate(SitePageBlock $block, ErrorStore $errorStore)
@@ -51,16 +51,16 @@ class Map extends AbstractMap
         $data = $form->prepareBlockData($block ? $block->data() : []);
 
         $formHtml = [];
-        $formHtml[] = $view->partial('common/block-layout/mapping-block-form/default-view', [
+        $formHtml[] = $view->partial('custom-mapping/common/block-layout/mapping-block-form/default-view', [
             'data' => $data,
             'form' => $form,
         ]);
-        $formHtml[] = $view->partial('common/block-layout/mapping-block-form/overlays', [
+        $formHtml[] = $view->partial('custom-mapping/common/block-layout/mapping-block-form/overlays', [
             'data' => $data,
             'form' => $form,
         ]);
         if ($this->timelineIsAvailable()) {
-            $formHtml[] = $view->partial('common/block-layout/mapping-block-form/timeline', [
+            $formHtml[] = $view->partial('custom-mapping/common/block-layout/mapping-block-form/timeline', [
                 'data' => $data,
                 'form' => $form,
             ]);
@@ -86,8 +86,8 @@ class Map extends AbstractMap
             }
             $itemIds[] = $item->id();
         }
-        // An empty string would get all features, so set 0 if there are no items.
-        $itemsQuery = ['id' => $itemIds ? implode(',', $itemIds) : 0];
+        // Keep IDs as an array so downstream feature queries include all attachments.
+        $itemsQuery = ['id' => $itemIds ? $itemIds : 0];
         $featuresQuery = [];
 
         // Get all events for the items.
@@ -102,7 +102,7 @@ class Map extends AbstractMap
             }
         }
 
-        return $view->partial('common/block-layout/mapping-block', [
+        return $view->partial('custom-mapping/common/block-layout/mapping-block', [
             'data' => $data,
             'itemsQuery' => $itemsQuery,
             'featuresQuery' => $featuresQuery,
