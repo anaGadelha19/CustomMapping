@@ -1,26 +1,33 @@
 <?php
-$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet/dist/leaflet.css', 'CustomMapping'));
-$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet-draw/dist/leaflet.draw.css', 'CustomMapping'));
-$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet-geosearch/dist/geosearch.css', 'CustomMapping'));
-$this->headLink()->appendStylesheet($this->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.css', 'CustomMapping'));
+$mappingStyles = [
+    'node_modules/leaflet/dist/leaflet.css',
+    'node_modules/leaflet-draw/dist/leaflet.draw.css',
+    'node_modules/leaflet-geosearch/dist/geosearch.css',
+    'node_modules/leaflet.fullscreen/Control.FullScreen.css',
+    'css/mapping.css',
+];
 
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet/dist/leaflet.js', 'CustomMapping'));
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-draw/dist/leaflet.draw.js', 'CustomMapping'));
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-providers/leaflet-providers.js', 'CustomMapping'));
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet-geosearch/dist/bundle.min.js', 'CustomMapping'));
-$this->headScript()->appendFile($this->assetUrl('node_modules/leaflet.fullscreen/Control.FullScreen.js', 'CustomMapping'));
+$mappingScripts = [
+    'node_modules/leaflet/dist/leaflet.js',
+    'node_modules/leaflet-draw/dist/leaflet.draw.js',
+    'node_modules/leaflet-providers/leaflet-providers.js',
+    'node_modules/leaflet-geosearch/dist/bundle.min.js',
+    'node_modules/leaflet.fullscreen/Control.FullScreen.js',
+    'js/mapping-form.js',
+    'js/control.opacity.js',
+    'js/control.fit-bounds.js',
+    'js/control.default-view.js',
+];
 
-// JS files loaded here
-$this->headScript()->appendFile($this->assetUrl('js/mapping-form.js', 'CustomMapping')); // Where markers and popup are created
-$this->headScript()->appendFile($this->assetUrl('js/control.opacity.js', 'CustomMapping'));
-$this->headScript()->appendFile($this->assetUrl('js/control.fit-bounds.js', 'CustomMapping'));
-$this->headScript()->appendFile($this->assetUrl('js/control.default-view.js', 'CustomMapping'));
+$assetVersion = '20260309-3';
 
+foreach ($mappingStyles as $style) {
+    echo '<link rel="stylesheet" href="' . $this->escapeHtmlAttr($this->assetUrl($style, 'CustomMapping') . '?v=' . $assetVersion) . '">';
+}
 
-// css files loaded here
-$this->headLink()->appendStylesheet(
-    $this->assetUrl('css/mapping.css', 'CustomMapping')
-);
+foreach ($mappingScripts as $script) {
+    echo '<script src="' . $this->escapeHtmlAttr($this->assetUrl($script, 'CustomMapping') . '?v=' . $assetVersion) . '"></script>';
+}
 
 // Generate URLs for feature loading
 $featuresUrl = $this->url('admin/custom-mapping', ['controller' => 'index', 'action' => 'get-features']);
@@ -85,6 +92,8 @@ if (isset($item)) {
             }
             $itemFields[] = [
                 'id' => $property->id(),
+                'term' => $property->term(),
+                'localName' => strpos($property->term(), ':') !== false ? substr($property->term(), strpos($property->term(), ':') + 1) : $property->term(),
                 'label' => $fieldLabel,
                 'values' => $displayValues,
                 'rawValues' => $values,
@@ -98,6 +107,8 @@ $itemFieldsForJSON = [];
 foreach ($itemFields as $field) {
     $jsonField = [
         'id' => $field['id'],
+        'term' => $field['term'] ?? '',
+        'localName' => $field['localName'] ?? '',
         'label' => $field['label'],
         'values' => $field['values'],
         'resourceUrls' => [],
@@ -126,6 +137,10 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
     </script>
 
     <?php if ($this->status()->isAdminRequest()): ?>
+
+        <div style="margin:8px 0; padding:8px 10px; background:#fff3cd; border:1px solid #ffecb5; color:#664d03; font-size:13px;">
+            CustomMapping debug: template loaded (`mapping-item-form.phtml`, build 2026-03-09)
+        </div>
 
     <legend id="mapping-legend"><?php echo $this->translate('Mapping'); ?></legend>
     <div class="mapping-map-container">

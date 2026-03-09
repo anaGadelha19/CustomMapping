@@ -1,4 +1,8 @@
-﻿$(document).ready(function () {
+﻿console.warn("[CustomMapping] mapping-form.js loaded");
+
+$(document).ready(function () {
+  console.warn("[CustomMapping] mapping-form.js document.ready");
+
   const repairDetailedMappingTabLink = function () {
     const section = $("#custom-mapping-section, #mapping-section").first();
     if (!section.length) {
@@ -90,8 +94,10 @@
       const labelValue = feature._finalLabel || featureLabel || '';
       const descriptionValue = feature._finalDescription || featureDescription || '';
       
+      const currentFeatureTypeId = feature.featureTypeId || featureTypeId || "";
+
       sidebar.find(".mapping-feature-label").val(labelValue);
-      sidebar.find(".mapping-feature-type").val(featureTypeId || "");
+      sidebar.find(".mapping-feature-type").val(currentFeatureTypeId);
       sidebar.find(".mapping-feature-description").val(descriptionValue);
       
       // Update the sidebar title element to show the marker's edited title, not the item title
@@ -119,7 +125,7 @@
         sidebar.find(".mapping-feature-popup-image").html(mediaThumbnail);
       }
 
-      setColorPickerLocked(!!featureTypeId);
+      setColorPickerLocked(!!currentFeatureTypeId);
       renderItemFieldsForFeature(sidebar, feature);
 
       // Open the sidebar
@@ -381,6 +387,16 @@
     itemFieldsById[String(field.id)] = field;
   });
 
+  // Temporary debug output for vocabulary/resource-template field detection.
+  const mappingDebugSemanticDetection = true;
+  if (mappingDebugSemanticDetection) {
+    console.warn("[CustomMapping] semantic detection init", {
+      itemFieldsCount: itemFields.length,
+      hasEditor: $("#custom-mapping-feature-editor").length > 0,
+      isAdmin: !!window.mappingIsAdmin,
+    });
+  }
+
   const normalizePropertyIds = function (value) {
     if (Array.isArray(value)) {
       return value.map((id) => String(id));
@@ -398,31 +414,63 @@
     return [];
   };
 
-  // Helper function to check if a field label or id indicates a title field
+  const normalizeFieldText = function (value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  };
+
+  const fieldTextBag = function (field) {
+    if (!field) {
+      return "";
+    }
+    const bag = [
+      field.label,
+      field.term,
+      field.localName,
+      field.id,
+    ]
+      .map((value) => normalizeFieldText(value))
+      .filter((value) => value.length > 0);
+    return bag.join(" ");
+  };
+
+  // Match semantic roles using term/localName + multilingual labels.
   const isTitleField = function (field) {
-    if (!field) return false;
-    const label = String(field.label || '').toLowerCase();
-    const id = String(field.id || '').toLowerCase();
-    // Check label for "title", check id for dcterms:title, vsec:idTitle or similar namespaced fields
-    return /\btitle\b/.test(label) || /\btitle\b/.test(id) || /:\w*title/i.test(id);
+    const text = fieldTextBag(field);
+    return /(\btitle\b|\btitulo\b|\btitolo\b|\bnome\b|\bname\b|idtitle)/.test(text);
   };
 
-  // Helper function to check if a field label or id indicates a description field
   const isDescriptionField = function (field) {
-    if (!field) return false;
-    const label = String(field.label || '').toLowerCase();
-    const id = String(field.id || '').toLowerCase();
-    // Check for description or abstract in label/id, or namespaced fields like vsec:idDescription
-    return /\b(description|abstract)\b/.test(label) || /\b(description|abstract)\b/.test(id) || /:\w*(description|abstract)/i.test(id);
+    const text = fieldTextBag(field);
+    return /(\bdescription\b|\bdescricao\b|\bdescricion\b|\babstract\b|\bresumo\b|iddescription)/.test(text);
   };
 
-  // Helper function to check if a field label or id indicates a type field
   const isTypeField = function (field) {
-    if (!field) return false;
-    const label = String(field.label || '').toLowerCase();
-    const id = String(field.id || '').toLowerCase();
-    return /\btype\b/.test(label) || /\btype\b/.test(id) || /:\w*type/i.test(id);
+    const text = fieldTextBag(field);
+    return /(\btype\b|\btipo\b|\btipologia\b|\bcategory\b|\bcategoria\b|phystype)/.test(text);
   };
+
+  const logSemanticFieldDetection = function () {
+    if (!mappingDebugSemanticDetection || !Array.isArray(itemFields)) {
+      return;
+    }
+    const classified = itemFields.map((field) => {
+      return {
+        id: field.id,
+        term: field.term || "",
+        localName: field.localName || "",
+        label: field.label || "",
+        titleMatch: isTitleField(field),
+        descriptionMatch: isDescriptionField(field),
+        typeMatch: isTypeField(field),
+      };
+    });
+    console.log("[CustomMapping] Semantic field detection", classified);
+  };
+
+  logSemanticFieldDetection();
 
   // Helper function to get the first value from a field's values array
   const getFirstFieldValue = function (field) {
@@ -620,6 +668,48 @@
     );
   };
 
+  const syncTypeFromSelectedFields = function (sidebar, feature, ids) {
+    const selectedIds = Array.isArray(ids) ? ids : [];
+    const selectedTypeFieldId = selectedIds.find((id) => {
+      const field = itemFieldsById[String(id)];
+      return field && isTypeField(field);
+    });
+
+    if (!selectedTypeFieldId) {
+      return;
+    }
+
+    const typeField = itemFieldsById[String(selectedTypeFieldId)];
+    const typeValue = getFirstFieldValue(typeField);
+    if (!typeValue) {
+      return;
+    }
+
+    const featureNamePrefix = getFeatureNamePrefix(feature);
+    findOrCreateType(typeValue, function (typeId) {
+      if (!typeId) {
+        return;
+      }
+
+      feature.featureTypeId = typeId;
+      $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val(typeId);
+
+      const typeSelect = sidebar.find(".mapping-feature-type");
+      typeSelect.data("preserveTypeFields", true);
+      typeSelect.val(typeId).trigger("change");
+
+      if (mappingDebugSemanticDetection) {
+        console.log("[CustomMapping] Synced type from selected field", {
+          fieldId: typeField.id,
+          fieldTerm: typeField.term || "",
+          fieldLabel: typeField.label || "",
+          value: typeValue,
+          resolvedTypeId: typeId,
+        });
+      }
+    });
+  };
+
   const renderItemFieldsForFeature = function (sidebar, feature) {
     let ids = normalizePropertyIds(feature.propertyIds);
     
@@ -655,6 +745,8 @@
     if (ids.length > (feature.propertyIds ? normalizePropertyIds(feature.propertyIds).length : 0)) {
       updateFeaturePropertyIds(feature, ids);
     }
+
+    syncTypeFromSelectedFields(sidebar, feature, ids);
     
     renderItemFieldsList(sidebar, ids);
     buildItemFieldsSelect(sidebar, ids);
@@ -1208,21 +1300,51 @@
         if (isTitleField(selectedField)) {
           const titleValue = getFirstFieldValue(selectedField);
           if (titleValue) {
+            if (mappingDebugSemanticDetection) {
+              console.log("[CustomMapping] Auto-fill title from field", {
+                fieldId: selectedField.id,
+                fieldTerm: selectedField.term || "",
+                fieldLabel: selectedField.label || "",
+                value: titleValue,
+              });
+            }
             sidebar.find(".mapping-feature-label").val(titleValue);
             $(`input[name="${featureNamePrefix}[o:label]"]`).val(titleValue);
           }
         } else if (isDescriptionField(selectedField)) {
           const descValue = getFirstFieldValue(selectedField);
           if (descValue) {
+            if (mappingDebugSemanticDetection) {
+              console.log("[CustomMapping] Auto-fill description from field", {
+                fieldId: selectedField.id,
+                fieldTerm: selectedField.term || "",
+                fieldLabel: selectedField.label || "",
+                value: descValue,
+              });
+            }
             sidebar.find(".mapping-feature-description").val(descValue);
             $(`input[name="${featureNamePrefix}[o:description]"]`).val(descValue);
           }
         } else if (isTypeField(selectedField)) {
           const typeValue = getFirstFieldValue(selectedField);
           if (typeValue) {
+            if (mappingDebugSemanticDetection) {
+              console.log("[CustomMapping] Type field selected, trying to find/create type", {
+                fieldId: selectedField.id,
+                fieldTerm: selectedField.term || "",
+                fieldLabel: selectedField.label || "",
+                value: typeValue,
+              });
+            }
             // Find or create the type, then set it
             findOrCreateType(typeValue, function (typeId) {
               if (typeId) {
+                if (mappingDebugSemanticDetection) {
+                  console.log("[CustomMapping] Type resolved", {
+                    requestedLabel: typeValue,
+                    resolvedTypeId: typeId,
+                  });
+                }
                 sidebar.find(".mapping-feature-type").val(typeId).trigger("change");
                 $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val(typeId);
                 feature.featureTypeId = typeId;
@@ -1348,22 +1470,8 @@
       const featureNamePrefix = feature._mappingNamePrefix;
       const typeId = $(this).val();
 
-      // Remove type fields from item fields if user manually selects a type
-      const ids = normalizePropertyIds(feature.propertyIds);
-      const typeFieldIds = ids.filter((id) => {
-        const field = itemFieldsById[String(id)];
-        return field && isTypeField(field);
-      });
-
-      // Remove all type fields from the item fields list
-      if (typeFieldIds.length > 0) {
-        const filteredIds = ids.filter(
-          (id) => !typeFieldIds.includes(id)
-        );
-        updateFeaturePropertyIds(feature, filteredIds);
-        renderItemFieldsList(sidebar, filteredIds);
-        buildItemFieldsSelect(sidebar, filteredIds);
-      }
+      // Never auto-remove selected type fields from the marker.
+      $(this).data("preserveTypeFields", false);
 
       $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val(typeId);
       feature.featureTypeId = typeId || null;

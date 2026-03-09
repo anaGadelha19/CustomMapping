@@ -6,6 +6,92 @@ use Laminas\View\Model\ViewModel;
 
 class IndexController extends AbstractActionController
 {
+    protected function normalizeText($text)
+    {
+        $text = mb_strtolower((string) $text, 'UTF-8');
+        $converted = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text);
+        if ($converted !== false) {
+            $text = $converted;
+        }
+        return $text;
+    }
+
+    protected function isDateSemanticText($text)
+    {
+        $text = $this->normalizeText($text);
+        return (bool) preg_match('/\b(date|data|year|ano|timeline|period|periodo|surveydate|visitdate|eventdate|chronolog|time|start|end|inicio|fim)\b/u', $text);
+    }
+
+    protected function looksLikeDateValue($value)
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return false;
+        }
+        if (preg_match('/^\d{4}$/', $value)) {
+            return true;
+        }
+        return strtotime($value) !== false;
+    }
+
+    protected function extractTimelineDates($item)
+    {
+        if (!$item) {
+            return [];
+        }
+
+        $knownDateTerms = ['dcterms:date'];
+
+        $resourceTemplate = $item->resourceTemplate();
+        if ($resourceTemplate) {
+            foreach ($resourceTemplate->resourceTemplateProperties() as $rtProperty) {
+                $property = $rtProperty->property();
+                if (!$property) {
+                    continue;
+                }
+                $term = $property->term();
+                $label = $property->label();
+                $alternateLabel = $rtProperty->alternateLabel();
+                if (
+                    $this->isDateSemanticText($term)
+                    || $this->isDateSemanticText($label)
+                    || $this->isDateSemanticText($alternateLabel)
+                ) {
+                    $knownDateTerms[] = $term;
+                }
+            }
+        }
+
+        foreach ($item->values() as $propertyData) {
+            if (empty($propertyData['values']) || empty($propertyData['property'])) {
+                continue;
+            }
+
+            $property = $propertyData['property'];
+            $term = $property->term();
+            $label = $property->label();
+            $isDateProperty = in_array($term, $knownDateTerms, true)
+                || $this->isDateSemanticText($term)
+                || $this->isDateSemanticText($label);
+
+            if (!$isDateProperty) {
+                continue;
+            }
+
+            foreach ($propertyData['values'] as $value) {
+                $rawValue = is_object($value) && method_exists($value, 'value')
+                    ? $value->value()
+                    : (string) $value;
+
+                if ($this->looksLikeDateValue($rawValue)) {
+                    return [trim((string) $rawValue)];
+                }
+            }
+        }
+
+        return [];
+    }
+
     public function browseAction()
     {
         $itemsQuery = $this->params()->fromQuery();
@@ -67,24 +153,8 @@ class IndexController extends AbstractActionController
             $markerColor = $featureType ? $featureType->color() : $feature->markerColor();
             $featureTypeId = $featureType ? $featureType->id() : null;
             
-            // Get dates from the item
-            $itemDates = [];
             $item = $feature->item();
-            if ($item) {
-                $dateValues = $item->value('dcterms:date');
-                if ($dateValues) {
-                    if (!is_array($dateValues)) {
-                        $dateValues = [$dateValues];
-                    }
-                    foreach ($dateValues as $dateValue) {
-                        if (is_object($dateValue) && method_exists($dateValue, 'value')) {
-                            $itemDates[] = $dateValue->value();
-                        } else {
-                            $itemDates[] = (string)$dateValue;
-                        }
-                    }
-                }
-            }
+            $itemDates = $this->extractTimelineDates($item);
             
             $features[] = [
                 $feature->id(),
