@@ -720,7 +720,7 @@ class Module extends AbstractModule
             }
         }
         $sectionNav = $event->getParam('section_nav');
-        $sectionNav['mapping-section'] = $view->translate('Mapping');
+        $sectionNav['mapping-section'] = $view->translate('Datailed Mapping');
         $event->setParam('section_nav', $sectionNav);
     }
 
