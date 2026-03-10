@@ -134,6 +134,14 @@ if ($legendItemIds) {
 <script>
 $(document).ready(function() {
     const sidebar = $('#mapping-view-sidebar');
+
+    // Prevent sidebar interactions from bubbling to map/document handlers.
+    sidebar.on('click mousedown mouseup touchstart touchend pointerdown pointerup', function(e) {
+        e.stopPropagation();
+    });
+    sidebar.on('click mousedown touchstart', '.sidebar-description-toggle', function(e) {
+        e.stopPropagation();
+    });
     
     // Close sidebar when close button is clicked
     sidebar.find('.sidebar-close').on('click', function(e) {
@@ -143,7 +151,7 @@ $(document).ready(function() {
     
     // Close sidebar when clicking outside of it
     $(document).on('click', function(e) {
-        if (sidebar.hasClass('active') && !sidebar.is(e.target) && sidebar.has(e.target).length === 0) {
+        if (sidebar.hasClass('active') && $(e.target).closest('#mapping-view-sidebar').length === 0) {
             sidebar.removeClass('active');
         }
     });

@@ -1,8 +1,14 @@
 $(document).ready(function () {
   const mappingMap = $("#mapping-map");
+  const sidebar = $("#mapping-view-sidebar");
+
+  // Keep interactions within the sidebar from bubbling to map/document click handlers.
+  if (sidebar.length && typeof L !== "undefined" && L.DomEvent) {
+    L.DomEvent.disableClickPropagation(sidebar[0]);
+    L.DomEvent.disableScrollPropagation(sidebar[0]);
+  }
 
   // Position sidebar below the user-bar
-  const sidebar = $("#mapping-view-sidebar");
   if (sidebar.length) {
     const userBar = $("#user-bar");
     if (userBar.length) {
@@ -291,7 +297,6 @@ $(document).ready(function () {
   map.on("enterFullscreen", function () {
     const mapContainer = map.getContainer();
     const legend = $(".mapping-map-legend");
-    const sidebar = $("#mapping-view-sidebar");
 
     // Move legend and sidebar into fullscreen container for better visibility
     if (legend.length) {
@@ -299,12 +304,13 @@ $(document).ready(function () {
     }
     if (sidebar.length) {
       sidebar.appendTo(mapContainer);
-      // Force sidebar to be visible in fullscreen
-      sidebar.css("position", "fixed");
+      // Keep sidebar in the fullscreen map stacking context to prevent click-through.
+      sidebar.css("position", "absolute");
       sidebar.css("top", "0");
       sidebar.css("right", "0");
       sidebar.css("height", "100vh");
       sidebar.css("width", "30%");
+      sidebar.css("z-index", "2147483647");
     }
 
     // Add fullscreen class to body for additional styling
@@ -315,7 +321,6 @@ $(document).ready(function () {
     const legend = $(".mapping-map-legend");
     const mapContainer = $(".mapping-map-container");
     const mapControls = $(".mapping-map-controls");
-    const sidebar = $("#mapping-view-sidebar");
 
     // Move legend back to map controls to ensure it stays in original structure
     if (legend.length && mapControls.length) {
@@ -331,6 +336,7 @@ $(document).ready(function () {
       sidebar.css("right", "");
       sidebar.css("height", "");
       sidebar.css("width", "");
+      sidebar.css("z-index", "");
     }
 
     // Remove fullscreen class from body

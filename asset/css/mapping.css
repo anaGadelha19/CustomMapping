@@ -994,12 +994,18 @@ body.mapping-fullscreen-active .mapping-map-legend {
 
 /* Fullscreen sidebar positioning - but keep hidden until active */
 body.mapping-fullscreen-active #mapping-view-sidebar.client-sidebar {
-  position: fixed !important;
+  position: absolute !important;
   top: 0 !important;
   right: 0 !important;
   height: 100vh !important;
   width: 30% !important;
   transition: none !important;
+  z-index: 2147483647 !important;
+  pointer-events: auto !important;
+}
+
+body.mapping-fullscreen-active #mapping-view-sidebar.client-sidebar * {
+  pointer-events: auto !important;
 }
 
 /* Show sidebar only when active in fullscreen mode */

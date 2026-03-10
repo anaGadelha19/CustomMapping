@@ -489,12 +489,13 @@
     // Move sidebar into fullscreen container
     if (sidebar.length) {
       sidebar.appendTo(mapContainer);
-      // Force sidebar to be visible in fullscreen
-      sidebar.css("position", "fixed");
+      // Keep sidebar in the fullscreen map stacking context to prevent click-through.
+      sidebar.css("position", "absolute");
       sidebar.css("top", "0");
       sidebar.css("right", "0");
       sidebar.css("height", "100vh");
       sidebar.css("width", "30%");
+      sidebar.css("z-index", "2147483647");
     }
 
     // Add fullscreen class to body for additional styling
@@ -519,6 +520,7 @@
       sidebar.css("right", "");
       sidebar.css("height", "");
       sidebar.css("width", "");
+      sidebar.css("z-index", "");
     }
 
     // Remove fullscreen class from body
