@@ -1,8 +1,4 @@
-﻿console.warn("[CustomMapping] mapping-form.js loaded");
-
-$(document).ready(function () {
-  console.warn("[CustomMapping] mapping-form.js document.ready");
-
+﻿$(document).ready(function () {
   const repairDetailedMappingTabLink = function () {
     const section = $("#custom-mapping-section, #mapping-section").first();
     if (!section.length) {
@@ -387,15 +383,7 @@ $(document).ready(function () {
     itemFieldsById[String(field.id)] = field;
   });
 
-  // Temporary debug output for vocabulary/resource-template field detection.
-  const mappingDebugSemanticDetection = true;
-  if (mappingDebugSemanticDetection) {
-    console.warn("[CustomMapping] semantic detection init", {
-      itemFieldsCount: itemFields.length,
-      hasEditor: $("#custom-mapping-feature-editor").length > 0,
-      isAdmin: !!window.mappingIsAdmin,
-    });
-  }
+  const mappingDebugSemanticDetection = false;
 
   const normalizePropertyIds = function (value) {
     if (Array.isArray(value)) {
@@ -452,25 +440,6 @@ $(document).ready(function () {
     return /(\btype\b|\btipo\b|\btipologia\b|\bcategory\b|\bcategoria\b|phystype)/.test(text);
   };
 
-  const logSemanticFieldDetection = function () {
-    if (!mappingDebugSemanticDetection || !Array.isArray(itemFields)) {
-      return;
-    }
-    const classified = itemFields.map((field) => {
-      return {
-        id: field.id,
-        term: field.term || "",
-        localName: field.localName || "",
-        label: field.label || "",
-        titleMatch: isTitleField(field),
-        descriptionMatch: isDescriptionField(field),
-        typeMatch: isTypeField(field),
-      };
-    });
-    console.log("[CustomMapping] Semantic field detection", classified);
-  };
-
-  logSemanticFieldDetection();
 
   // Helper function to get the first value from a field's values array
   const getFirstFieldValue = function (field) {
@@ -698,15 +667,6 @@ $(document).ready(function () {
       typeSelect.data("preserveTypeFields", true);
       typeSelect.val(typeId).trigger("change");
 
-      if (mappingDebugSemanticDetection) {
-        console.log("[CustomMapping] Synced type from selected field", {
-          fieldId: typeField.id,
-          fieldTerm: typeField.term || "",
-          fieldLabel: typeField.label || "",
-          value: typeValue,
-          resolvedTypeId: typeId,
-        });
-      }
     });
   };
 
@@ -874,16 +834,16 @@ $(document).ready(function () {
   // Find an available color that's not already used by other types
   const findAvailableColor = function () {
     const colors = [
-      "#3498db", // blue
-      "#e74c3c", // red
-      "#2ecc71", // green
-      "#f39c12", // orange
-      "#9b59b6", // purple
-      "#1abc9c", // turquoise
-      "#34495e", // dark gray
-      "#e67e22", // dark orange
-      "#c0392b", // dark red
-      "#27ae60", // dark green
+      "#3498db",
+      "#e74c3c",
+      "#2ecc71", 
+      "#f39c12",
+      "#9b59b6", 
+      "#1abc9c", 
+      "#34495e", 
+      "#e67e22", 
+      "#c0392b", 
+      "#27ae60", 
     ];
     
     // Find the first color that isn't already in use
@@ -1300,51 +1260,21 @@ $(document).ready(function () {
         if (isTitleField(selectedField)) {
           const titleValue = getFirstFieldValue(selectedField);
           if (titleValue) {
-            if (mappingDebugSemanticDetection) {
-              console.log("[CustomMapping] Auto-fill title from field", {
-                fieldId: selectedField.id,
-                fieldTerm: selectedField.term || "",
-                fieldLabel: selectedField.label || "",
-                value: titleValue,
-              });
-            }
             sidebar.find(".mapping-feature-label").val(titleValue);
             $(`input[name="${featureNamePrefix}[o:label]"]`).val(titleValue);
           }
         } else if (isDescriptionField(selectedField)) {
           const descValue = getFirstFieldValue(selectedField);
           if (descValue) {
-            if (mappingDebugSemanticDetection) {
-              console.log("[CustomMapping] Auto-fill description from field", {
-                fieldId: selectedField.id,
-                fieldTerm: selectedField.term || "",
-                fieldLabel: selectedField.label || "",
-                value: descValue,
-              });
-            }
             sidebar.find(".mapping-feature-description").val(descValue);
             $(`input[name="${featureNamePrefix}[o:description]"]`).val(descValue);
           }
         } else if (isTypeField(selectedField)) {
           const typeValue = getFirstFieldValue(selectedField);
           if (typeValue) {
-            if (mappingDebugSemanticDetection) {
-              console.log("[CustomMapping] Type field selected, trying to find/create type", {
-                fieldId: selectedField.id,
-                fieldTerm: selectedField.term || "",
-                fieldLabel: selectedField.label || "",
-                value: typeValue,
-              });
-            }
             // Find or create the type, then set it
             findOrCreateType(typeValue, function (typeId) {
               if (typeId) {
-                if (mappingDebugSemanticDetection) {
-                  console.log("[CustomMapping] Type resolved", {
-                    requestedLabel: typeValue,
-                    resolvedTypeId: typeId,
-                  });
-                }
                 sidebar.find(".mapping-feature-type").val(typeId).trigger("change");
                 $(`input[name="${featureNamePrefix}[o:feature_type][o:id]"]`).val(typeId);
                 feature.featureTypeId = typeId;

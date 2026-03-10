@@ -138,10 +138,6 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
 
     <?php if ($this->status()->isAdminRequest()): ?>
 
-        <div style="margin:8px 0; padding:8px 10px; background:#fff3cd; border:1px solid #ffecb5; color:#664d03; font-size:13px;">
-            CustomMapping debug: template loaded (`mapping-item-form.phtml`, build 2026-03-09)
-        </div>
-
     <legend id="mapping-legend"><?php echo $this->translate('Mapping'); ?></legend>
     <div class="mapping-map-container">
         <div id="custom-mapping-map" style="height:900px !important;"
