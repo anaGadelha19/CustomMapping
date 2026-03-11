@@ -216,7 +216,7 @@ if ($selectedTitleField && !empty($selectedTitleField['values'])) {
         $titleTexts[] = $val['text'];
     }
     $selectedTitleText = trim(implode('; ', $titleTexts));
-    if ($selectedTitleText !== '') {
+    if ((empty($displayTitle) || trim((string) $displayTitle) === '') && $selectedTitleText !== '') {
         $displayTitle = $selectedTitleText;
     }
 }

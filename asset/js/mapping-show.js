@@ -551,8 +551,13 @@ function openFeatureSidebar(feature) {
   );
 
   // Title
+  console.log("[ClientPanel-openFeatureSidebar] feature o:label:", feature["o:label"] || "");
   sidebar.querySelector(".sidebar-title").textContent =
     feature["o:label"] || "";
+  console.log(
+    "[ClientPanel-openFeatureSidebar] panel title text:",
+    sidebar.querySelector(".sidebar-title").textContent,
+  );
 
   // Description
   sidebar.querySelector(".sidebar-description").innerHTML =

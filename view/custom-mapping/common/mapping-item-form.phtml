@@ -19,7 +19,7 @@ $mappingScripts = [
     'js/control.default-view.js',
 ];
 
-$assetVersion = '20260309-3';
+$assetVersion = '20260311-1';
 
 foreach ($mappingStyles as $style) {
     echo '<link rel="stylesheet" href="' . $this->escapeHtmlAttr($this->assetUrl($style, 'CustomMapping') . '?v=' . $assetVersion) . '">';
@@ -138,7 +138,14 @@ $featureTypes = $this->api()->search('custom_mapping_feature_types', ['sort_by' 
     <div class="mapping-map-container custom-mapping-map-container">
         <div id="custom-mapping-map" style="height:900px !important;"
             data-mapping="<?php echo $this->escapeHtml(json_encode($mapping)); ?>"
-            data-features="<?php echo $this->escapeHtml(json_encode($features)); ?>"></div>
+            data-features="<?php 
+                // Convert feature representations to JSON-LD arrays so labels are properly included
+                $featuresData = [];
+                foreach ($features as $feature) {
+                    $featuresData[] = $feature->getJsonLd();
+                }
+                echo $this->escapeHtml(json_encode($featuresData)); 
+            ?>"></div>
     </div>
 
 

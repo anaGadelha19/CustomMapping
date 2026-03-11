@@ -259,11 +259,14 @@ const CustomMappingModule = {
     const pinContainer = sidebar.find(".sidebar-pin");
     pinContainer.html(CustomMappingModule.getPinSvg(markerColor));
 
-    // Title
-    const titleElement = $content
-      .find("h2, h3, .resource-title, .sidebar-title, .group-type a, .group-type")
-      .first();
-    
+    // Title: prefer explicit feature title markup from popup content.
+    let titleElement = $content.find(".sidebar-title").first();
+    if (!titleElement.length) {
+      titleElement = $content
+        .find("h2, h3, .resource-title, .group-type a, .group-type")
+        .first();
+    }
+
     let titleHtml = titleElement.html();
     
     if (!titleHtml || !titleHtml.trim()) {
@@ -280,7 +283,12 @@ const CustomMappingModule = {
       );
       titleHtml = "Untitled";
     }
+    console.log("[ClientPanel] title extracted from response:", titleHtml);
     sidebar.find(".sidebar-title").html(titleHtml);
+    console.log(
+      "[ClientPanel] title rendered in panel:",
+      sidebar.find(".sidebar-title").text(),
+    );
 
     // Creator and Date (side by side)
     const creatorDateDiv = $content.find(".sidebar-creator-date").first();
