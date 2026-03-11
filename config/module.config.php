@@ -72,9 +72,6 @@ return [
     ],
     'block_layouts' => [
         'factories' => [
-            'mappingMap' => Service\BlockLayout\MapFactory::class,
-            'mappingMapQuery' => Service\BlockLayout\MapFactory::class,
-            'mappingMapGroups' => Service\BlockLayout\MapFactory::class,
             'customMappingMap' => Service\BlockLayout\MapFactory::class,
             'customMappingMapQuery' => Service\BlockLayout\MapFactory::class,
             'customMappingMapGroups' => Service\BlockLayout\MapFactory::class,
@@ -151,7 +148,6 @@ return [
     ],
     'resource_page_block_layouts' => [
         'invokables' => [
-            'mapping' => Site\ResourcePageBlockLayout\Mapping::class,
             'custom_mapping' => Site\ResourcePageBlockLayout\Mapping::class,
         ],
     ],
@@ -171,21 +167,17 @@ return [
         ],
         'block_layouts' => [
             'invokables' => [
-                'mappingMap' => StaticSiteExport\BlockLayout\Map::class,
-                'mappingMapQuery' => StaticSiteExport\BlockLayout\MapQuery::class,
                 'customMappingMap' => StaticSiteExport\BlockLayout\Map::class,
                 'customMappingMapQuery' => StaticSiteExport\BlockLayout\MapQuery::class,
             ],
         ],
         'resource_page_block_layouts' => [
             'invokables' => [
-                'mapping' => StaticSiteExport\ResourcePageBlockLayout\Mapping::class,
                 'custom_mapping' => StaticSiteExport\ResourcePageBlockLayout\Mapping::class,
             ],
         ],
         'navigation_links' => [
             'invokables' => [
-                'mapping' => StaticSiteExport\NavigationLink\Mapping::class,
             ],
         ],
     ],

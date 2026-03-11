@@ -58,8 +58,22 @@
     return;
   }
 
+  const mapContainer = mappingMap
+    .closest(".custom-mapping-map-container, .mapping-map-container")
+    .first();
+
+  // Resolve the sidebar scoped to this map first; fall back to generic id only if needed.
+  let sidebar = mapContainer
+    .find(".custom-mapping-view-sidebar, #mapping-view-sidebar")
+    .first();
+  if (!sidebar.length) {
+    sidebar = $(".custom-mapping-view-sidebar").first();
+  }
+  if (!sidebar.length) {
+    sidebar = $("#mapping-view-sidebar").first();
+  }
+
   // Move sidebar to body level for proper z-index stacking with fixed position
-  const sidebar = $("#mapping-view-sidebar");
   if (sidebar.length) {
     sidebar.appendTo("body");
     
@@ -449,28 +463,27 @@
     setTimeout(refreshMapAfterSectionOpen, 0);
   }
 
-  $("#mapping-view-sidebar .sidebar-close").on("click", function (e) {
+  sidebar.find(".sidebar-close").on("click", function (e) {
     e.preventDefault();
 
     if (window.mappingIsAdmin) {
-      Omeka.closeSidebar($("#mapping-view-sidebar")); // Admin
+      Omeka.closeSidebar(sidebar); // Admin
     } else {
-      $("#mapping-view-sidebar").removeClass("active"); // Site
+      sidebar.removeClass("active"); // Site
     }
   });
 
   // Close sidebar when clicking on the map
   map.on("click", function () {
     if (window.mappingIsAdmin) {
-      Omeka.closeSidebar($("#mapping-view-sidebar"));
+      Omeka.closeSidebar(sidebar);
     } else {
-      $("#mapping-view-sidebar").removeClass("active");
+      sidebar.removeClass("active");
     }
   });
 
   // Close sidebar when clicking outside of it (on the page)
   $(document).on("click", function (e) {
-    const sidebar = $("#mapping-view-sidebar");
     if (window.mappingIsAdmin) {
       // Admin mode: let Omeka handle sidebar state
       return;
@@ -483,12 +496,11 @@
 
   // Handle fullscreen mode - ensure legend stays visible and positioned correctly
   map.on("enterFullscreen", function () {
-    const mapContainer = map.getContainer();
-    const sidebar = $("#mapping-view-sidebar");
+    const mapElementContainer = map.getContainer();
 
     // Move sidebar into fullscreen container
     if (sidebar.length) {
-      sidebar.appendTo(mapContainer);
+      sidebar.appendTo(mapElementContainer);
       // Keep sidebar in the fullscreen map stacking context to prevent click-through.
       sidebar.css("position", "absolute");
       sidebar.css("top", "0");
@@ -505,8 +517,6 @@
   map.on("exitFullscreen", function () {
     const legend = $(".mapping-map-legend");
     const controls = $(".mapping-map-controls");
-    const sidebar = $("#mapping-view-sidebar");
-    const mapContainer = $(".mapping-map-container");
 
     if (legend.length && legend.parent()[0] !== controls[0]) {
       legend.appendTo(controls);
@@ -529,7 +539,9 @@
 });
 
 function openFeatureSidebar(feature) {
-  const sidebar = document.getElementById("mapping-view-sidebar");
+  const sidebar =
+    document.querySelector(".custom-mapping-view-sidebar") ||
+    document.getElementById("mapping-view-sidebar");
   if (!sidebar) return;
 
   // Marker color
@@ -562,10 +574,10 @@ function openFeatureSidebar(feature) {
   window.setTimeout(() => {
     const activeModule = window.CustomMappingModule || window.MappingModule;
     if (activeModule && activeModule.initializeDescriptionToggle) {
-      activeModule.initializeDescriptionToggle("#mapping-view-sidebar");
+      activeModule.initializeDescriptionToggle($(sidebar));
     }
   }, 150);
 
-  $("#mapping-view-sidebar").addClass("active");
+  $(sidebar).addClass("active");
 }
 

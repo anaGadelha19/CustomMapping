@@ -1,2 +1,4 @@
-<?php
-include __DIR__ . '/../../../../common/block-layout/mapping-block-form/timeline.phtml';
+<a href="#" class="expand"><h4><?php echo $this->translate('Timeline'); ?></h4></a>
+<div class="collapsible" style="overflow: visible;">
+    <?php echo $this->formCollection($form->get('timeline'), false); ?>
+</div>

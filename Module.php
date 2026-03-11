@@ -785,8 +785,31 @@ class Module extends AbstractModule
         $event->setParam('filters', $filters);
     }
 
+    protected function isCustomMappingRequest(): bool
+    {
+        $application = $this->getServiceLocator()->get('Application');
+        $mvcEvent = $application->getMvcEvent();
+        $routeMatch = $mvcEvent ? $mvcEvent->getRouteMatch() : null;
+        if (!$routeMatch) {
+            return false;
+        }
+
+        $matchedRouteName = (string) $routeMatch->getMatchedRouteName();
+        if (strpos($matchedRouteName, 'custom-mapping') !== false) {
+            return true;
+        }
+
+        $controller = (string) $routeMatch->getParam('controller', '');
+        return strpos($controller, 'CustomMapping\\') === 0;
+    }
+
     public function handleApiSearchQuery(Event $event)
     {
+        // Keep CustomMapping filters isolated so legacy Mapping searches remain independent.
+        if (!$this->isCustomMappingRequest()) {
+            return;
+        }
+
         $itemAdapter = $event->getTarget();
         $qb = $event->getParam('queryBuilder');
         $query = $event->getParam('request')->getContent();

@@ -1,2 +1,67 @@
-<?php
-include __DIR__ . '/../../../common/block-layout/mapping-block-groups.phtml';
+<div class="custom-mapping-block custom-mapping-groups-block">
+
+    <!-- Timeline Date Slider Container -->
+    <div class="custom-mapping-timeline-date-slider-container"></div>
+    <div class="custom-mapping-block-map" style="height:500px;"
+        data-data="<?php echo $this->escapeHtml(json_encode($data)); ?>"
+        data-disable-clustering="<?php echo $this->siteSetting('mapping_disable_clustering') ? '1' : '0'; ?>"
+        data-basemap-provider="<?php echo $this->escapeHtml($this->siteSetting('mapping_basemap_provider')); ?>">
+    </div>
+
+    <div class="custom-mapping-feature-popups" style="display: none;">
+        <?php foreach ($groupsData as $groupData): ?>
+        <div class="custom-mapping-feature-popup-content"
+            data-feature-geography="<?php echo $this->escapeHtml($groupData['geography']); ?>"
+            data-items-query="<?php echo $this->escapeHtml(json_encode($groupData['items_query'])); ?>">
+            <?php echo $this->partial($popupPartial, ['group' => $groupData['group']]); ?>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+</div>
+
+<div class="custom-mapping-block custom-mapping-group-items-block" style="display: none;">
+
+    <!-- Timeline Date Slider Container -->
+    <div class="custom-mapping-timeline-date-slider-container"></div>
+    <div class="custom-mapping-block-map" style="height:500px;"
+        data-data="<?php echo $this->escapeHtml(json_encode($dataItems)); ?>"
+        data-disable-clustering="<?php echo $this->siteSetting('mapping_disable_clustering') ? '1' : '0'; ?>"
+        data-basemap-provider="<?php echo $this->escapeHtml($this->siteSetting('mapping_basemap_provider')); ?>"
+        data-features-url="<?php echo $this->escapeHtml($this->url('site/custom-mapping', ['controller' => 'index', 'action' => 'get-features'], true)); ?>"
+        data-feature-popup-content-url="<?php echo $this->escapeHtml($this->url('site/custom-mapping', ['controller' => 'index', 'action' => 'get-feature-popup-content'], true)); ?>"
+        data-items-query="[]"
+        data-features-query="[]">
+    </div>
+
+    <div class="custom-mapping-group-item-features-bar">
+        <div class="search-filters"></div>
+        <button type="button" class="custom-mapping-show-group-features"><?php echo $this->translate('Return to groups'); ?></button>
+    </div>
+
+    <div class="custom-mapping-view-sidebar sidebar client-sidebar">
+        <a href="#" class="sidebar-close o-icon-close">
+            <span class="screen-reader-text">
+                <?php echo $this->translate('Close'); ?>
+            </span>
+        </a>
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <span class="sidebar-pin"></span>
+                <h2 class="sidebar-title"></h2>
+            </div>
+
+            <div class="sidebar-creator-date"></div>
+
+            <div class="sidebar-description"></div>
+            <button class="sidebar-description-toggle" type="button">
+                <span class="toggle-text">See more</span>
+            </button>
+
+            <div class="sidebar-item-fields"></div>
+
+            <div class="sidebar-media"></div>
+        </div>
+    </div>
+
+</div>

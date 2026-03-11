@@ -152,10 +152,10 @@ class IndexController extends AbstractActionController
             $featureType = $feature->featureType();
             $markerColor = $featureType ? $featureType->color() : $feature->markerColor();
             $featureTypeId = $featureType ? $featureType->id() : null;
-            
+
             $item = $feature->item();
             $itemDates = $this->extractTimelineDates($item);
-            
+
             $features[] = [
                 $feature->id(),
                 $feature->item()->id(),

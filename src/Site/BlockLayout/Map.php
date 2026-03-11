@@ -13,7 +13,7 @@ class Map extends AbstractMap
 {
     public function getLabel()
     {
-        return 'Custom map by attachments'; // @translate
+        return 'Detailed Map by attachments'; // @translate
     }
 
     public function onHydrate(SitePageBlock $block, ErrorStore $errorStore)

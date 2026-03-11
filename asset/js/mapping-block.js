@@ -1,4 +1,4 @@
-function MappingBlock(mapDiv, timelineDiv) {
+function CustomMappingBlock(mapDiv, timelineDiv) {
   // Validate that mapDiv exists and has content
   if (!mapDiv || !mapDiv.length) {
     console.error("MappingBlock: Invalid mapDiv provided");
@@ -39,17 +39,48 @@ function MappingBlock(mapDiv, timelineDiv) {
       },
     );
 
-  const normalizeCustomMappingUrl = function (url) {
-    if (!url || typeof url !== "string") {
-      return url;
+  const block = mapDiv.closest(".custom-mapping-block");
+  const sidebar = block.find(".custom-mapping-view-sidebar").first();
+  const blockId =
+    mapDiv[0].dataset.customMappingBlockId ||
+    `cm-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+  mapDiv[0].dataset.customMappingBlockId = blockId;
+  const docClickNamespace = `.customMappingBlockOutside${blockId}`;
+
+  const closeSidebar = function () {
+    if (!sidebar.length) {
+      return;
     }
-    return url
-      .replace(/\/mapping\/index\/get-features(\b|$)/, "/custom-mapping/index/get-features$1")
-      .replace(
-        /\/mapping\/index\/get-feature-popup-content(\b|$)/,
-        "/custom-mapping/index/get-feature-popup-content$1",
-      );
+    if (window.mappingIsAdmin && typeof Omeka !== "undefined") {
+      Omeka.closeSidebar(sidebar);
+    } else {
+      sidebar.removeClass("active");
+    }
   };
+
+  if (sidebar.length) {
+    sidebar
+      .find(".sidebar-close")
+      .off("click.customMappingBlock")
+      .on("click.customMappingBlock", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeSidebar();
+      });
+
+    // Close when clicking anywhere outside the sidebar.
+    $(document)
+      .off(`click${docClickNamespace}`)
+      .on(`click${docClickNamespace}`, function (e) {
+        if (!sidebar.hasClass("active")) {
+          return;
+        }
+        if ($(e.target).closest(sidebar).length) {
+          return;
+        }
+        closeSidebar();
+      });
+  }
 
   CustomMappingModule.bindLegendFilters(map, mapDiv[0], featuresPoint, featuresPoly);
 
@@ -222,15 +253,13 @@ function MappingBlock(mapDiv, timelineDiv) {
     }
   };
 
-  const getFeaturesUrl = normalizeCustomMappingUrl(mapDiv.data("featuresUrl"));
-  const getFeaturePopupContentUrl = normalizeCustomMappingUrl(
-    mapDiv.data("featurePopupContentUrl"),
-  );
+  const getFeaturesUrl = mapDiv.data("featuresUrl");
+  const getFeaturePopupContentUrl = mapDiv.data("featurePopupContentUrl");
 
   // Load features synchronously.
   mapDiv
-    .closest(".mapping-block")
-    .find(".mapping-feature-popup-content")
+    .closest(".custom-mapping-block")
+    .find(".custom-mapping-feature-popup-content")
     .each(function () {
       const popupContent = $(this);
       const featureId = popupContent.data("featureId");
@@ -358,8 +387,9 @@ function MappingBlock(mapDiv, timelineDiv) {
   // Handle fullscreen mode - ensure sidebar and legend are visible
   map.on("enterFullscreen", function () {
     const mapContainer = map.getContainer();
-    const sidebar = $("#mapping-view-sidebar");
-    const legend = $(".mapping-map-legend");
+    const block = mapDiv.closest(".custom-mapping-block");
+    const sidebar = block.find(".custom-mapping-view-sidebar").first();
+    const legend = block.find(".custom-mapping-map-legend").first();
 
     // Move elements into fullscreen container
     if (sidebar.length) {
@@ -380,10 +410,10 @@ function MappingBlock(mapDiv, timelineDiv) {
   });
 
   map.on("exitFullscreen", function () {
-    const sidebar = $("#mapping-view-sidebar");
-    const legend = $(".mapping-map-legend");
-    const mappingBlock = mapDiv.closest(".mapping-block");
-    const mapContainer = mapDiv.parent(".mapping-map-container");
+    const mappingBlock = mapDiv.closest(".custom-mapping-block");
+    const sidebar = mappingBlock.find(".custom-mapping-view-sidebar").first();
+    const legend = mappingBlock.find(".custom-mapping-map-legend").first();
+    const mapContainer = mapDiv.parent(".custom-mapping-map-container");
 
     // Move elements back to their original positions
     if (sidebar.length && mappingBlock.length) {
@@ -402,18 +432,23 @@ function MappingBlock(mapDiv, timelineDiv) {
     // Remove fullscreen class from body
     $("body").removeClass("mapping-fullscreen-active");
   });
+
+  // Close sidebar on map clicks too.
+  map.on("click", function () {
+    closeSidebar();
+  });
 }
 
 $(document).ready(function () {
-  const visibleBlocks = $(".mapping-block:visible");
+  const visibleBlocks = $(".custom-mapping-block:visible");
 
   visibleBlocks.each(function () {
     const blockDiv = $(this);
-    const mapDiv = blockDiv.find(".mapping-map");
+    const mapDiv = blockDiv.find(".custom-mapping-block-map").first();
     const timelineDiv = blockDiv.find(".mapping-timeline");
 
     if (mapDiv.length) {
-      MappingBlock(mapDiv, timelineDiv);
+      CustomMappingBlock(mapDiv, timelineDiv);
     }
 
     if (mapDiv.length && mapDiv[0].mapping_map) {
@@ -421,12 +456,12 @@ $(document).ready(function () {
     }
   });
 });
-$(document).on("click", ".mapping-show-group-item-features", function (e) {
+$(document).on("click", ".custom-mapping-show-group-item-features", function (e) {
   const thisButton = $(this);
-  const groupPopup = thisButton.closest(".mapping-feature-popup-content");
-  const groupBlock = thisButton.closest(".mapping-block");
-  const itemsBlock = groupBlock.next(".mapping-block");
-  const itemsBlockMap = itemsBlock.find(".mapping-map");
+  const groupPopup = thisButton.closest(".custom-mapping-feature-popup-content");
+  const groupBlock = thisButton.closest(".custom-mapping-block");
+  const itemsBlock = groupBlock.next(".custom-mapping-block");
+  const itemsBlockMap = itemsBlock.find(".custom-mapping-block-map").first();
 
   // Copy filters markup to items block.
   itemsBlock
@@ -438,13 +473,13 @@ $(document).on("click", ".mapping-show-group-item-features", function (e) {
 
   // Prepare and load the items map.
   itemsBlockMap.data("itemsQuery", groupPopup.data("itemsQuery"));
-  MappingBlock(itemsBlockMap);
+  CustomMappingBlock(itemsBlockMap);
 });
 
-$(document).on("click", ".mapping-show-group-features", function () {
+$(document).on("click", ".custom-mapping-show-group-features", function () {
   const thisButton = $(this);
-  const mappingBlockItems = thisButton.closest(".mapping-block");
-  const mappingBlock = mappingBlockItems.prev(".mapping-block");
+  const mappingBlockItems = thisButton.closest(".custom-mapping-block");
+  const mappingBlock = mappingBlockItems.prev(".custom-mapping-block");
   mappingBlockItems.hide();
   mappingBlock.show();
 });

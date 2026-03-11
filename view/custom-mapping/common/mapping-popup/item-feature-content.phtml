@@ -1,3 +1,323 @@
+<!-- This is what is showing inside of the popup -->
 <?php
-// Use a module-unique template path to avoid collisions with the legacy Mapping module.
-include __DIR__ . '/../../../common/mapping-popup/item-feature-content.phtml';
+$markerLabel = $feature->label();  // Preserve marker label with a distinct variable name
+$description = $feature->description();
+$media = $feature->media();
+$item = $feature->item();
+$color = $feature->markerColor();
+$selectedPropertyIds = $feature->propertyIds();
+$selectedFields = [];
+$creatorField = null;
+$dateField = null;
+$mainDatePropertyId = null;
+$selectedTitleField = null;
+
+// Build a mapping of property IDs to their resource template field labels
+$resourceTemplateLabels = [];
+$resourceTemplate = $item->resourceTemplate();
+if ($resourceTemplate) {
+    foreach ($resourceTemplate->resourceTemplateProperties() as $rtProperty) {
+        $propertyId = $rtProperty->property()->id();
+        // Use the alternate label if available, otherwise fall back to the base property label
+        $fieldLabel = $rtProperty->alternateLabel() ?: $rtProperty->property()->label();
+        $resourceTemplateLabels[$propertyId] = $fieldLabel;
+    }
+}
+
+// Normalize text for robust cross-language matching.
+$normalizeText = function ($text) {
+    $text = mb_strtolower((string) $text, 'UTF-8');
+    $converted = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text);
+    if ($converted !== false) {
+        $text = $converted;
+    }
+    return $text;
+};
+
+$fieldSemanticText = function ($property, $fieldLabel) use ($normalizeText) {
+    $term = $property ? (string) $property->term() : '';
+    $localName = strpos($term, ':') !== false ? substr($term, strpos($term, ':') + 1) : $term;
+    return trim(implode(' ', [
+        $normalizeText($fieldLabel),
+        $normalizeText($term),
+        $normalizeText($localName),
+    ]));
+};
+
+// Helper function to check if a field is a title or type field
+$isTitleOrTypeField = function ($property, $fieldLabel) use ($fieldSemanticText) {
+    $text = $fieldSemanticText($property, $fieldLabel);
+    return preg_match('/\btitle\b|\btitulo\b|idtitle|\btype\b|\btipo\b|\btipologia\b|phystype/', $text);
+};
+
+// Helper function to check if a field is a creator field
+$isCreatorField = function ($property, $fieldLabel) use ($fieldSemanticText) {
+    $text = $fieldSemanticText($property, $fieldLabel);
+    return preg_match('/\bcreator\b|\bauthor\b|\bcontributor\b|\bautor\b|\bcriador\b/', $text);
+};
+
+// Helper function to check if a field is a date field
+$isDateField = function ($property, $fieldLabel) use ($fieldSemanticText) {
+    $text = $fieldSemanticText($property, $fieldLabel);
+    return preg_match('/\bdate\b|\bdata\b|\byear\b|\bano\b|surveydate|visitdate|eventdate|\bperiod\b|\bperiodo\b|\btime\b|\bchronolog/', $text);
+};
+
+$isTitleField = function ($property, $fieldLabel) use ($fieldSemanticText) {
+    $text = $fieldSemanticText($property, $fieldLabel);
+    return preg_match('/\btitle\b|\btitulo\b|idtitle|\bname\b|\bnome\b/', $text);
+};
+
+$isDescriptionField = function ($property, $fieldLabel) use ($fieldSemanticText) {
+    $text = $fieldSemanticText($property, $fieldLabel);
+    return preg_match('/\bdescription\b|\bdescricao\b|\bdescricion\b|iddescription/', $text);
+};
+
+$isAbstractField = function ($property, $fieldLabel) use ($fieldSemanticText) {
+    $text = $fieldSemanticText($property, $fieldLabel);
+    return preg_match('/\babstract\b|\bresumo\b/', $text);
+};
+
+$normalizeCompareText = function ($text) use ($normalizeText) {
+    $text = $normalizeText($text);
+    $text = preg_replace('/\s+/u', ' ', trim($text));
+    return $text;
+};
+
+// Helper function to extract value texts and resources
+$extractValues = function ($propertyData) {
+    $values = [];
+    foreach ($propertyData['values'] as $value) {
+        $text = null;
+        $valueResource = null;
+        if ($value->valueResource()) {
+            $valueResource = $value->valueResource();
+            $text = $valueResource->displayTitle();
+        } else {
+            $text = $value->value();
+        }
+        if (is_string($text) && trim($text) !== '') {
+            $values[] = [
+                'text' => $text,
+                'resource' => $valueResource,
+            ];
+        }
+    }
+    return $values;
+};
+
+// Always extract creator and date, regardless of selectedPropertyIds
+foreach ($item->values() as $propertyData) {
+    $property = $propertyData['property'];
+    $propertyId = $property->id();
+    // Use resource template field label if available, otherwise use base property label
+    $fieldLabel = $resourceTemplateLabels[$propertyId] ?? $property->label();
+    $values = $extractValues($propertyData);
+
+    if ($values) {
+        if ($isCreatorField($property, $fieldLabel) && !$creatorField) {
+            $creatorField = [
+                'label' => $fieldLabel,
+                'values' => $values,
+            ];
+        }
+        if ($isDateField($property, $fieldLabel) && !$dateField) {
+            $dateField = [
+                'propertyId' => $propertyId,
+                'label' => $fieldLabel,
+                'values' => $values,
+            ];
+            $mainDatePropertyId = $propertyId;
+        }
+    }
+}
+
+// Process selected fields
+if ($selectedPropertyIds) {
+    $selectedSet = array_flip($selectedPropertyIds);
+    $selectedDescriptionField = null;
+    $selectedAbstractField = null;
+    
+    foreach ($item->values() as $propertyData) {
+        $property = $propertyData['property'];
+        $propertyId = $property->id();
+        if (!isset($selectedSet[$propertyId])) {
+            continue;
+        }
+        $values = $extractValues($propertyData);
+        if ($values) {
+            // Use resource template field label if available, otherwise use base property label
+            $fieldLabel = $resourceTemplateLabels[$propertyId] ?? $property->label();
+            // Check if this is an abstract field (prioritize abstract check)
+            if ($isAbstractField($property, $fieldLabel) && !$selectedAbstractField) {
+                $selectedAbstractField = [
+                    'label' => $fieldLabel,
+                    'values' => $values,
+                ];
+            }
+            // Selected title field should override the marker label in popup display.
+            elseif ($isTitleField($property, $fieldLabel) && !$selectedTitleField) {
+                $selectedTitleField = [
+                    'label' => $fieldLabel,
+                    'values' => $values,
+                ];
+            }
+            // Check if this is a description field (but not abstract)
+            elseif ($isDescriptionField($property, $fieldLabel) && !$isAbstractField($property, $fieldLabel) && !$selectedDescriptionField) {
+                $selectedDescriptionField = $values;
+            }
+            // Skip title and type fields
+            elseif (!$isTitleOrTypeField($property, $fieldLabel)) {
+                // Skip creator and the main date field (shown in dedicated sidebar slot).
+                // Additional date fields are allowed in item fields when selected.
+                $isMainDateField = $mainDatePropertyId !== null && (int) $propertyId === (int) $mainDatePropertyId;
+                if (!$isCreatorField($property, $fieldLabel) && !$isMainDateField) {
+                    $selectedFields[] = [
+                        'label' => $fieldLabel,
+                        'values' => $values,
+                    ];
+                }
+            }
+        }
+    }
+    
+    // Append selected description to the existing description
+    if ($selectedDescriptionField) {
+        $descTexts = [];
+        foreach ($selectedDescriptionField as $val) {
+            $descTexts[] = $val['text'];
+        }
+        $selectedDescText = implode('; ', $descTexts);
+        // Selected description should replace previous marker description text.
+        $description = $selectedDescText;
+    }
+    
+    // Handle abstract based on whether description is also selected
+    if ($selectedAbstractField) {
+        if ($selectedDescriptionField) {
+            // Both selected: add abstract as a separate field
+            $selectedFields[] = $selectedAbstractField;
+        } else {
+            // Only abstract selected: add to description field
+            $absTexts = [];
+            foreach ($selectedAbstractField['values'] as $val) {
+                $absTexts[] = $val['text'];
+            }
+            $selectedAbstractText = implode('; ', $absTexts);
+            // When only abstract is selected, it should replace description text.
+            $description = $selectedAbstractText;
+        }
+    }
+}
+
+$displayTitle = $markerLabel;
+if ($selectedTitleField && !empty($selectedTitleField['values'])) {
+    $titleTexts = [];
+    foreach ($selectedTitleField['values'] as $val) {
+        $titleTexts[] = $val['text'];
+    }
+    $selectedTitleText = trim(implode('; ', $titleTexts));
+    if ($selectedTitleText !== '') {
+        $displayTitle = $selectedTitleText;
+    }
+}
+?>
+<span class="group-type" style="<?php echo $color ? 'color:' . $this->escapeHtmlAttr($color) : ''; ?>">
+
+    <h2 class="sidebar-title">
+        <?php 
+        if (!empty($displayTitle)) {
+            echo $item->link($this->escapeHtml($displayTitle), null, ['target' => '_blank']);
+        } else {
+            echo $item->link($item->displayTitle(null, $this->lang()) ?: $this->translate('Item'), null, ['target' => '_blank']);
+        }
+        ?>
+    </h2>
+
+</span>
+
+<span class="group-value">
+
+    <!-- <?php echo $item->link($item->displayTitle(null, $this->lang()), null, ['target' => '_blank']); ?> -->
+
+    <!-- Creator and Date Side by Side -->
+    <?php if ($creatorField || $dateField): ?>
+        <div class="sidebar-creator-date">
+
+            <?php if ($dateField): ?>
+                <div class="sidebar-date">
+                    <!-- <dt><?php echo $this->escapeHtml($dateField['label']); ?></dt> -->
+                    <dd>
+                        <?php 
+                        $dateTexts = [];
+                        foreach ($dateField['values'] as $val) {
+                            if ($val['resource']) {
+                                $dateTexts[] = $val['resource']->link($val['text'], null, ['target' => '_blank']);
+                            } else {
+                                $dateTexts[] = $this->escapeHtml($val['text']);
+                            }
+                        }
+                        echo implode('; ', $dateTexts);
+                        ?>
+                    </dd>
+                </div>
+            <?php endif; ?>
+            <?php if ($creatorField): ?>
+                <div class="sidebar-creator">
+                    <!-- <dt><?php echo $this->escapeHtml($creatorField['label']); ?></dt> -->
+                    <dd>
+                        <?php 
+                        $creatorTexts = [];
+                        foreach ($creatorField['values'] as $val) {
+                            if ($val['resource']) {
+                                $creatorTexts[] = $val['resource']->link($val['text'], null, ['target' => '_blank']);
+                            } else {
+                                $creatorTexts[] = $this->escapeHtml($val['text']);
+                            }
+                        }
+                        echo implode('; ', $creatorTexts);
+                        ?>
+                    </dd>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($description)): ?>
+        <p class="sidebar-description">
+            <?php echo $this->escapeHtml($description); ?>
+        </p>
+        <button class="sidebar-description-toggle" type="button">
+            <span class="toggle-text">See more</span>
+        </button>
+    <?php endif; ?>
+
+    <!-- Media -->
+    <?php if ($media): ?>
+        <?php echo $this->thumbnail($media, 'medium'); ?>
+    <?php endif; ?>
+
+    <!-- Remaining Item Fields -->
+    <?php if (!empty($selectedFields)): ?>
+        <dl class="mapping-feature-item-values">
+            <?php foreach ($selectedFields as $field): ?>
+                <div class="mapping-feature-item-values-row">
+                    <dt><?php echo $this->escapeHtml($field['label']); ?></dt>
+                    <dd>
+                        <?php 
+                        $fieldTexts = [];
+                        foreach ($field['values'] as $val) {
+                            if ($val['resource']) {
+                                $fieldTexts[] = $val['resource']->link($val['text'], null, ['target' => '_blank']);
+                            } else {
+                                $fieldTexts[] = $this->escapeHtml($val['text']);
+                            }
+                        }
+                        echo implode('; ', $fieldTexts);
+                        ?>
+                    </dd>
+                </div>
+            <?php endforeach; ?>
+        </dl>
+    <?php endif; ?>
+
+</span>

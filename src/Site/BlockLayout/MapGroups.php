@@ -26,7 +26,7 @@ class MapGroups extends AbstractMap
 
     public function getLabel()
     {
-        return 'Custom map by groups'; // @translate
+        return 'Detailed Map by groups'; // @translate
     }
 
     public function onHydrate(SitePageBlock $block, ErrorStore $errorStore)

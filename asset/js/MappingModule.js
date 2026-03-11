@@ -189,7 +189,10 @@ const CustomMappingModule = {
                 getFeaturePopupContentUrl,
                 { feature_id: featureId },
                 function (content) {
-                  const sidebar = $("#mapping-view-sidebar");
+                  const sidebar = CustomMappingModule.getSidebarForMap(map);
+                  if (!sidebar.length) {
+                    return;
+                  }
 
                   CustomMappingModule.renderSidebarContent(
                     sidebar,
@@ -316,6 +319,32 @@ const CustomMappingModule = {
     }
   },
 
+  getSidebarForMap: function (map) {
+    const container = $(map.getContainer());
+    const customBlockSidebar = container
+      .closest(".custom-mapping-block")
+      .find(".custom-mapping-view-sidebar")
+      .first();
+    if (customBlockSidebar.length) {
+      return customBlockSidebar;
+    }
+
+    const customContainerSidebar = container
+      .closest(".custom-mapping-map-container")
+      .find(".custom-mapping-view-sidebar")
+      .first();
+    if (customContainerSidebar.length) {
+      return customContainerSidebar;
+    }
+
+    const sharedCustomSidebar = $(".custom-mapping-view-sidebar").first();
+    if (sharedCustomSidebar.length) {
+      return sharedCustomSidebar;
+    }
+
+    return $();
+  },
+
   /**
    * Add a feature layer to its respective layer.
    *
@@ -346,17 +375,27 @@ const CustomMappingModule = {
   },
 
   bindLegendFilters: function (map, mapDiv, featuresPoint, featuresPoly) {
-    const container = $(mapDiv).closest(".mapping-map-container");
-    const toggles = container.find(".mapping-legend-toggle");
-    const individualToggles = container.find(".mapping-legend-toggle");
-    const allToggle = container.find(".mapping-legend-all-toggle");
+    const container = $(mapDiv).closest(
+      ".custom-mapping-map-container, .mapping-map-container",
+    );
+    const toggleSelector = container.find(".custom-mapping-legend-toggle").length
+      ? ".custom-mapping-legend-toggle"
+      : ".mapping-legend-toggle";
+    const allToggleSelector = container.find(".custom-mapping-legend-all-toggle").length
+      ? ".custom-mapping-legend-all-toggle"
+      : ".mapping-legend-all-toggle";
+    const legendSelector = container.find(".custom-mapping-map-legend").length
+      ? ".custom-mapping-map-legend"
+      : ".mapping-map-legend";
+    const toggles = container.find(toggleSelector);
+    const allToggle = container.find(allToggleSelector);
     
     if (!toggles.length) {
       return;
     }
 
     let filtersEnabled = true;
-    const legend = container.find(".mapping-map-legend");
+    const legend = container.find(legendSelector);
 
     const ensureAllVisible = function () {
       if (!map._mappingAllLayers) {
@@ -378,7 +417,7 @@ const CustomMappingModule = {
       }
       
       // Count checked individual toggles (excluding the "All" checkbox)
-      const typeToggles = container.find(".mapping-legend-toggle").not(allToggle);
+      const typeToggles = container.find(toggleSelector).not(allToggle);
       const totalCount = typeToggles.length;
       const checkedCount = typeToggles.filter(":checked").length;
       
@@ -400,7 +439,7 @@ const CustomMappingModule = {
         ensureAllVisible();
         return;
       }
-      const typeToggles = container.find(".mapping-legend-toggle").not(allToggle);
+      const typeToggles = container.find(toggleSelector).not(allToggle);
       const checked = new Set(
         typeToggles
           .filter(":checked")
@@ -449,7 +488,7 @@ const CustomMappingModule = {
     // Handle "All" checkbox toggle
     if (allToggle.length) {
       allToggle.on("change", function () {
-        const typeToggles = container.find(".mapping-legend-toggle").not(allToggle);
+        const typeToggles = container.find(toggleSelector).not(allToggle);
         typeToggles.prop("checked", this.checked);
         applyFilters();
         updateAllCheckboxState();
@@ -457,7 +496,7 @@ const CustomMappingModule = {
     }
 
     // Handle individual toggle changes
-    const typeToggles = container.find(".mapping-legend-toggle").not(allToggle);
+    const typeToggles = container.find(toggleSelector).not(allToggle);
     typeToggles.on("change", function () {
       applyFilters();
       updateAllCheckboxState();
@@ -477,12 +516,14 @@ const CustomMappingModule = {
   /**
    * Initialize description truncation and toggle functionality
    * Automatically truncates descriptions longer than ~2 paragraphs and shows a toggle button
-   * @param {string} sidebarSelector - The jQuery selector for the sidebar (defaults to #mapping-view-sidebar)
+  * @param {string|jQuery} sidebarSelector - The sidebar selector or jQuery object
    */
   initializeDescriptionToggle: function (sidebarSelector) {
-    const selector = sidebarSelector || "#mapping-view-sidebar";
-    const description = $(selector + " .sidebar-description");
-    const toggleBtn = $(selector + " .sidebar-description-toggle");
+    const sidebar = sidebarSelector && sidebarSelector.jquery
+      ? sidebarSelector.first()
+    : $(sidebarSelector || ".custom-mapping-view-sidebar").first();
+    const description = sidebar.find(".sidebar-description");
+    const toggleBtn = sidebar.find(".sidebar-description-toggle");
 
     if (!description.length || !toggleBtn.length) {
       return;
@@ -550,7 +591,7 @@ CustomMappingModule.renderSidebarContent = function (sidebarElement, content, ma
   CustomMappingModule.originalRenderSidebarContent(sidebarElement, content, markerColor);
   // Then initialize the toggle - use longer timeout to ensure DOM is fully updated
   window.setTimeout(() => {
-    CustomMappingModule.initializeDescriptionToggle("#mapping-view-sidebar");
+    CustomMappingModule.initializeDescriptionToggle(sidebarElement);
   }, 150);
 };
   

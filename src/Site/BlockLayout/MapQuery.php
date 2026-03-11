@@ -13,7 +13,7 @@ class MapQuery extends AbstractMap
 {
     public function getLabel()
     {
-        return 'Custom map by query'; // @translate
+        return 'Detailed Map by query'; // @translate
     }
 
     public function onHydrate(SitePageBlock $block, ErrorStore $errorStore)
