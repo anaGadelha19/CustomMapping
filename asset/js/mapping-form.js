@@ -1,24 +1,4 @@
-﻿
-// Log all form inputs before submission
-$("#mapping-form").on("submit", function () {
-  console.log("=== FORM SUBMITTED ===");
-  console.log("All hidden feature inputs:");
-  
-  // Log all hidden label inputs
-  $('input[name*="[o:label]"]').each(function() {
-    const name = $(this).attr("name");
-    const value = $(this).val();
-    console.log("  " + name + " = " + value);
-  });
-  
-  // Log all hidden description inputs
-  $('input[name*="[o:description]"]').each(function() {
-    const name = $(this).attr("name");
-    const value = $(this).val();
-    console.log("  " + name + " = " + value);
-  });
-});
-$(document).ready(function () {
+﻿$(document).ready(function () {
   const repairDetailedMappingTabLink = function () {
     const section = $("#custom-mapping-section, #mapping-section").first();
     if (!section.length) {
@@ -90,8 +70,6 @@ $(document).ready(function () {
     featureMediaId,
     featurePropertyIds,
   ) {
-    console.log("addFeature called with featureLabel:", featureLabel, "featureId:", featureId);
-    
     const typeColor = featureTypeId ? getTypeColorById(featureTypeId) : null;
     const markerColor = typeColor || featureMarkerColor || "#3498db";
 
@@ -112,16 +90,9 @@ $(document).ready(function () {
       const labelValue = feature._finalLabel || featureLabel || '';
       const descriptionValue = feature._finalDescription || featureDescription || '';
       
-      console.log("=== Marker Clicked ===");
-      console.log("Feature ID:", featureId);
-      console.log("featureLabel from data:", featureLabel);
-      console.log("feature._finalLabel:", feature._finalLabel);
-      console.log("Final labelValue used:", labelValue);
-      
       const currentFeatureTypeId = feature.featureTypeId || featureTypeId || "";
 
       sidebar.find(".mapping-feature-label").val(labelValue);
-      console.log("Sidebar input value set to:", sidebar.find(".mapping-feature-label").val());
       
       sidebar.find(".mapping-feature-type").val(currentFeatureTypeId);
       sidebar.find(".mapping-feature-description").val(descriptionValue);
@@ -130,7 +101,6 @@ $(document).ready(function () {
       const adminSidebarTitle = sidebar.find(".sidebar-title");
       if (adminSidebarTitle.length) {
         adminSidebarTitle.text(labelValue);
-        console.log("Sidebar title element text set to:", adminSidebarTitle.text());
       }
       
       // Ensure form inputs have the correct values for submission
@@ -180,8 +150,6 @@ $(document).ready(function () {
     // Auto-fill title and description from item fields only if empty (creating new marker)
     let finalLabel = featureLabel;
     let finalDescription = featureDescription;
-    
-    console.log("In addFeature - finalLabel initialized to:", finalLabel);
     
     if (!finalLabel) {
       // Look for a title field in the available item fields
@@ -242,8 +210,6 @@ $(document).ready(function () {
     // These will be used as the source of truth throughout the session
     feature._finalLabel = finalLabel;
     feature._finalDescription = finalDescription;
-    
-    console.log("Feature object created with _finalLabel:", feature._finalLabel, "featureId:", featureId);
 
     // Step: 1
 
@@ -271,7 +237,6 @@ $(document).ready(function () {
         value: finalLabel,
       }),
     );
-    console.log("Created hidden input for label:", featureNamePrefix + "[o:label]", "=", finalLabel);
     mappingForm.append(
       $("<input>", {
         type: "hidden",
@@ -1015,14 +980,6 @@ $(document).ready(function () {
   const mappingForm = $("#mapping-form");
   const mappingData = mappingMap.data("mapping");
   const featuresData = mappingMap.data("features");
-  
-  console.log("=== Page Load ===");
-  console.log("Features data from DOM:", featuresData);
-  if (featuresData && Array.isArray(featuresData)) {
-    featuresData.forEach((f, i) => {
-      console.log("Feature " + i + " label:", f["o:label"]);
-    });
-  }
 
   // Initialize the map and set default view.
   const map = L.map(mappingMap[0], {
@@ -1123,8 +1080,6 @@ $(document).ready(function () {
   // Step 3
   // Add saved features to the map.
   $.each(featuresData, function (index, data) {
-    console.log("Loading feature " + index, "Label from API:", data["o:label"]);
-    
     const featureMediaId = data["o:media"] ? data["o:media"]["o:id"] : null;
     const featureTypeId = data["o:feature_type"]
       ? data["o:feature_type"]["o:id"]
@@ -1158,7 +1113,6 @@ $(document).ready(function () {
       },
 
       onEachFeature: function (feature, layer) {
-        console.log("Adding feature to map, label:", data["o:label"]);
         addFeature(
           layer,
           data["o:id"],
@@ -1317,17 +1271,11 @@ $(document).ready(function () {
       const featureNamePrefix = getFeatureNamePrefix(feature);
       const labelValue = $(this).val();
 
-      console.log("Title updated in sidebar input:", labelValue);
-      console.log("Feature layer id:", feature._leaflet_id || "unknown");
-      console.log("Hidden form input name:", featureNamePrefix + "[o:label]");
-
       // Update the hidden form input
       $(`input[name="${featureNamePrefix}[o:label]"]`).val(labelValue);
-      console.log("Hidden form input value is now:", $(`input[name="${featureNamePrefix}[o:label]"]`).val());
       
       // Update the feature object so changes persist
       feature._finalLabel = labelValue;
-      console.log("Feature._finalLabel set to:", feature._finalLabel);
 
       // Keep item title field selection aligned with edited marker title.
       syncTitleFieldSelectionWithLabel(sidebar, feature, labelValue);
@@ -1350,8 +1298,6 @@ $(document).ready(function () {
       const featureNamePrefix = getFeatureNamePrefix(feature);
       const descriptionValue = $(this).val();
 
-      console.log("Description updated in sidebar:", descriptionValue);
-
       // Update the hidden form input
       $(`input[name="${featureNamePrefix}[o:description]"]`).val(
         descriptionValue,
@@ -1359,7 +1305,6 @@ $(document).ready(function () {
       
       // Update the feature object so changes persist
       feature._finalDescription = descriptionValue;
-      console.log("Feature._finalDescription set to:", feature._finalDescription);
 
       // Keep item description field selection aligned with edited marker description.
       syncDescriptionFieldSelectionWithDescription(sidebar, feature, descriptionValue);

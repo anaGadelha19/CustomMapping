@@ -283,12 +283,7 @@ const CustomMappingModule = {
       );
       titleHtml = "Untitled";
     }
-    console.log("[ClientPanel] title extracted from response:", titleHtml);
     sidebar.find(".sidebar-title").html(titleHtml);
-    console.log(
-      "[ClientPanel] title rendered in panel:",
-      sidebar.find(".sidebar-title").text(),
-    );
 
     // Creator and Date (side by side)
     const creatorDateDiv = $content.find(".sidebar-creator-date").first();
